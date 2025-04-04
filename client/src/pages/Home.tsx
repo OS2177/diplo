@@ -1,20 +1,57 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { Link } from "wouter";
 import LocationMap from "@/components/LocationMap";
 import CampaignTile, { Campaign } from "@/components/CampaignTile";
 import VoteResultsGraph from "@/components/VoteResultsGraph";
 import { recentResults } from "@/lib/mockData";
-import campaignsData from "@/data/campaigns.json";
 import { initialLocation, getCurrentPosition, reverseGeocode } from "@/lib/geolocation";
+
+// Sample campaign data
+const campaignData: Campaign[] = [
+  {
+    id: "1",
+    title: "War or No War",
+    summary: "A collective vote on the future of the Ukraine-Russia conflict.",
+    type: "Regional",
+    status: "live",
+    countdown: "2 days",
+    lat: 50.4501,
+    long: 30.5234,
+    radius: 1500
+  },
+  {
+    id: "2",
+    title: "Universal Basic Income",
+    summary: "Should a global UBI be adopted as an economic right?",
+    type: "Global",
+    status: "pending",
+    countdown: "5 days",
+    lat: 0,
+    long: 0,
+    radius: 20000
+  },
+  {
+    id: "3",
+    title: "Ban Surveillance Drones",
+    summary: "A public vote on banning drone surveillance in civilian spaces.",
+    type: "Local",
+    status: "live",
+    countdown: "3 days",
+    lat: 48.8566,
+    long: 2.3522,
+    radius: 100
+  }
+];
 
 const Home: React.FC = () => {
   // State for user location
   const [location, setLocation] = useState(initialLocation);
   const [nearbyCampaigns, setNearbyCampaigns] = useState<Campaign[]>([]);
+  const [activeCampaigns] = useState<Campaign[]>(campaignData);
   
-  // Filter campaigns to only show those with "live" status
-  const activeCampaigns = campaignsData.filter(campaign => campaign.status === 'live') as Campaign[];
+  // Use a ref to track if we've already set the initial campaigns
+  const initialCampaignsSet = useRef(false);
   
   // Calculate distance between two points using Haversine formula
   const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
@@ -77,13 +114,19 @@ const Home: React.FC = () => {
     getUserLocation();
   }, []);
   
-  // Filter campaigns based on user's location
+  // Set initial campaigns (only live ones)
+  useEffect(() => {
+    if (!initialCampaignsSet.current) {
+      setNearbyCampaigns(activeCampaigns.filter(campaign => campaign.status === 'live'));
+      initialCampaignsSet.current = true;
+    }
+  }, [activeCampaigns]);
+  
+  // Update nearby campaigns when location changes
   useEffect(() => {
     if (location.coordinates) {
       const nearby = activeCampaigns.filter(campaign => isCampaignInRange(campaign));
       setNearbyCampaigns(nearby);
-    } else {
-      setNearbyCampaigns(activeCampaigns);
     }
   }, [location.coordinates, activeCampaigns]);
   

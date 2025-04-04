@@ -89,9 +89,9 @@ const VoteResultsGraph: React.FC<VoteResultsGraphProps> = ({ result }) => {
       <div className="flex justify-between text-sm text-neutral-600">
         <span>{result.countriesParticipated} countries participated</span>
         <Link href={`/results/${result.id}`}>
-          <a className="text-primary-dark hover:text-primary-light">
+          <div className="text-primary-dark hover:text-primary-light cursor-pointer">
             Full analysis →
-          </a>
+          </div>
         </Link>
       </div>
     </motion.div>

@@ -11,6 +11,9 @@ export interface Campaign {
     name: string;
     colorClass: string;
   };
+  latitude?: number;
+  longitude?: number;
+  radius?: number; // Radius in kilometers
 }
 
 export interface VoteResult {
@@ -34,7 +37,10 @@ export const activeCampaigns: Campaign[] = [
     sponsor: {
       name: "UN sponsored",
       colorClass: "bg-secondary-light"
-    }
+    },
+    latitude: 40.7128, // New York
+    longitude: -74.0060,
+    radius: 3000 // Global campaigns have large radius
   },
   {
     id: "456",
@@ -48,7 +54,10 @@ export const activeCampaigns: Campaign[] = [
     sponsor: {
       name: "WWF sponsored",
       colorClass: "bg-accent-light"
-    }
+    },
+    latitude: 25.7617, // Miami
+    longitude: -80.1918,
+    radius: 500 // Regional campaigns have medium radius
   },
   {
     id: "789",
@@ -61,7 +70,10 @@ export const activeCampaigns: Campaign[] = [
     sponsor: {
       name: "EU sponsored",
       colorClass: "bg-primary-light"
-    }
+    },
+    latitude: 50.8503, // Brussels
+    longitude: 4.3517,
+    radius: 2000 // Global campaigns have large radius
   }
 ];
 

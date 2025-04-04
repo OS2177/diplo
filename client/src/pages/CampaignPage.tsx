@@ -172,6 +172,9 @@ const CampaignPage: React.FC = () => {
                 { id: "abstain", label: "I choose to abstain" }
               ]} 
               onVoteSubmit={handleVoteSubmit}
+              campaignLat={campaign.latitude}
+              campaignLong={campaign.longitude}
+              radius={campaign.radius}
             />
           </motion.div>
           
@@ -199,6 +202,9 @@ const CampaignPage: React.FC = () => {
                 { id: "abstain", label: "I choose to abstain" }
               ]} 
               onVoteSubmit={handleVoteSubmit}
+              campaignLat={campaign.latitude}
+              campaignLong={campaign.longitude}
+              radius={campaign.radius}
             />
           </div>
         </motion.div>

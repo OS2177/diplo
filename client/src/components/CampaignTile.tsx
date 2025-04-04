@@ -2,12 +2,12 @@ import React from "react";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
 
-// Define our Campaign type based on our JSON structure
+// Export Campaign interface to match our JSON structure
 export interface Campaign {
   id: string;
   title: string;
   summary: string;
-  type: string; // "Global" or "Regional"
+  type: string; // "Global", "Regional", "Local"
   status: string; // "live" or "pending"
   countdown: string;
   lat: number;

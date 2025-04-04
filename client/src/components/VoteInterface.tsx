@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
+import { calculateDistance, getImpactPercent } from "@/utils/useGeoImpact";
 
 interface VoteOption {
   id: string;
@@ -12,17 +13,51 @@ interface VoteInterfaceProps {
   campaignTitle: string;
   options: VoteOption[];
   onVoteSubmit?: (optionId: string) => void;
+  campaignLat?: number;
+  campaignLong?: number;
+  radius?: number;
 }
 
 const VoteInterface: React.FC<VoteInterfaceProps> = ({ 
   campaignId, 
   campaignTitle, 
   options, 
-  onVoteSubmit 
+  onVoteSubmit,
+  campaignLat,
+  campaignLong,
+  radius
 }) => {
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [impact, setImpact] = useState<number | null>(null);
+  const [locationLoading, setLocationLoading] = useState(false);
   const { toast } = useToast();
+  
+  useEffect(() => {
+    if (campaignLat && campaignLong && radius) {
+      setLocationLoading(true);
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const userLat = position.coords.latitude;
+          const userLong = position.coords.longitude;
+          const distance = calculateDistance(userLat, userLong, campaignLat, campaignLong);
+          const impactScore = getImpactPercent(distance, radius);
+          setImpact(impactScore);
+          setLocationLoading(false);
+        },
+        (error) => {
+          console.error("Geolocation error:", error);
+          setImpact(5); // Minimum impact if location access is denied
+          setLocationLoading(false);
+          toast({
+            title: "Location access denied",
+            description: "Your vote impact is set to minimum (5%).",
+            variant: "destructive"
+          });
+        }
+      );
+    }
+  }, [campaignLat, campaignLong, radius, toast]);
 
   const handleOptionSelect = (optionId: string) => {
     setSelectedOption(optionId);
@@ -67,6 +102,49 @@ const VoteInterface: React.FC<VoteInterfaceProps> = ({
   return (
     <div className="bg-white rounded-xl shadow-sm border border-neutral-200 p-6">
       <h2 className="text-2xl font-heading font-bold mb-4">{campaignTitle}</h2>
+      
+      {/* Vote impact information */}
+      {(campaignLat && campaignLong && radius) && (
+        <div className="mb-4">
+          {locationLoading ? (
+            <p className="text-sm text-neutral-500 flex items-center">
+              <motion.div 
+                className="w-4 h-4 mr-2 border-2 border-primary border-t-transparent rounded-full"
+                animate={{ rotate: 360 }}
+                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+              />
+              Calculating your vote impact...
+            </p>
+          ) : impact !== null ? (
+            <div className="bg-primary-light/10 rounded-lg p-3 mb-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">Your vote impact:</span>
+                <span className="text-lg font-bold text-primary">{impact}%</span>
+              </div>
+              <motion.div 
+                className="h-1.5 bg-neutral-200 rounded-full mt-2 overflow-hidden"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.2 }}
+              >
+                <motion.div 
+                  className="h-full bg-primary rounded-full"
+                  initial={{ width: 0 }}
+                  animate={{ width: `${impact}%` }}
+                  transition={{ duration: 0.8, ease: "easeOut" }}
+                />
+              </motion.div>
+              <p className="text-xs text-neutral-500 mt-2">
+                {impact >= 75 ? "You're in the core impact zone!" :
+                 impact >= 50 ? "You're in a high impact area." :
+                 impact >= 25 ? "You're in the campaign's region." :
+                 "You're outside the main region, but your vote still counts!"}
+              </p>
+            </div>
+          ) : null}
+        </div>
+      )}
+      
       <p className="text-neutral-600 mb-6">
         Select your position on this issue. Your vote is anonymous and will be recorded securely.
       </p>
