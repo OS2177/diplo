@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, Link } from "wouter";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
+import campaignData from "@/data/campaigns.json";
 import VoteInterface from "@/components/VoteInterface";
 import { activeCampaigns } from "@/lib/mockData";
 import { Button } from "@/components/ui/button";
@@ -20,7 +21,7 @@ const CampaignPage: React.FC = () => {
         // In a real app, this would be an API call
         await new Promise(resolve => setTimeout(resolve, 500));
         
-        const foundCampaign = activeCampaigns.find(c => c.id === id);
+        const foundCampaign = campaignData.find(c => c.id === id);
         
         if (foundCampaign) {
           setCampaign(foundCampaign);
