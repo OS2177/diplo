@@ -20,5 +20,16 @@
 "lat": 0,
 "long": 0,
 "radius": 20000
+},
+{
+"id": "3",
+"title": "Ban Surveillance Drones",
+"summary": "A public vote on banning drone surveillance in civilian spaces.",
+"type": "Local",
+"status": "live",
+"countdown": "3 days",
+"lat": 48.8566,
+"long": 2.3522,
+"radius": 100
 }
 ]

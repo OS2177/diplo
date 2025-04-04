@@ -58,19 +58,19 @@ const Home: React.FC = () => {
         // Attempt to reverse geocode
         const locationInfo = await reverseGeocode(coords.latitude, coords.longitude);
         
-        setLocation({
-          ...location,
+        setLocation(prevLocation => ({
+          ...prevLocation,
           coordinates: coords,
           city: locationInfo.city,
           country: locationInfo.country,
           loading: false
-        });
+        }));
       } catch (error) {
-        setLocation({
-          ...location,
+        setLocation(prevLocation => ({
+          ...prevLocation,
           error: 'Unable to retrieve your location',
           loading: false
-        });
+        }));
       }
     };
     
@@ -80,12 +80,12 @@ const Home: React.FC = () => {
   // Filter campaigns based on user's location
   useEffect(() => {
     if (location.coordinates) {
-      const nearby = activeCampaigns.filter(isCampaignInRange);
+      const nearby = activeCampaigns.filter(campaign => isCampaignInRange(campaign));
       setNearbyCampaigns(nearby);
     } else {
       setNearbyCampaigns(activeCampaigns);
     }
-  }, [location, activeCampaigns]);
+  }, [location.coordinates, activeCampaigns]);
   
   return (
     <div className="px-4 py-6 md:p-8">
