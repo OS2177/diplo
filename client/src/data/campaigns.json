@@ -1,75 +1,24 @@
 [
-  {
-    "id": "1",
-    "title": "War or No War",
-    "description": "A collective vote on the future of the Ukraine-Russia conflict.",
-    "summary": "A collective vote on the future of the Ukraine-Russia conflict.",
-    "image": "https://images.unsplash.com/photo-1580927752452-89d86da3fa0a?q=80&w=1740&auto=format&fit=crop",
-    "scope": "Regional",
-    "region": "Eastern Europe", 
-    "status": "live",
-    "daysLeft": 2,
-    "votes": 24530,
-    "sponsor": {
-      "name": "United Nations",
-      "colorClass": "bg-blue-500"
-    },
-    "lat": 50.4501,
-    "long": 30.5234,
-    "radius": 1500
-  },
-  {
-    "id": "2",
-    "title": "Universal Basic Income",
-    "description": "Should a global UBI be adopted as an economic right? This campaign aims to gather global consensus on implementing a universal basic income system across participating nations.",
-    "summary": "Should a global UBI be adopted as an economic right?",
-    "image": "https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?q=80&w=1740&auto=format&fit=crop",
-    "scope": "Global",
-    "status": "pending",
-    "daysLeft": 5,
-    "votes": 18275,
-    "sponsor": {
-      "name": "World Economic Forum",
-      "colorClass": "bg-green-500"
-    },
-    "lat": 0,
-    "long": 0,
-    "radius": 20000
-  },
-  {
-    "id": "3",
-    "title": "Ocean Conservation Treaty",
-    "description": "Vote on the proposed international treaty to protect ocean ecosystems and regulate international waters fishing practices.",
-    "summary": "Vote on the proposed international treaty to protect ocean ecosystems.",
-    "image": "https://images.unsplash.com/photo-1498855926480-d98e83099315?q=80&w=1740&auto=format&fit=crop",
-    "scope": "Global",
-    "status": "live",
-    "daysLeft": 7,
-    "votes": 31427,
-    "sponsor": {
-      "name": "Ocean Protection Alliance",
-      "colorClass": "bg-blue-400"
-    },
-    "lat": 0,
-    "long": 0,
-    "radius": 20000
-  },
-  {
-    "id": "4",
-    "title": "Digital Rights Charter",
-    "description": "A framework for protecting digital rights, data privacy, and establishing ethical guidelines for artificial intelligence development.",
-    "summary": "A framework for protecting digital rights and data privacy globally.",
-    "image": "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=1740&auto=format&fit=crop",
-    "scope": "Global",
-    "status": "live",
-    "daysLeft": 14,
-    "votes": 42189,
-    "sponsor": {
-      "name": "Digital Freedom Initiative",
-      "colorClass": "bg-purple-500"
-    },
-    "lat": 0,
-    "long": 0,
-    "radius": 20000
-  }
+{
+"id": "1",
+"title": "War or No War",
+"summary": "A collective vote on the future of the Ukraine-Russia conflict.",
+"type": "Regional",
+"status": "live",
+"countdown": "2 days",
+"lat": 50.4501,
+"long": 30.5234,
+"radius": 1500
+},
+{
+"id": "2",
+"title": "Universal Basic Income",
+"summary": "Should a global UBI be adopted as an economic right?",
+"type": "Global",
+"status": "pending",
+"countdown": "5 days",
+"lat": 0,
+"long": 0,
+"radius": 20000
+}
 ]

@@ -32,7 +32,7 @@ const Home: React.FC = () => {
   
   // Check if a campaign is within range based on user's location
   const isCampaignInRange = (campaign: Campaign): boolean => {
-    if (!location.coordinates || campaign.scope === 'Global') return true;
+    if (!location.coordinates || campaign.type === 'Global') return true;
     
     const distance = calculateDistance(
       location.coordinates.latitude, 
