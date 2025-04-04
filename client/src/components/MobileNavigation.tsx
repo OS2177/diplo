@@ -18,55 +18,45 @@ const MobileNavigation: React.FC = () => {
   return (
     <nav className="md:hidden bg-white border-t border-neutral-200 px-4 py-3">
       <div className="flex justify-around">
-        <Link href="/">
-          <a className={getLinkClass("/")}>
-            <motion.i 
-              className="fas fa-home text-lg"
-              whileTap={{ scale: 0.9 }}
-            ></motion.i>
-            <span className="text-xs mt-1">Home</span>
-          </a>
-        </Link>
+        <div className={getLinkClass("/")} onClick={() => window.location.href="/"}>
+          <motion.i 
+            className="fas fa-home text-lg"
+            whileTap={{ scale: 0.9 }}
+          ></motion.i>
+          <span className="text-xs mt-1">Home</span>
+        </div>
         
-        <Link href="/results">
-          <a className={getLinkClass("/results")}>
-            <motion.i 
-              className="fas fa-list text-lg"
-              whileTap={{ scale: 0.9 }}
-            ></motion.i>
-            <span className="text-xs mt-1">Campaigns</span>
-          </a>
-        </Link>
+        <div className={getLinkClass("/campaigns")} onClick={() => window.location.href="/campaigns"}>
+          <motion.i 
+            className="fas fa-list text-lg"
+            whileTap={{ scale: 0.9 }}
+          ></motion.i>
+          <span className="text-xs mt-1">Campaigns</span>
+        </div>
         
-        <Link href="/create-campaign">
-          <a className={getLinkClass("/create-campaign")}>
-            <motion.i 
-              className="fas fa-plus-circle text-lg"
-              whileTap={{ scale: 0.9 }}
-            ></motion.i>
-            <span className="text-xs mt-1">Create</span>
-          </a>
-        </Link>
+        <div className={getLinkClass("/create-campaign")} onClick={() => window.location.href="/create-campaign"}>
+          <motion.i 
+            className="fas fa-plus-circle text-lg"
+            whileTap={{ scale: 0.9 }}
+          ></motion.i>
+          <span className="text-xs mt-1">Create</span>
+        </div>
         
-        <Link href="/results">
-          <a className={getLinkClass("/results")}>
-            <motion.i 
-              className="fas fa-chart-pie text-lg"
-              whileTap={{ scale: 0.9 }}
-            ></motion.i>
-            <span className="text-xs mt-1">Results</span>
-          </a>
-        </Link>
+        <div className={getLinkClass("/results")} onClick={() => window.location.href="/results"}>
+          <motion.i 
+            className="fas fa-chart-pie text-lg"
+            whileTap={{ scale: 0.9 }}
+          ></motion.i>
+          <span className="text-xs mt-1">Results</span>
+        </div>
         
-        <Link href="/dashboard">
-          <a className={getLinkClass("/dashboard")}>
-            <motion.i 
-              className="fas fa-user text-lg"
-              whileTap={{ scale: 0.9 }}
-            ></motion.i>
-            <span className="text-xs mt-1">Profile</span>
-          </a>
-        </Link>
+        <div className={getLinkClass("/dashboard")} onClick={() => window.location.href="/dashboard"}>
+          <motion.i 
+            className="fas fa-user text-lg"
+            whileTap={{ scale: 0.9 }}
+          ></motion.i>
+          <span className="text-xs mt-1">Profile</span>
+        </div>
       </div>
     </nav>
   );

@@ -16,6 +16,7 @@ function App() {
         <Switch>
           <Route path="/" component={Home} />
           <Route path="/campaign/:id" component={CampaignPage} />
+          <Route path="/campaigns" component={Home} />
           <Route path="/create-campaign" component={CreateCampaign} />
           <Route path="/integrity-vote/:id" component={IntegrityVote} />
           <Route path="/results" component={ResultsPage} />
