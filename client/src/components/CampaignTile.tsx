@@ -41,9 +41,9 @@ const CampaignTile: React.FC<CampaignTileProps> = ({ campaign }) => {
             <span className="text-xs text-neutral-500">{campaign.sponsor.name}</span>
           </div>
           <Link href={`/campaign/${campaign.id}`}>
-            <a className="text-primary-dark hover:text-primary-light font-medium text-sm">
+            <div className="text-primary-dark hover:text-primary-light font-medium text-sm cursor-pointer">
               Vote now →
-            </a>
+            </div>
           </Link>
         </div>
       </div>
