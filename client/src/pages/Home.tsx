@@ -1,12 +1,92 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Link } from "wouter";
 import LocationMap from "@/components/LocationMap";
-import CampaignTile from "@/components/CampaignTile";
+import CampaignTile, { Campaign } from "@/components/CampaignTile";
 import VoteResultsGraph from "@/components/VoteResultsGraph";
-import { activeCampaigns, recentResults } from "@/lib/mockData";
+import { recentResults } from "@/lib/mockData";
+import campaignsData from "@/data/campaigns.json";
+import { initialLocation, getCurrentPosition, reverseGeocode } from "@/lib/geolocation";
 
 const Home: React.FC = () => {
+  // State for user location
+  const [location, setLocation] = useState(initialLocation);
+  const [nearbyCampaigns, setNearbyCampaigns] = useState<Campaign[]>([]);
+  
+  // Filter campaigns to only show those with "live" status
+  const activeCampaigns = campaignsData.filter(campaign => campaign.status === 'live') as Campaign[];
+  
+  // Calculate distance between two points using Haversine formula
+  const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
+    const R = 6371; // Radius of the earth in km
+    const dLat = (lat2 - lat1) * (Math.PI / 180);
+    const dLon = (lon2 - lon1) * (Math.PI / 180);
+    const a = 
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) * 
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const distance = R * c; // Distance in km
+    return distance;
+  };
+  
+  // Check if a campaign is within range based on user's location
+  const isCampaignInRange = (campaign: Campaign): boolean => {
+    if (!location.coordinates || campaign.scope === 'Global') return true;
+    
+    const distance = calculateDistance(
+      location.coordinates.latitude, 
+      location.coordinates.longitude,
+      campaign.lat,
+      campaign.long
+    );
+    
+    // Convert radius from km to meters
+    return distance * 1000 <= campaign.radius;
+  };
+  
+  // Get user's location
+  useEffect(() => {
+    const getUserLocation = async () => {
+      try {
+        const position = await getCurrentPosition();
+        const coords = {
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude
+        };
+        
+        // Attempt to reverse geocode
+        const locationInfo = await reverseGeocode(coords.latitude, coords.longitude);
+        
+        setLocation({
+          ...location,
+          coordinates: coords,
+          city: locationInfo.city,
+          country: locationInfo.country,
+          loading: false
+        });
+      } catch (error) {
+        setLocation({
+          ...location,
+          error: 'Unable to retrieve your location',
+          loading: false
+        });
+      }
+    };
+    
+    getUserLocation();
+  }, []);
+  
+  // Filter campaigns based on user's location
+  useEffect(() => {
+    if (location.coordinates) {
+      const nearby = activeCampaigns.filter(isCampaignInRange);
+      setNearbyCampaigns(nearby);
+    } else {
+      setNearbyCampaigns(activeCampaigns);
+    }
+  }, [location, activeCampaigns]);
+  
   return (
     <div className="px-4 py-6 md:p-8">
       <motion.div 
@@ -23,7 +103,63 @@ const Home: React.FC = () => {
         </p>
       </motion.div>
 
-      <LocationMap />
+      <div className="mb-8">
+        {location.loading ? (
+          <div className="p-4 bg-blue-50 rounded-lg border border-blue-100">
+            <p className="text-blue-700">
+              <i className="fas fa-location-arrow mr-2"></i>
+              Detecting your location...
+            </p>
+          </div>
+        ) : location.error ? (
+          <div className="p-4 bg-red-50 rounded-lg border border-red-100">
+            <p className="text-red-700">
+              <i className="fas fa-exclamation-triangle mr-2"></i>
+              {location.error} - Some campaigns may not be available to you
+            </p>
+          </div>
+        ) : location.coordinates ? (
+          <div className="p-4 bg-green-50 rounded-lg border border-green-100">
+            <p className="text-green-700">
+              <i className="fas fa-check-circle mr-2"></i>
+              Location detected: {location.city}, {location.country}
+            </p>
+          </div>
+        ) : null}
+      </div>
+
+      <LocationMap 
+        coordinates={location.coordinates} 
+        nearbyCampaignsCount={nearbyCampaigns.length}
+      />
+
+      {/* Nearby Campaigns Section - only shows if location is available and there are nearby campaigns */}
+      {location.coordinates && nearbyCampaigns.length > 0 && nearbyCampaigns.length !== activeCampaigns.length && (
+        <motion.div 
+          className="mb-10 bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-xl border border-blue-100"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <div className="flex items-center justify-between mb-5">
+            <div className="flex items-center">
+              <div className="mr-3 bg-blue-500 p-2 rounded-full">
+                <i className="fas fa-map-marker-alt text-white"></i>
+              </div>
+              <h2 className="text-2xl font-heading font-bold text-blue-800">Near You</h2>
+            </div>
+            <div className="text-sm text-blue-600 bg-blue-100 px-3 py-1 rounded-full">
+              Based on your location • {nearbyCampaigns.length} campaign{nearbyCampaigns.length !== 1 ? 's' : ''}
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {nearbyCampaigns.map(campaign => (
+              <CampaignTile key={campaign.id} campaign={campaign} />
+            ))}
+          </div>
+        </motion.div>
+      )}
 
       <div className="mb-10">
         <div className="flex items-center justify-between mb-5">

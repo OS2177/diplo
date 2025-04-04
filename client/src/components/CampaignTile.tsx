@@ -1,10 +1,31 @@
 import React from "react";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
-import { Campaign } from "@/lib/mockData";
+import { Campaign as MockCampaign } from "@/lib/mockData";
+
+// Define our own Campaign type based on our JSON structure
+export interface Campaign {
+  id: string;
+  title: string;
+  description: string;
+  summary: string;
+  image: string;
+  scope: string; // Changed from union type to accept any string
+  region?: string;
+  status: string;
+  daysLeft: number;
+  votes: number;
+  sponsor: {
+    name: string;
+    colorClass: string;
+  };
+  lat: number;
+  long: number;
+  radius: number;
+}
 
 interface CampaignTileProps {
-  campaign: Campaign;
+  campaign: Campaign | MockCampaign;
 }
 
 const CampaignTile: React.FC<CampaignTileProps> = ({ campaign }) => {
