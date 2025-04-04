@@ -138,11 +138,11 @@ const Dashboard: React.FC = () => {
                 <div className="space-y-4">
                   {userCampaigns.map(campaign => (
                     <Link key={campaign.id} href={`/campaign/${campaign.id}`}>
-                      <a className="flex items-center p-3 hover:bg-neutral-50 rounded-lg">
+                      <div className="flex items-center p-3 hover:bg-neutral-50 rounded-lg cursor-pointer">
                         <span className={`w-3 h-3 rounded-full ${campaign.colorClass} mr-3`}></span>
                         <span className="text-neutral-800">{campaign.title}</span>
                         <i className="fas fa-chevron-right ml-auto text-neutral-400"></i>
-                      </a>
+                      </div>
                     </Link>
                   ))}
                 </div>
@@ -150,9 +150,9 @@ const Dashboard: React.FC = () => {
                 <div className="text-center py-6 text-neutral-500">
                   <p>You haven't created any campaigns yet.</p>
                   <Link href="/create-campaign">
-                    <a className="text-primary-dark font-medium mt-2 inline-block">
+                    <div className="text-primary-dark font-medium mt-2 inline-block cursor-pointer">
                       Create your first campaign
-                    </a>
+                    </div>
                   </Link>
                 </div>
               )}
@@ -214,23 +214,23 @@ const Dashboard: React.FC = () => {
                 <div className="flex justify-between items-center mb-4">
                   <h3 className="text-lg font-bold">Recommended Campaigns</h3>
                   <Link href="/">
-                    <a className="text-primary-dark text-sm">
+                    <div className="text-primary-dark text-sm cursor-pointer">
                       View all
-                    </a>
+                    </div>
                   </Link>
                 </div>
                 
                 <div className="space-y-4">
                   {activeCampaigns.slice(0, 3).map(campaign => (
                     <Link key={campaign.id} href={`/campaign/${campaign.id}`}>
-                      <a className="flex items-center p-3 hover:bg-neutral-50 rounded-lg border border-neutral-200">
+                      <div className="flex items-center p-3 hover:bg-neutral-50 rounded-lg border border-neutral-200 cursor-pointer">
                         <span className={`w-2 h-2 rounded-full ${campaign.sponsor.colorClass} mr-3`}></span>
                         <div>
                           <p className="font-medium">{campaign.title}</p>
                           <p className="text-sm text-neutral-500">{campaign.daysLeft} days left • {campaign.votes.toLocaleString()} votes</p>
                         </div>
                         <i className="fas fa-chevron-right ml-auto text-neutral-400"></i>
-                      </a>
+                      </div>
                     </Link>
                   ))}
                 </div>

@@ -34,8 +34,8 @@ const Sidebar: React.FC<SidebarProps> = ({ mobile = false, onClose }) => {
       <nav className="flex-1 p-4">
         <div className="space-y-1">
           <Link href="/">
-            <a 
-              className={`flex items-center px-2 py-3 rounded-lg ${
+            <div 
+              className={`flex items-center px-2 py-3 rounded-lg cursor-pointer ${
                 isActiveRoute("/") 
                   ? "text-primary-dark bg-primary-light/10" 
                   : "text-neutral-600 hover:bg-neutral-100"
@@ -44,12 +44,12 @@ const Sidebar: React.FC<SidebarProps> = ({ mobile = false, onClose }) => {
             >
               <i className="fas fa-home w-6"></i>
               <span className={`ml-3 ${isActiveRoute("/") ? "font-medium" : ""}`}>Home</span>
-            </a>
+            </div>
           </Link>
           
           <Link href="/dashboard">
-            <a 
-              className={`flex items-center px-2 py-3 rounded-lg ${
+            <div 
+              className={`flex items-center px-2 py-3 rounded-lg cursor-pointer ${
                 isActiveRoute("/dashboard") 
                   ? "text-primary-dark bg-primary-light/10" 
                   : "text-neutral-600 hover:bg-neutral-100"
@@ -58,12 +58,12 @@ const Sidebar: React.FC<SidebarProps> = ({ mobile = false, onClose }) => {
             >
               <i className="fas fa-chart-line w-6"></i>
               <span className={`ml-3 ${isActiveRoute("/dashboard") ? "font-medium" : ""}`}>Dashboard</span>
-            </a>
+            </div>
           </Link>
           
           <Link href="/create-campaign">
-            <a 
-              className={`flex items-center px-2 py-3 rounded-lg ${
+            <div 
+              className={`flex items-center px-2 py-3 rounded-lg cursor-pointer ${
                 isActiveRoute("/create-campaign") 
                   ? "text-primary-dark bg-primary-light/10" 
                   : "text-neutral-600 hover:bg-neutral-100"
@@ -72,7 +72,7 @@ const Sidebar: React.FC<SidebarProps> = ({ mobile = false, onClose }) => {
             >
               <i className="fas fa-plus-circle w-6"></i>
               <span className={`ml-3 ${isActiveRoute("/create-campaign") ? "font-medium" : ""}`}>Create Campaign</span>
-            </a>
+            </div>
           </Link>
         </div>
         
@@ -83,8 +83,8 @@ const Sidebar: React.FC<SidebarProps> = ({ mobile = false, onClose }) => {
           <div className="mt-2 space-y-1">
             {userCampaigns.map(campaign => (
               <Link key={campaign.id} href={`/campaign/${campaign.id}`}>
-                <a 
-                  className={`flex items-center px-2 py-2 text-sm rounded-lg ${
+                <div 
+                  className={`flex items-center px-2 py-2 text-sm rounded-lg cursor-pointer ${
                     isActiveRoute(`/campaign/${campaign.id}`) 
                       ? "text-primary-dark bg-primary-light/10" 
                       : "text-neutral-600 hover:bg-neutral-100"
@@ -93,7 +93,7 @@ const Sidebar: React.FC<SidebarProps> = ({ mobile = false, onClose }) => {
                 >
                   <span className={`w-2 h-2 rounded-full ${campaign.colorClass} mr-3`}></span>
                   {campaign.title}
-                </a>
+                </div>
               </Link>
             ))}
           </div>
