@@ -11,6 +11,7 @@ const ResultsPage: React.FC = () => {
   const params = useParams();
   const [location] = useLocation();
   const [results, setResults] = useState(recentResults);
+  const [resolvedResults, setResolvedResults] = useState(resolvedCampaigns);
   const [selectedResult, setSelectedResult] = useState<typeof recentResults[0] | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();

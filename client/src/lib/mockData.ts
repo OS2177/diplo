@@ -25,55 +25,40 @@ export interface VoteResult {
   countriesParticipated: number;
 }
 
-export const activeCampaigns: Campaign[] = [
+export interface ResolvedCampaign {
+  id: string;
+  title: string;
+  summary: string;
+  type: string;
+  status: string;
+  totalVotes: number;
+  inFavor: number;
+  countriesParticipated: number;
+  daysEnded: number;
+}
+
+export const resolvedCampaigns: ResolvedCampaign[] = [
   {
-    id: "123",
-    title: "Climate Action Resolution",
-    description: "Vote on the proposed framework for carbon neutrality targets by 2050.",
-    image: "https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2340&q=80",
-    daysLeft: 3,
-    scope: "Global",
-    votes: 16439,
-    sponsor: {
-      name: "UN sponsored",
-      colorClass: "bg-secondary-light"
-    },
-    latitude: 40.7128, // New York
-    longitude: -74.0060,
-    radius: 3000 // Global campaigns have large radius
+    id: "resolved-1",
+    title: "Global Climate Action",
+    summary: "Worldwide initiative for climate change mitigation",
+    type: "Global",
+    status: "resolved",
+    totalVotes: 15000,
+    inFavor: 68,
+    countriesParticipated: 45,
+    daysEnded: 5
   },
   {
-    id: "456",
-    title: "Ocean Protection Initiative",
-    description: "Weigh in on coordinated efforts to reduce plastic waste in oceans.",
-    image: "https://images.unsplash.com/photo-1566410845935-2fb3b3eb1ce1?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2340&q=80",
-    daysLeft: 5,
-    scope: "Regional",
-    region: "Americas",
-    votes: 8753,
-    sponsor: {
-      name: "WWF sponsored",
-      colorClass: "bg-accent-light"
-    },
-    latitude: 25.7617, // Miami
-    longitude: -80.1918,
-    radius: 500 // Regional campaigns have medium radius
-  },
-  {
-    id: "789",
-    title: "Digital Rights Treaty",
-    description: "Vote on international standards for digital privacy and data protection.",
-    image: "https://images.unsplash.com/photo-1527219525722-f9767a7f2884?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2340&q=80",
-    daysLeft: 7,
-    scope: "Global",
-    votes: 12201,
-    sponsor: {
-      name: "EU sponsored",
-      colorClass: "bg-primary-light"
-    },
-    latitude: 50.8503, // Brussels
-    longitude: 4.3517,
-    radius: 2000 // Global campaigns have large radius
+    id: "resolved-2",
+    title: "Digital Privacy Standards",
+    summary: "Setting new standards for online privacy protection",
+    type: "Global",
+    status: "resolved",
+    totalVotes: 12000,
+    inFavor: 72,
+    countriesParticipated: 38,
+    daysEnded: 8
   }
 ];
 
@@ -119,3 +104,80 @@ export const userProfile = {
   role: "UN Ambassador",
   avatar: "https://i.pravatar.cc/40?img=68"
 };
+
+import { useState } from 'react';
+import IntegrityVotingCard from '../components/IntegrityVotingCard';
+import campaignData from '../data/campaigns.json';
+
+export default function IntegrityVote() {
+  const initialPending = campaignData
+    .filter(c => c.status === 'pending')
+    .map(c => ({ ...c, upvotes: 0, downvotes: 0 }));
+
+  const [pendingCampaigns, setPendingCampaigns] = useState(initialPending);
+  const [liveCampaigns, setLiveCampaigns] = useState([]);
+
+  const handleVote = (id, vote) => {
+    setPendingCampaigns(prev =>
+      prev.map(c =>
+        c.id === id
+          ? {
+              ...c,
+              upvotes: vote === 'up' ? c.upvotes + 1 : c.upvotes,
+              downvotes: vote === 'down' ? c.downvotes + 1 : c.downvotes
+            }
+          : c
+      )
+    );
+  };
+
+  const promoteToLive = (id) => {
+    const campaign = pendingCampaigns.find(c => c.id === id);
+    if (campaign && campaign.upvotes - campaign.downvotes >= 3) {
+      setLiveCampaigns([...liveCampaigns, { ...campaign, status: 'live' }]);
+      setPendingCampaigns(prev => prev.filter(c => c.id !== id));
+    }
+  };
+
+  return (
+    <div>
+      <h1 className="heading">Integrity Voting</h1>
+      {pendingCampaigns.map(campaign => (
+        <div key={campaign.id}>
+          <IntegrityVotingCard campaign={campaign} onVote={handleVote} />
+          <button className="button-primary" onClick={() => promoteToLive(campaign.id)}>
+            Promote to Live (Threshold: 3+ net votes)
+          </button>
+        </div>
+      ))}
+
+      {liveCampaigns.length > 0 && (
+        <div className="tile">
+          <h2 className="heading">Promoted Campaigns</h2>
+          {liveCampaigns.map(c => (
+            <p key={c.id} className="caption">{c.title} is now live!</p>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+import campaignData from '../data/campaigns.json';
+
+export default function ResultsPage() {
+  const resolvedCampaigns = campaignData.filter(c => c.status === 'resolved');
+
+  return (
+    <div>
+      <h1 className="heading">Archived Campaigns</h1>
+      {resolvedCampaigns.length === 0 && <p className="caption">No archived campaigns yet.</p>}
+      {resolvedCampaigns.map(c => (
+        <div key={c.id} className="tile">
+          <h2 className="heading">{c.title}</h2>
+          <p className="caption">{c.summary}</p>
+        </div>
+      ))}
+    </div>
+  );
+}
