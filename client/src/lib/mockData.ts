@@ -13,7 +13,7 @@ export interface Campaign {
   };
   latitude?: number;
   longitude?: number;
-  radius?: number; // Radius in kilometers
+  radius?: number;
 }
 
 export interface VoteResult {
@@ -50,7 +50,7 @@ export const resolvedCampaigns: ResolvedCampaign[] = [
     daysEnded: 5
   },
   {
-    id: "resolved-2",
+    id: "resolved-2", 
     title: "Digital Privacy Standards",
     summary: "Setting new standards for online privacy protection",
     type: "Global",
