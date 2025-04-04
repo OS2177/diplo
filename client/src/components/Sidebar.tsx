@@ -47,6 +47,20 @@ const Sidebar: React.FC<SidebarProps> = ({ mobile = false, onClose }) => {
             </div>
           </Link>
           
+          <Link href="/integrity-vote">
+            <div 
+              className={`flex items-center px-2 py-3 rounded-lg cursor-pointer ${
+                isActiveRoute("/integrity-vote") 
+                  ? "text-primary-dark bg-primary-light/10" 
+                  : "text-neutral-600 hover:bg-neutral-100"
+              }`}
+              onClick={onClose}
+            >
+              <i className="fas fa-shield-check w-6"></i>
+              <span className={`ml-3 ${isActiveRoute("/integrity-vote") ? "font-medium" : ""}`}>Integrity</span>
+            </div>
+          </Link>
+
           <Link href="/dashboard">
             <div 
               className={`flex items-center px-2 py-3 rounded-lg cursor-pointer ${
@@ -58,6 +72,20 @@ const Sidebar: React.FC<SidebarProps> = ({ mobile = false, onClose }) => {
             >
               <i className="fas fa-chart-line w-6"></i>
               <span className={`ml-3 ${isActiveRoute("/dashboard") ? "font-medium" : ""}`}>Dashboard</span>
+            </div>
+          </Link>
+
+          <Link href="/results">
+            <div 
+              className={`flex items-center px-2 py-3 rounded-lg cursor-pointer ${
+                isActiveRoute("/results") 
+                  ? "text-primary-dark bg-primary-light/10" 
+                  : "text-neutral-600 hover:bg-neutral-100"
+              }`}
+              onClick={onClose}
+            >
+              <i className="fas fa-archive w-6"></i>
+              <span className={`ml-3 ${isActiveRoute("/results") ? "font-medium" : ""}`}>Archive</span>
             </div>
           </Link>
           
