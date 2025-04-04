@@ -45,10 +45,24 @@ const CampaignPage: React.FC = () => {
     fetchCampaign();
   }, [id, toast]);
 
-  const handleVoteSubmit = (optionId: string) => {
-    console.log(`Vote submitted for campaign ${id}, option: ${optionId}`);
-    // In a real app, this would make an API call
+  const [voteResults, setVoteResults] = useState<{[key: string]: {votes: number, impact: number}}>({
+    "for": { votes: 0, impact: 0 },
+    "against": { votes: 0, impact: 0 },
+    "abstain": { votes: 0, impact: 0 }
+  });
+
+  const handleVoteSubmit = (optionId: string, impact: number) => {
+    setVoteResults(prev => ({
+      ...prev,
+      [optionId]: {
+        votes: prev[optionId].votes + 1,
+        impact: prev[optionId].impact + impact
+      }
+    }));
   };
+
+  const totalVotes = Object.values(voteResults).reduce((acc, curr) => acc + curr.votes, 0);
+  const totalImpact = Object.values(voteResults).reduce((acc, curr) => acc + curr.impact, 0);
 
   if (loading) {
     return (
@@ -212,6 +226,38 @@ const CampaignPage: React.FC = () => {
               radius={campaign.radius}
             />
           </div>
+
+          {totalVotes > 0 && (
+            <motion.div 
+              className="mt-8 bg-white rounded-xl shadow-sm border border-neutral-200 p-6"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+            >
+              <h2 className="text-2xl font-heading font-bold mb-6">Live Results</h2>
+              <ResultsBar 
+                label="In Favor" 
+                percent={(voteResults.for.impact / totalImpact) * 100} 
+                color="#4CAF50"
+                total={voteResults.for.votes}
+              />
+              <ResultsBar 
+                label="Against" 
+                percent={(voteResults.against.impact / totalImpact) * 100} 
+                color="#f44336"
+                total={voteResults.against.votes}
+              />
+              <ResultsBar 
+                label="Abstained" 
+                percent={(voteResults.abstain.impact / totalImpact) * 100} 
+                color="#9e9e9e"
+                total={voteResults.abstain.votes}
+              />
+              <p className="text-sm text-neutral-500 mt-4 text-center">
+                Total votes: {totalVotes} • Combined impact: {totalImpact.toFixed(1)}%
+              </p>
+            </motion.div>
+          )}
         </motion.div>
       </div>
     </div>
