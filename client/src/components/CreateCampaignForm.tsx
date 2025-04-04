@@ -15,12 +15,15 @@ import { Calendar as CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 
 const formSchema = z.object({
-  title: z.string().min(5, "Title must be at least 5 characters").max(100, "Title must be less than 100 characters"),
-  description: z.string().min(20, "Description must be at least 20 characters").max(500, "Description must be less than 500 characters"),
-  scope: z.enum(["Global", "Regional"]),
-  region: z.string().optional(),
+  title: z.string().min(5, "Title must be at least 5 characters"),
+  summary: z.string().min(20, "Summary must be at least 20 characters"),
+  type: z.enum(["Local", "Regional", "Global"]),
+  lat: z.string().transform(Number),
+  long: z.string().transform(Number),
+  radius: z.string().transform(Number),
   endDate: z.date().min(new Date(), "End date must be in the future"),
   sponsor: z.string().min(3, "Sponsor name is required"),
+
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -29,36 +32,51 @@ const CreateCampaignForm: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const { toast } = useToast();
-  
+
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       title: "",
-      description: "",
-      scope: "Global",
-      region: "",
+      summary: "",
+      type: "Regional",
+      lat: "",
+      long: "",
+      radius: "",
       endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // Default to 7 days from now
       sponsor: "",
     },
   });
-  
-  const selectedScope = form.watch("scope");
-  
+
+
   const onSubmit = async (data: FormValues) => {
     setIsSubmitting(true);
-    
+
     try {
       // In a real implementation, this would be an API call
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      console.log("Campaign data:", data, "Image:", uploadedImage);
-      
+
+      const newCampaign = {
+        id: Date.now().toString(),
+        title: data.title,
+        summary: data.summary,
+        type: data.type,
+        status: "pending",
+        countdown: "5 days",
+        lat: data.lat,
+        long: data.long,
+        radius: data.radius,
+        endDate: data.endDate,
+        sponsor: data.sponsor,
+        image: uploadedImage
+      };
+      console.log("Campaign data:", newCampaign);
+
       toast({
         title: "Campaign Created",
         description: "Your campaign has been created successfully.",
       });
-      
+
       // Reset form
       form.reset();
       setUploadedImage(null);
@@ -72,7 +90,7 @@ const CreateCampaignForm: React.FC = () => {
       setIsSubmitting(false);
     }
   };
-  
+
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -95,7 +113,7 @@ const CreateCampaignForm: React.FC = () => {
       <p className="text-neutral-600 mb-6">
         Fill in the details below to create a new voting campaign. Make sure to provide clear and accurate information.
       </p>
-      
+
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <FormField
@@ -111,82 +129,88 @@ const CreateCampaignForm: React.FC = () => {
               </FormItem>
             )}
           />
-          
+
           <FormField
             control={form.control}
-            name="description"
+            name="summary"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Description</FormLabel>
+                <FormLabel>Summary</FormLabel>
                 <FormControl>
-                  <Textarea 
-                    placeholder="Provide a detailed description of the campaign" 
-                    className="min-h-32"
-                    {...field} 
-                  />
+                  <Input placeholder="Campaign summary" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+          <FormField
+            control={form.control}
+            name="type"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Campaign Type</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select type" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="Local">Local</SelectItem>
+                    <SelectItem value="Regional">Regional</SelectItem>
+                    <SelectItem value="Global">Global</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <div className="grid grid-cols-2 gap-4">
             <FormField
               control={form.control}
-              name="scope"
+              name="lat"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Campaign Scope</FormLabel>
-                  <Select 
-                    onValueChange={field.onChange} 
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select scope" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="Global">Global</SelectItem>
-                      <SelectItem value="Regional">Regional</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <FormLabel>Latitude</FormLabel>
+                  <FormControl>
+                    <Input type="number" step="0.000001" placeholder="Latitude" {...field} />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            
-            {selectedScope === "Regional" && (
-              <FormField
-                control={form.control}
-                name="region"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Region</FormLabel>
-                    <Select 
-                      onValueChange={field.onChange} 
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select region" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="Americas">Americas</SelectItem>
-                        <SelectItem value="Europe">Europe</SelectItem>
-                        <SelectItem value="Asia">Asia</SelectItem>
-                        <SelectItem value="Africa">Africa</SelectItem>
-                        <SelectItem value="Oceania">Oceania</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
+
+            <FormField
+              control={form.control}
+              name="long"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Longitude</FormLabel>
+                  <FormControl>
+                    <Input type="number" step="0.000001" placeholder="Longitude" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </div>
-          
+
+          <FormField
+            control={form.control}
+            name="radius"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Radius (km)</FormLabel>
+                <FormControl>
+                  <Input type="number" placeholder="Impact radius in kilometers" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
           <FormField
             control={form.control}
             name="endDate"
@@ -223,7 +247,7 @@ const CreateCampaignForm: React.FC = () => {
               </FormItem>
             )}
           />
-          
+
           <FormField
             control={form.control}
             name="sponsor"
@@ -237,16 +261,16 @@ const CreateCampaignForm: React.FC = () => {
               </FormItem>
             )}
           />
-          
+
           <div>
             <FormLabel className="block mb-2">Campaign Image</FormLabel>
             <div className="border-2 border-dashed border-neutral-300 rounded-lg p-4 text-center">
               {uploadedImage ? (
                 <div className="relative">
-                  <img 
-                    src={uploadedImage} 
-                    alt="Campaign preview" 
-                    className="max-h-48 mx-auto rounded-lg object-cover" 
+                  <img
+                    src={uploadedImage}
+                    alt="Campaign preview"
+                    className="max-h-48 mx-auto rounded-lg object-cover"
                   />
                   <button
                     type="button"
@@ -276,9 +300,9 @@ const CreateCampaignForm: React.FC = () => {
               )}
             </div>
           </div>
-          
-          <Button 
-            type="submit" 
+
+          <Button
+            type="submit"
             className="w-full bg-primary hover:bg-primary-dark"
             disabled={isSubmitting}
           >
