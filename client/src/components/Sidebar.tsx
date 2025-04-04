@@ -30,14 +30,14 @@ const Sidebar: React.FC<SidebarProps> = ({ mobile = false, onClose }) => {
         </div>
         <p className="text-sm text-neutral-500 mt-1">Global diplomacy platform</p>
       </div>
-      
+
       <nav className="flex-1 p-4">
         <div className="space-y-1">
           <Link href="/">
             <div 
               className={`flex items-center px-2 py-3 rounded-lg cursor-pointer ${
                 isActiveRoute("/") 
-                  ? "text-neutral-800 bg-neutral-100" 
+                  ? "text-neutral-900 bg-neutral-100 font-medium" 
                   : "text-neutral-600 hover:bg-neutral-100"
               }`}
               onClick={onClose}
@@ -46,12 +46,12 @@ const Sidebar: React.FC<SidebarProps> = ({ mobile = false, onClose }) => {
               <span className={`ml-3 ${isActiveRoute("/") ? "font-medium" : ""}`}>Home</span>
             </div>
           </Link>
-          
+
           <Link href="/integrity-vote">
             <div 
               className={`flex items-center px-2 py-3 rounded-lg cursor-pointer ${
                 isActiveRoute("/integrity-vote") 
-                  ? "text-primary-dark bg-primary-light/10" 
+                  ? "text-neutral-900 bg-neutral-100 font-medium" 
                   : "text-neutral-600 hover:bg-neutral-100"
               }`}
               onClick={onClose}
@@ -65,7 +65,7 @@ const Sidebar: React.FC<SidebarProps> = ({ mobile = false, onClose }) => {
             <div 
               className={`flex items-center px-2 py-3 rounded-lg cursor-pointer ${
                 isActiveRoute("/dashboard") 
-                  ? "text-primary-dark bg-primary-light/10" 
+                  ? "text-neutral-900 bg-neutral-100 font-medium" 
                   : "text-neutral-600 hover:bg-neutral-100"
               }`}
               onClick={onClose}
@@ -79,7 +79,7 @@ const Sidebar: React.FC<SidebarProps> = ({ mobile = false, onClose }) => {
             <div 
               className={`flex items-center px-2 py-3 rounded-lg cursor-pointer ${
                 isActiveRoute("/results") 
-                  ? "text-primary-dark bg-primary-light/10" 
+                  ? "text-neutral-900 bg-neutral-100 font-medium" 
                   : "text-neutral-600 hover:bg-neutral-100"
               }`}
               onClick={onClose}
@@ -88,12 +88,12 @@ const Sidebar: React.FC<SidebarProps> = ({ mobile = false, onClose }) => {
               <span className={`ml-3 ${isActiveRoute("/results") ? "font-medium" : ""}`}>Archive</span>
             </div>
           </Link>
-          
+
           <Link href="/create-campaign">
             <div 
               className={`flex items-center px-2 py-3 rounded-lg cursor-pointer ${
                 isActiveRoute("/create-campaign") 
-                  ? "text-primary-dark bg-primary-light/10" 
+                  ? "text-neutral-900 bg-neutral-100 font-medium" 
                   : "text-neutral-600 hover:bg-neutral-100"
               }`}
               onClick={onClose}
@@ -103,7 +103,7 @@ const Sidebar: React.FC<SidebarProps> = ({ mobile = false, onClose }) => {
             </div>
           </Link>
         </div>
-        
+
         <div className="mt-8">
           <h3 className="px-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider">
             My Campaigns
@@ -114,7 +114,7 @@ const Sidebar: React.FC<SidebarProps> = ({ mobile = false, onClose }) => {
                 <div 
                   className={`flex items-center px-2 py-2 text-sm rounded-lg cursor-pointer ${
                     isActiveRoute(`/campaign/${campaign.id}`) 
-                      ? "text-primary-dark bg-primary-light/10" 
+                      ? "text-neutral-900 bg-neutral-100 font-medium" 
                       : "text-neutral-600 hover:bg-neutral-100"
                   }`}
                   onClick={onClose}
@@ -127,7 +127,7 @@ const Sidebar: React.FC<SidebarProps> = ({ mobile = false, onClose }) => {
           </div>
         </div>
       </nav>
-      
+
       <div className="p-4 border-t border-neutral-200">
         <div className="flex items-center">
           <img src={userProfile.avatar} className="h-10 w-10 rounded-full" alt="User avatar" />
