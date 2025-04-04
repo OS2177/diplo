@@ -9,9 +9,12 @@ import ResultsPage from "@/pages/ResultsPage";
 import Dashboard from "@/pages/Dashboard";
 import NotFound from "@/pages/not-found";
 
+import NavBar from "./components/NavBar";
+
 function App() {
   return (
     <>
+      <NavBar />
       <Layout>
         <Switch>
           {/* Note: More specific routes should come before general routes */}

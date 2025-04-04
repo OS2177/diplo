@@ -42,6 +42,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post("/api/campaigns/:id/promote", async (req: Request, res: Response) => {
+    const { id } = req.params;
+    try {
+      await storage.promoteCampaign(id);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(400).json({ error: "Failed to promote campaign" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

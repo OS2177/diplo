@@ -14,7 +14,7 @@ export default function IntegrityVote() {
   const [promotedCampaigns, setPromotedCampaigns] = useState<typeof initialPending>([]);
   const { toast } = useToast();
 
-  const handleVote = (campaignId: string, decision: 'approve' | 'flag', reason?: string) => {
+  const handleVote = async (campaignId: string, decision: 'approve' | 'flag', reason?: string) => {
     setPendingCampaigns(prev => 
       prev.map(c => {
         if (c.id === campaignId) {
@@ -24,21 +24,29 @@ export default function IntegrityVote() {
             downvotes: decision === 'flag' ? c.downvotes + 1 : c.downvotes
           };
 
-          // Check if campaign should be promoted
+          // Auto-promote logic
           if (newCampaign.upvotes - newCampaign.downvotes >= 3) {
-            setTimeout(() => {
-              setPromotedCampaigns(prev => [...prev, { ...newCampaign, status: 'live' }]);
+            const promotedCampaign = { ...newCampaign, status: 'live' };
+            
+            // Update server status
+            fetch(`/api/campaigns/${campaignId}/promote`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' }
+            }).then(() => {
+              setPromotedCampaigns(prev => [...prev, promotedCampaign]);
               setPendingCampaigns(current => current.filter(camp => camp.id !== campaignId));
               toast({
                 title: "Campaign Promoted",
                 description: `${newCampaign.title} has been promoted to live status.`
               });
-            }, 1000);
+            });
+            
+            return null; // Remove from pending
           }
           return newCampaign;
         }
         return c;
-      })
+      }).filter(Boolean)
     );
   };
 
