@@ -71,15 +71,21 @@ const Home: React.FC = () => {
   const isCampaignInRange = (campaign: Campaign): boolean => {
     if (!location.coordinates || campaign.type === 'Global') return true;
     
+    const campaignLat = campaign.latitude || campaign.lat;
+    const campaignLong = campaign.longitude || campaign.long;
+    
+    if (!campaignLat || !campaignLong) return true; // If no location data, always show
+    
     const distance = calculateDistance(
       location.coordinates.latitude, 
       location.coordinates.longitude,
-      campaign.lat,
-      campaign.long
+      campaignLat,
+      campaignLong
     );
     
     // Convert radius from km to meters
-    return distance * 1000 <= campaign.radius;
+    const radius = campaign.radius || 1000; // Default to 1000km if not specified
+    return distance * 1000 <= radius;
   };
   
   // Get user's location

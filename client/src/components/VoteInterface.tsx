@@ -34,13 +34,17 @@ const VoteInterface: React.FC<VoteInterfaceProps> = ({
   const { toast } = useToast();
   
   useEffect(() => {
-    if (campaignLat && campaignLong && radius) {
+    // Handle both lat/long and latitude/longitude property names
+    const lat = campaignLat;
+    const long = campaignLong;
+    
+    if (lat && long && radius) {
       setLocationLoading(true);
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const userLat = position.coords.latitude;
           const userLong = position.coords.longitude;
-          const distance = calculateDistance(userLat, userLong, campaignLat, campaignLong);
+          const distance = calculateDistance(userLat, userLong, lat, long);
           const impactScore = getImpactPercent(distance, radius);
           setImpact(impactScore);
           setLocationLoading(false);

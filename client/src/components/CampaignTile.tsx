@@ -6,13 +6,25 @@ import { motion } from "framer-motion";
 export interface Campaign {
   id: string;
   title: string;
-  summary: string;
-  type: string; // "Global", "Regional", "Local"
-  status: string; // "live" or "pending"
-  countdown: string;
-  lat: number;
-  long: number;
-  radius: number;
+  summary?: string;
+  description?: string;
+  image?: string;
+  type?: string; // "Global", "Regional", "Local"
+  scope?: "Global" | "Regional";
+  region?: string;
+  status?: string; // "live" or "pending"
+  countdown?: string;
+  daysLeft?: number;
+  votes?: number;
+  sponsor?: {
+    name: string;
+    colorClass: string;
+  };
+  lat?: number;
+  long?: number;
+  latitude?: number;
+  longitude?: number;
+  radius?: number;
 }
 
 interface CampaignTileProps {
@@ -39,8 +51,8 @@ const CampaignTile: React.FC<CampaignTileProps> = ({ campaign }) => {
       </div>
       <div className="p-5">
         <div className="flex items-center text-sm text-neutral-500 mb-2">
-          <i className={`fas ${campaign.type === "Global" ? "fa-globe-americas" : "fa-map-marker-alt"} mr-2`}></i>
-          <span>{campaign.type}</span>
+          <i className={`fas ${campaign.type === "Global" || campaign.scope === "Global" ? "fa-globe-americas" : "fa-map-marker-alt"} mr-2`}></i>
+          <span>{campaign.type || campaign.scope}</span>
         </div>
         <h3 className="font-heading font-bold text-lg mb-2">{campaign.title}</h3>
         <p className="text-neutral-600 text-sm mb-4">{campaign.summary}</p>

@@ -5,10 +5,11 @@ import { useToast } from "@/hooks/use-toast";
 import VoteInterface from "@/components/VoteInterface";
 import { activeCampaigns } from "@/lib/mockData";
 import { Button } from "@/components/ui/button";
+import { Campaign } from "@/components/CampaignTile";
 
 const CampaignPage: React.FC = () => {
   const { id } = useParams();
-  const [campaign, setCampaign] = useState<typeof activeCampaigns[0] | null>(null);
+  const [campaign, setCampaign] = useState<Campaign | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
@@ -77,6 +78,10 @@ const CampaignPage: React.FC = () => {
     );
   }
 
+  // Get the correct coordinates regardless of property naming
+  const campaignLat = campaign.latitude || campaign.lat;
+  const campaignLong = campaign.longitude || campaign.long;
+
   return (
     <div className="px-4 py-6 md:p-8">
       <motion.div 
@@ -122,8 +127,8 @@ const CampaignPage: React.FC = () => {
             </div>
             <div className="p-6">
               <div className="flex items-center mb-4">
-                <div className={`w-3 h-3 rounded-full ${campaign.sponsor.colorClass} mr-2`}></div>
-                <span className="text-sm text-neutral-500">{campaign.sponsor.name}</span>
+                <div className={`w-3 h-3 rounded-full ${campaign.sponsor?.colorClass || 'bg-primary'} mr-2`}></div>
+                <span className="text-sm text-neutral-500">{campaign.sponsor?.name || 'Campaign Sponsor'}</span>
               </div>
               
               <h2 className="text-2xl font-heading font-bold mb-4">About This Campaign</h2>
@@ -138,7 +143,7 @@ const CampaignPage: React.FC = () => {
                   </li>
                   <li className="flex items-center gap-2">
                     <i className="fas fa-user-check w-5 text-neutral-500"></i>
-                    <span>{campaign.votes.toLocaleString()} votes so far</span>
+                    <span>{campaign.votes ? campaign.votes.toLocaleString() : '0'} votes so far</span>
                   </li>
                   <li className="flex items-center gap-2">
                     <i className="fas fa-globe w-5 text-neutral-500"></i>
@@ -172,8 +177,8 @@ const CampaignPage: React.FC = () => {
                 { id: "abstain", label: "I choose to abstain" }
               ]} 
               onVoteSubmit={handleVoteSubmit}
-              campaignLat={campaign.latitude}
-              campaignLong={campaign.longitude}
+              campaignLat={campaignLat}
+              campaignLong={campaignLong}
               radius={campaign.radius}
             />
           </motion.div>
@@ -202,8 +207,8 @@ const CampaignPage: React.FC = () => {
                 { id: "abstain", label: "I choose to abstain" }
               ]} 
               onVoteSubmit={handleVoteSubmit}
-              campaignLat={campaign.latitude}
-              campaignLong={campaign.longitude}
+              campaignLat={campaignLat}
+              campaignLong={campaignLong}
               radius={campaign.radius}
             />
           </div>
