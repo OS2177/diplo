@@ -105,79 +105,35 @@ export const userProfile = {
   avatar: "https://i.pravatar.cc/40?img=68"
 };
 
-import { useState } from 'react';
-import IntegrityVotingCard from '../components/IntegrityVotingCard';
-import campaignData from '../data/campaigns.json';
-
-export default function IntegrityVote() {
-  const initialPending = campaignData
-    .filter(c => c.status === 'pending')
-    .map(c => ({ ...c, upvotes: 0, downvotes: 0 }));
-
-  const [pendingCampaigns, setPendingCampaigns] = useState(initialPending);
-  const [liveCampaigns, setLiveCampaigns] = useState([]);
-
-  const handleVote = (id, vote) => {
-    setPendingCampaigns(prev =>
-      prev.map(c =>
-        c.id === id
-          ? {
-              ...c,
-              upvotes: vote === 'up' ? c.upvotes + 1 : c.upvotes,
-              downvotes: vote === 'down' ? c.downvotes + 1 : c.downvotes
-            }
-          : c
-      )
-    );
-  };
-
-  const promoteToLive = (id) => {
-    const campaign = pendingCampaigns.find(c => c.id === id);
-    if (campaign && campaign.upvotes - campaign.downvotes >= 3) {
-      setLiveCampaigns([...liveCampaigns, { ...campaign, status: 'live' }]);
-      setPendingCampaigns(prev => prev.filter(c => c.id !== id));
+// Example campaigns data for active campaigns
+export const activeCampaigns: Campaign[] = [
+  {
+    id: "campaign-1",
+    title: "Clean Ocean Initiative",
+    description: "Global effort to reduce plastic pollution in oceans",
+    image: "https://images.unsplash.com/photo-1484291470158-b8f8d608850d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1740&q=80",
+    daysLeft: 12,
+    scope: "Global",
+    votes: 15482,
+    sponsor: {
+      name: "Ocean Alliance",
+      colorClass: "text-blue-600"
+    },
+    latitude: 34.0522,
+    longitude: -118.2437,
+    radius: 5000
+  },
+  {
+    id: "campaign-2",
+    title: "Renewable Energy Transition",
+    description: "Accelerating the global shift to renewable energy sources",
+    image: "https://images.unsplash.com/photo-1508514177221-188b1cf16e9d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1740&q=80",
+    daysLeft: 8,
+    scope: "Global",
+    votes: 12901,
+    sponsor: {
+      name: "Climate Coalition",
+      colorClass: "text-green-600"
     }
-  };
-
-  return (
-    <div>
-      <h1 className="heading">Integrity Voting</h1>
-      {pendingCampaigns.map(campaign => (
-        <div key={campaign.id}>
-          <IntegrityVotingCard campaign={campaign} onVote={handleVote} />
-          <button className="button-primary" onClick={() => promoteToLive(campaign.id)}>
-            Promote to Live (Threshold: 3+ net votes)
-          </button>
-        </div>
-      ))}
-
-      {liveCampaigns.length > 0 && (
-        <div className="tile">
-          <h2 className="heading">Promoted Campaigns</h2>
-          {liveCampaigns.map(c => (
-            <p key={c.id} className="caption">{c.title} is now live!</p>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-import campaignData from '../data/campaigns.json';
-
-export default function ResultsPage() {
-  const resolvedCampaigns = campaignData.filter(c => c.status === 'resolved');
-
-  return (
-    <div>
-      <h1 className="heading">Archived Campaigns</h1>
-      {resolvedCampaigns.length === 0 && <p className="caption">No archived campaigns yet.</p>}
-      {resolvedCampaigns.map(c => (
-        <div key={c.id} className="tile">
-          <h2 className="heading">{c.title}</h2>
-          <p className="caption">{c.summary}</p>
-        </div>
-      ))}
-    </div>
-  );
-}
+  }
+];

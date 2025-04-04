@@ -3,7 +3,7 @@ import { useParams, useLocation } from "wouter";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import VoteResultsGraph from "@/components/VoteResultsGraph";
-import { recentResults } from "@/lib/mockData";
+import { recentResults, resolvedCampaigns } from "@/lib/mockData";
 import { Button } from "@/components/ui/button";
 import Chart from "chart.js/auto";
 
