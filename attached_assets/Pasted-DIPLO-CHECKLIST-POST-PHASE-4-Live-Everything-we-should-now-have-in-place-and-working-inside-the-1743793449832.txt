@@ -1,0 +1,78 @@
+DIPLO CHECKLIST – POST PHASE 4 (Live)
+
+Everything we should now have in place and working inside the Replit app.
+
+⸻
+
+1️⃣ CORE SYSTEM
+	•	React app initialized with routing and folder structure
+	•	Global styling applied via global.css
+	•	Framer Motion installed for animations
+	•	Chart.js installed for result visuals (optional)
+
+⸻
+
+2️⃣ USER INTERFACE & PAGES
+
+Pages set up and connected via React Router:
+	•	Home – shows all live campaigns
+	•	CampaignPage – full vote view + live results
+	•	CreateCampaign – form to propose a campaign
+	•	IntegrityVote – vote on pending campaigns
+	•	ResultsPage – vote outcome breakdown (optional placeholder)
+	•	Dashboard – (placeholder for user history/stats)
+
+⸻
+
+3️⃣ COMPONENTS (Modular & Reusable)
+	•	CampaignTile – display on home page
+	•	VoteInterface – handles:
+	•	Location tracking
+	•	Distance calculation to campaign
+	•	Vote weighting (100–5%)
+	•	One-time vote per user
+	•	ResultsBar – animated bars for YES/NO
+	•	CreateCampaignForm – submit new campaign
+	•	IntegrityVotingCard – upvote/downvote pending campaigns
+
+⸻
+
+4️⃣ CAMPAIGN DATA SYSTEM
+	•	campaigns.json created and loaded in app
+	•	Each campaign has:
+	•	id, title, summary, type, status, countdown, lat, long, radius
+	•	Campaigns are filterable by status (live vs pending)
+
+⸻
+
+5️⃣ VOTING SYSTEM (Frontend Simulated)
+	•	User location determines vote impact
+	•	User can cast a single YES or NO vote per campaign
+	•	Vote weight is dynamically added to vote totals
+	•	Results update immediately with animated bars
+
+⸻
+
+6️⃣ CAMPAIGN CREATION FLOW
+	•	Users can create new campaigns with lat/long/radius
+	•	Created campaigns go into a pending state
+	•	Confirmation appears after submission
+
+⸻
+
+7️⃣ INTEGRITY VOTING FLOW
+	•	Pending campaigns appear on the Integrity Vote page
+	•	Users can upvote/downvote legitimacy
+	•	Vote totals update in real time (state-only for now)
+
+⸻
+
+✅ WHAT USERS CAN NOW DO IN DIPLO:
+
+As a user, I can:
+	•	Visit the home page and see live campaigns
+	•	Click into a campaign, allow GPS, and cast a vote
+	•	See my vote’s influence based on proximity
+	•	Watch vote results animate instantly
+	•	Propose a new campaign with location and details
+	•	Vote to approve or reject pending campaigns
