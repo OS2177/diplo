@@ -91,14 +91,14 @@ const VoteInterface: React.FC<VoteInterfaceProps> = ({
       {(campaignLat && campaignLong && radius) && (
         <div className="mb-4">
           {locationLoading ? (
-            <p className="text-sm text-neutral-500 flex items-center">
+            <div className="text-sm text-neutral-500 flex items-center">
               <motion.div 
                 className="w-4 h-4 mr-2 border-2 border-primary border-t-transparent rounded-full"
                 animate={{ rotate: 360 }}
                 transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
               />
               Calculating your vote impact...
-            </p>
+            </div>
           ) : impact !== null ? (
             <div className="bg-primary-light/10 rounded-lg p-3 mb-3">
               <div className="flex items-center justify-between">
