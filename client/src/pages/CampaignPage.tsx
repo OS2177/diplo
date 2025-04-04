@@ -18,26 +18,36 @@ const CampaignPage: React.FC = () => {
     // Simulate API fetch
     const fetchCampaign = async () => {
       try {
+        if (!id) {
+          throw new Error("Campaign ID is required");
+        }
+
         // In a real app, this would be an API call
         await new Promise(resolve => setTimeout(resolve, 500));
         
         const foundCampaign = campaignData.find(c => c.id === id);
         
-        if (foundCampaign) {
-          setCampaign(foundCampaign);
-        } else {
-          toast({
-            title: "Error",
-            description: "Campaign not found",
-            variant: "destructive"
-          });
+        if (!foundCampaign) {
+          throw new Error("Campaign not found");
         }
+
+        if (foundCampaign.status === "ended") {
+          throw new Error("This campaign has ended");
+        }
+
+        if (foundCampaign.status === "pending") {
+          throw new Error("This campaign is pending approval");
+        }
+
+        setCampaign(foundCampaign);
       } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : "Failed to load campaign details";
         toast({
           title: "Error",
-          description: "Failed to load campaign details",
+          description: errorMessage,
           variant: "destructive"
         });
+        setCampaign(null);
       } finally {
         setLoading(false);
       }

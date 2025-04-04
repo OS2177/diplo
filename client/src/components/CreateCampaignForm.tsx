@@ -52,38 +52,62 @@ const CreateCampaignForm: React.FC = () => {
     setIsSubmitting(true);
 
     try {
+      // Validate coordinates
+      const lat = parseFloat(data.lat.toString());
+      const long = parseFloat(data.long.toString());
+      const radius = parseFloat(data.radius.toString());
+
+      if (isNaN(lat) || lat < -90 || lat > 90) {
+        throw new Error("Invalid latitude. Must be between -90 and 90.");
+      }
+
+      if (isNaN(long) || long < -180 || long > 180) {
+        throw new Error("Invalid longitude. Must be between -180 and 180.");
+      }
+
+      if (isNaN(radius) || radius <= 0) {
+        throw new Error("Invalid radius. Must be greater than 0.");
+      }
+
+      // Validate dates
+      const now = new Date();
+      const endDate = new Date(data.endDate);
+      if (endDate <= now) {
+        throw new Error("End date must be in the future.");
+      }
+
       // In a real implementation, this would be an API call
-      // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1500));
 
       const newCampaign = {
         id: Date.now().toString(),
-        title: data.title,
-        summary: data.summary,
+        title: data.title.trim(),
+        summary: data.summary.trim(),
         type: data.type,
         status: "pending",
         countdown: "5 days",
-        lat: data.lat,
-        long: data.long,
-        radius: data.radius,
+        lat,
+        long,
+        radius,
         endDate: data.endDate,
-        sponsor: data.sponsor,
+        sponsor: data.sponsor.trim(),
         image: uploadedImage
       };
       console.log("Campaign data:", newCampaign);
 
       toast({
         title: "Campaign Created",
-        description: "Your campaign has been created successfully.",
+        description: "Your campaign has been created successfully and is pending review.",
       });
 
       // Reset form
       form.reset();
       setUploadedImage(null);
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to create campaign. Please try again.";
       toast({
         title: "Error",
-        description: "Failed to create campaign. Please try again.",
+        description: errorMessage,
         variant: "destructive"
       });
     } finally {

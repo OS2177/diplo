@@ -65,20 +65,31 @@ const VoteInterface: React.FC<VoteInterfaceProps> = ({
 
     setIsSubmitting(true);
     try {
-      if (onVoteSubmit && impact !== null) {
-        onVoteSubmit(selectedOption, impact);
+      if (!selectedOption) {
+        throw new Error("Please select a voting option");
       }
+      
+      if (impact === null) {
+        throw new Error("Unable to calculate vote impact. Please ensure location access is enabled.");
+      }
+
+      if (onVoteSubmit) {
+        await onVoteSubmit(selectedOption, impact);
+      }
+
       setHasVoted(true);
       toast({
         title: "Vote Submitted",
         description: "Your vote has been recorded successfully.",
       });
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to submit your vote. Please try again.";
       toast({
         title: "Error",
-        description: "Failed to submit your vote. Please try again.",
+        description: errorMessage,
         variant: "destructive"
       });
+      setSelectedOption(null);
     } finally {
       setIsSubmitting(false);
     }
