@@ -37,7 +37,7 @@ const Sidebar: React.FC<SidebarProps> = ({ mobile = false, onClose }) => {
             <div 
               className={`flex items-center px-2 py-3 rounded-lg cursor-pointer ${
                 isActiveRoute("/") 
-                  ? "text-primary-dark bg-primary-light/10" 
+                  ? "text-neutral-900 bg-neutral-100" 
                   : "text-neutral-600 hover:bg-neutral-100"
               }`}
               onClick={onClose}
