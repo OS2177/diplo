@@ -157,7 +157,7 @@ const CampaignPage: React.FC = () => {
               </div>
               
               <p className="text-sm text-neutral-500">
-                This campaign adheres to Diplo's <Link href="/integrity"><span className="text-primary-dark hover:underline cursor-pointer">integrity standards</span></Link> and has been verified by our community.
+                This campaign adheres to Diplo's <span onClick={() => window.location.href = "/integrity"} className="text-primary-dark hover:underline cursor-pointer">integrity standards</span> and has been verified by our community.
               </p>
             </div>
           </div>

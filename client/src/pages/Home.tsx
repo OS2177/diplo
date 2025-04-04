@@ -213,10 +213,8 @@ const Home: React.FC = () => {
       <div className="mb-10">
         <div className="flex items-center justify-between mb-5">
           <h2 className="text-2xl font-heading font-bold">Active Campaigns</h2>
-          <Link href="/campaigns">
-            <div className="text-primary-dark hover:text-primary font-medium flex items-center cursor-pointer">
-              View all <i className="fas fa-arrow-right ml-2"></i>
-            </div>
+          <Link href="/campaigns" className="text-primary-dark hover:text-primary font-medium flex items-center cursor-pointer">
+            View all <i className="fas fa-arrow-right ml-2"></i>
           </Link>
         </div>
         
@@ -230,10 +228,8 @@ const Home: React.FC = () => {
       <div className="mb-10">
         <div className="flex items-center justify-between mb-5">
           <h2 className="text-2xl font-heading font-bold">Recently Completed</h2>
-          <Link href="/results">
-            <div className="text-primary-dark hover:text-primary font-medium flex items-center cursor-pointer">
-              View all results <i className="fas fa-arrow-right ml-2"></i>
-            </div>
+          <Link href="/results" className="text-primary-dark hover:text-primary font-medium flex items-center cursor-pointer">
+            View all results <i className="fas fa-arrow-right ml-2"></i>
           </Link>
         </div>
         

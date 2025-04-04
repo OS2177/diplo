@@ -14,14 +14,21 @@ function App() {
     <>
       <Layout>
         <Switch>
-          <Route path="/" component={Home} />
+          {/* Note: More specific routes should come before general routes */}
           <Route path="/campaign/:id" component={CampaignPage} />
+          <Route path="/integrity-vote/:id" component={IntegrityVote} />
+          <Route path="/results/:id" component={ResultsPage} />
+          
+          {/* More general routes come after specific ones */}
           <Route path="/campaigns" component={Home} />
           <Route path="/create-campaign" component={CreateCampaign} />
-          <Route path="/integrity-vote/:id" component={IntegrityVote} />
           <Route path="/results" component={ResultsPage} />
-          <Route path="/results/:id" component={ResultsPage} />
           <Route path="/dashboard" component={Dashboard} />
+          
+          {/* Home route should be last for proper wildcard matching */}
+          <Route path="/" component={Home} />
+          
+          {/* Not found page as fallback */}
           <Route component={NotFound} />
         </Switch>
       </Layout>
