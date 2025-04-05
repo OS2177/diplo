@@ -71,8 +71,15 @@ const CampaignTile: React.FC<CampaignTileProps> = ({ campaign }) => {
                   }
                 </span>
               </div>
-              <div className="text-primary-dark hover:text-primary-light font-medium text-sm">
-                Vote now →
+              <div className="flex items-center justify-between w-full">
+                <div className="text-primary-dark hover:text-primary-light font-medium text-sm">
+                  Vote now →
+                </div>
+                {campaign.creator_id && (
+                  <span className="text-xs text-neutral-500 bg-neutral-100 px-2 py-1 rounded-full">
+                    Verified User
+                  </span>
+                )}
               </div>
             </div>
           </div>

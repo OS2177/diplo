@@ -1,5 +1,9 @@
 import { Route, Switch } from "wouter";
 import { Toaster } from "@/components/ui/toaster";
+import { useEffect, useState } from 'react';
+import { User } from '@supabase/supabase-js';
+import { supabase } from './lib/supabaseClient';
+import AuthButton from './components/AuthButton';
 import Layout from "@/components/Layout";
 import Home from "@/pages/Home";
 import CampaignPage from "@/pages/CampaignPage";
@@ -12,9 +16,25 @@ import NotFound from "@/pages/not-found";
 import NavBar from "./components/NavBar";
 
 function App() {
+  const [user, setUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setUser(user);
+    });
+
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user || null);
+    });
+
+    return () => listener.subscription.unsubscribe();
+  }, []);
+
   return (
     <>
-      <NavBar />
+      <NavBar>
+        <AuthButton user={user} setUser={setUser} />
+      </NavBar>
       <Layout>
         <Switch>
           {/* Note: More specific routes should come before general routes */}
