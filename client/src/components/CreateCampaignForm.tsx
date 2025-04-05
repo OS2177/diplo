@@ -1,12 +1,12 @@
+
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
-import { useForm } from "react-hook-form";
+import { useForm, useFieldArray } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
@@ -17,13 +17,12 @@ import { format } from "date-fns";
 const formSchema = z.object({
   title: z.string().min(5, "Title must be at least 5 characters"),
   summary: z.string().min(20, "Summary must be at least 20 characters"),
-  type: z.enum(["Local", "Regional", "Global"]),
-  lat: z.string().transform(Number),
-  long: z.string().transform(Number),
-  radius: z.string().transform(Number),
+  type: z.enum(["Personal", "Social", "Local", "Global", "Ecological"]),
+  locations: z.array(z.object({
+    summary: z.string().min(3, "Location must be at least 3 characters")
+  })),
   endDate: z.date().min(new Date(), "End date must be in the future"),
   sponsor: z.string().min(3, "Sponsor name is required"),
-
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -38,46 +37,27 @@ const CreateCampaignForm: React.FC = () => {
     defaultValues: {
       title: "",
       summary: "",
-      type: "Regional",
-      lat: "",
-      long: "",
-      radius: "",
-      endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // Default to 7 days from now
+      type: "Local",
+      locations: [{ summary: "" }],
+      endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       sponsor: "",
     },
   });
 
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: "locations"
+  });
 
   const onSubmit = async (data: FormValues) => {
     setIsSubmitting(true);
 
     try {
-      // Validate coordinates
-      const lat = parseFloat(data.lat.toString());
-      const long = parseFloat(data.long.toString());
-      const radius = parseFloat(data.radius.toString());
-
-      if (isNaN(lat) || lat < -90 || lat > 90) {
-        throw new Error("Invalid latitude. Must be between -90 and 90.");
-      }
-
-      if (isNaN(long) || long < -180 || long > 180) {
-        throw new Error("Invalid longitude. Must be between -180 and 180.");
-      }
-
-      if (isNaN(radius) || radius <= 0) {
-        throw new Error("Invalid radius. Must be greater than 0.");
-      }
-
-      // Validate dates
       const now = new Date();
       const endDate = new Date(data.endDate);
       if (endDate <= now) {
         throw new Error("End date must be in the future.");
       }
-
-      // In a real implementation, this would be an API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
 
       const newCampaign = {
         id: Date.now().toString(),
@@ -86,10 +66,7 @@ const CreateCampaignForm: React.FC = () => {
         type: data.type,
         status: "pending",
         countdown: "5 days",
-        lat,
-        long,
-        radius,
-        endDate: data.endDate,
+        locations: data.locations.map(loc => loc.summary.trim()),
         sponsor: data.sponsor.trim(),
         image: uploadedImage
       };
@@ -100,7 +77,6 @@ const CreateCampaignForm: React.FC = () => {
         description: "Your campaign has been created successfully and is pending review.",
       });
 
-      // Reset form
       form.reset();
       setUploadedImage(null);
     } catch (error) {
@@ -181,9 +157,11 @@ const CreateCampaignForm: React.FC = () => {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
+                    <SelectItem value="Personal">Personal</SelectItem>
+                    <SelectItem value="Social">Social</SelectItem>
                     <SelectItem value="Local">Local</SelectItem>
-                    <SelectItem value="Regional">Regional</SelectItem>
                     <SelectItem value="Global">Global</SelectItem>
+                    <SelectItem value="Ecological">Ecological</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -191,49 +169,41 @@ const CreateCampaignForm: React.FC = () => {
             )}
           />
 
-          <div className="grid grid-cols-2 gap-4">
-            <FormField
-              control={form.control}
-              name="lat"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Latitude</FormLabel>
-                  <FormControl>
-                    <Input type="number" step="0.000001" placeholder="Latitude" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="long"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Longitude</FormLabel>
-                  <FormControl>
-                    <Input type="number" step="0.000001" placeholder="Longitude" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+          <div className="space-y-4">
+            <FormLabel>Locations</FormLabel>
+            {fields.map((field, index) => (
+              <div key={field.id} className="flex gap-2">
+                <FormField
+                  control={form.control}
+                  name={`locations.${index}.summary`}
+                  render={({ field }) => (
+                    <FormItem className="flex-1">
+                      <FormControl>
+                        <Input placeholder="e.g. Paris, France" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                {index > 0 && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => remove(index)}
+                  >
+                    Remove
+                  </Button>
+                )}
+              </div>
+            ))}
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => append({ summary: "" })}
+            >
+              + Add Another Location
+            </Button>
           </div>
-
-          <FormField
-            control={form.control}
-            name="radius"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Radius (km)</FormLabel>
-                <FormControl>
-                  <Input type="number" placeholder="Impact radius in kilometers" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
 
           <FormField
             control={form.control}
