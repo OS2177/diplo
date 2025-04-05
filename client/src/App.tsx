@@ -34,9 +34,7 @@ function App() {
 
   return (
     <>
-      <NavBar>
-        <AuthButton user={user} setUser={setUser} />
-      </NavBar>
+      <NavBar user={user} setUser={setUser} />
       <Layout>
         <Switch>
           {/* Note: More specific routes should come before general routes */}
