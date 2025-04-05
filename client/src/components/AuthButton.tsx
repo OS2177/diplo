@@ -12,16 +12,47 @@ interface AuthButtonProps {
 export default function AuthButton({ user, setUser }: AuthButtonProps) {
   const { toast } = useToast();
 
-  const handleLogin = async () => {
+  const handleOAuthLogin = async (provider: 'google' | 'apple') => {
     try {
       const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
+        provider,
         options: {
-          redirectTo: window.location.origin
+          redirectTo: `${window.location.origin}/auth/callback`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent'
+          }
         }
       });
       
       if (error) throw error;
+    } catch (error) {
+      toast({
+        title: "Login Failed",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleEmailLogin = async () => {
+    try {
+      const email = prompt("Please enter your email:");
+      if (!email) return;
+      
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback`
+        }
+      });
+      
+      if (error) throw error;
+      
+      toast({
+        title: "Check your email",
+        description: "We sent you a login link",
+      });
     } catch (error) {
       toast({
         title: "Login Failed",
@@ -54,8 +85,16 @@ export default function AuthButton({ user, setUser }: AuthButtonProps) {
       Sign Out
     </Button>
   ) : (
-    <Button onClick={handleLogin} variant="default" className="whitespace-nowrap">
-      Sign in with Google
-    </Button>
+    <div className="flex gap-2">
+      <Button onClick={() => handleOAuthLogin('google')} variant="default" className="whitespace-nowrap">
+        Google
+      </Button>
+      <Button onClick={() => handleOAuthLogin('apple')} variant="default" className="whitespace-nowrap">
+        Apple
+      </Button>
+      <Button onClick={handleEmailLogin} variant="default" className="whitespace-nowrap">
+        Email
+      </Button>
+    </div>
   );
 }
