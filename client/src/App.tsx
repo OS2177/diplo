@@ -1,9 +1,13 @@
 
 import { useEffect, useState } from 'react';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { User } from '@supabase/supabase-js';
 import { supabase } from './lib/supabaseClient';
-import AuthPanel from './components/AuthPanel';
-import NewCampaignForm from './components/NewCampaignForm';
+import Navigation from './components/Navigation';
+import Home from './pages/Home';
+import Dashboard from './pages/Dashboard';
+import CreateCampaign from './pages/CreateCampaign';
+import NotFound from './pages/not-found';
 
 function App() {
   const [user, setUser] = useState<User | null>(null);
@@ -11,12 +15,8 @@ function App() {
 
   useEffect(() => {
     const getUser = async () => {
-      const { data, error } = await supabase.auth.getUser();
-      if (error) {
-        console.error('Error fetching user:', error);
-      } else {
-        setUser(data.user);
-      }
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
       setLoading(false);
     };
 
@@ -31,29 +31,32 @@ function App() {
     };
   }, []);
 
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-neutral-600">Loading...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-neutral-50">
-      <header className="bg-white border-b border-neutral-200">
-        <div className="max-w-7xl mx-auto px-4 py-6">
-          <h1 className="text-3xl font-bold text-neutral-900">Diplo</h1>
-        </div>
-      </header>
-
+      <Navigation user={user} setUser={setUser} />
+      
       <main className="max-w-7xl mx-auto px-4 py-8">
-        {loading ? (
-          <div className="text-center py-12">
-            <p className="text-neutral-600">Loading...</p>
-          </div>
-        ) : (
-          <>
-            <AuthPanel user={user} setUser={setUser} />
-            {user && (
-              <div className="mt-8">
-                <NewCampaignForm user={user} />
-              </div>
-            )}
-          </>
-        )}
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/campaigns" element={<Dashboard />} />
+          <Route 
+            path="/create" 
+            element={user ? <CreateCampaign /> : <Navigate to="/" />} 
+          />
+          <Route 
+            path="/profile" 
+            element={user ? <Dashboard /> : <Navigate to="/" />} 
+          />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
       </main>
     </div>
   );
