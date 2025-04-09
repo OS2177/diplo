@@ -1,90 +1,139 @@
 import React from "react";
 import { Link, useLocation } from "wouter";
 import { motion } from "framer-motion";
-import { useAuth } from "@/hooks/useAuth";
+import { userCampaigns, userProfile } from "@/lib/mockData";
 
 interface SidebarProps {
+  mobile?: boolean;
   onClose?: () => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
+const Sidebar: React.FC<SidebarProps> = ({ mobile = false, onClose }) => {
   const [location] = useLocation();
-  const { user } = useAuth();
 
-  const isActiveRoute = (route: string) => {
-    return location === route;
+  const isActiveRoute = (path: string) => {
+    return location === path;
   };
 
+  const baseClasses = mobile
+    ? "flex flex-col w-full h-full bg-white"
+    : "hidden md:flex flex-col w-64 bg-white border-r border-neutral-200";
+
   return (
-    <aside className="flex flex-col h-full bg-white border-r border-neutral-200">
+    <aside className={baseClasses}>
+      <div className="p-5 border-b border-neutral-200">
+        <div className="flex items-center space-x-3">
+          <div className="bg-primary-light rounded-lg p-2 text-white">
+            <i className="fas fa-globe-americas text-xl"></i>
+          </div>
+          <h1 className="font-heading font-bold text-2xl text-neutral-800">Diplo</h1>
+        </div>
+        <p className="text-sm text-neutral-500 mt-1">Global diplomacy platform</p>
+      </div>
+
       <nav className="flex-1 p-4">
         <div className="space-y-1">
           <Link href="/">
             <div 
-              className={`flex items-center px-2 py-2 text-sm rounded-lg cursor-pointer ${
-                isActiveRoute('/') 
+              className={`flex items-center px-2 py-3 rounded-lg cursor-pointer ${
+                isActiveRoute("/") 
                   ? "text-neutral-900 bg-neutral-100 font-medium" 
                   : "text-neutral-600 hover:bg-neutral-100"
               }`}
               onClick={onClose}
             >
               <i className="fas fa-home w-6"></i>
-              Home
+              <span className={`ml-3 ${isActiveRoute("/") ? "font-medium" : ""}`}>Home</span>
+            </div>
+          </Link>
+
+          <Link href="/integrity-vote">
+            <div 
+              className={`flex items-center px-2 py-3 rounded-lg cursor-pointer ${
+                isActiveRoute("/integrity-vote") 
+                  ? "text-neutral-900 bg-neutral-100 font-medium" 
+                  : "text-neutral-600 hover:bg-neutral-100"
+              }`}
+              onClick={onClose}
+            >
+              <i className="fas fa-shield-check w-6"></i>
+              <span className={`ml-3 ${isActiveRoute("/integrity-vote") ? "font-medium" : ""}`}>Integrity</span>
             </div>
           </Link>
 
           <Link href="/dashboard">
             <div 
-              className={`flex items-center px-2 py-2 text-sm rounded-lg cursor-pointer ${
-                isActiveRoute('/dashboard') 
+              className={`flex items-center px-2 py-3 rounded-lg cursor-pointer ${
+                isActiveRoute("/dashboard") 
                   ? "text-neutral-900 bg-neutral-100 font-medium" 
                   : "text-neutral-600 hover:bg-neutral-100"
               }`}
               onClick={onClose}
             >
               <i className="fas fa-chart-line w-6"></i>
-              Dashboard
+              <span className={`ml-3 ${isActiveRoute("/dashboard") ? "font-medium" : ""}`}>Dashboard</span>
+            </div>
+          </Link>
+
+          <Link href="/results">
+            <div 
+              className={`flex items-center px-2 py-3 rounded-lg cursor-pointer ${
+                isActiveRoute("/results") 
+                  ? "text-neutral-900 bg-neutral-100 font-medium" 
+                  : "text-neutral-600 hover:bg-neutral-100"
+              }`}
+              onClick={onClose}
+            >
+              <i className="fas fa-archive w-6"></i>
+              <span className={`ml-3 ${isActiveRoute("/results") ? "font-medium" : ""}`}>Archive</span>
             </div>
           </Link>
 
           <Link href="/create-campaign">
             <div 
-              className={`flex items-center px-2 py-2 text-sm rounded-lg cursor-pointer ${
-                isActiveRoute('/create-campaign') 
+              className={`flex items-center px-2 py-3 rounded-lg cursor-pointer ${
+                isActiveRoute("/create-campaign") 
                   ? "text-neutral-900 bg-neutral-100 font-medium" 
                   : "text-neutral-600 hover:bg-neutral-100"
               }`}
               onClick={onClose}
             >
-              <i className="fas fa-plus w-6"></i>
-              Create Campaign
+              <i className="fas fa-plus-circle w-6"></i>
+              <span className={`ml-3 ${isActiveRoute("/create-campaign") ? "font-medium" : ""}`}>Create Campaign</span>
             </div>
           </Link>
+        </div>
 
-          <Link href="/integrity-vote">
-            <div 
-              className={`flex items-center px-2 py-2 text-sm rounded-lg cursor-pointer ${
-                isActiveRoute('/integrity-vote') 
-                  ? "text-neutral-900 bg-neutral-100 font-medium" 
-                  : "text-neutral-600 hover:bg-neutral-100"
-              }`}
-              onClick={onClose}
-            >
-              <i className="fas fa-shield-alt w-6"></i>
-              Integrity Vote
-            </div>
-          </Link>
+        <div className="mt-8">
+          <h3 className="px-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider">
+            My Campaigns
+          </h3>
+          <div className="mt-2 space-y-1">
+            {userCampaigns.map(campaign => (
+              <Link key={campaign.id} href={`/campaign/${campaign.id}`}>
+                <div 
+                  className={`flex items-center px-2 py-2 text-sm rounded-lg cursor-pointer ${
+                    isActiveRoute(`/campaign/${campaign.id}`) 
+                      ? "text-neutral-900 bg-neutral-100 font-medium" 
+                      : "text-neutral-600 hover:bg-neutral-100"
+                  }`}
+                  onClick={onClose}
+                >
+                  <span className={`w-2 h-2 rounded-full ${campaign.colorClass} mr-3`}></span>
+                  {campaign.title}
+                </div>
+              </Link>
+            ))}
+          </div>
         </div>
       </nav>
 
       <div className="p-4 border-t border-neutral-200">
         <div className="flex items-center">
-          <div className="h-10 w-10 rounded-full bg-neutral-200 flex items-center justify-center">
-            <i className="fas fa-user text-neutral-500"></i>
-          </div>
+          <img src={userProfile.avatar} className="h-10 w-10 rounded-full" alt="User avatar" />
           <div className="ml-3">
-            <p className="text-sm font-medium text-neutral-800">{user?.email || 'Guest'}</p>
-            <p className="text-xs text-neutral-500">User</p>
+            <p className="text-sm font-medium text-neutral-800">{userProfile.name}</p>
+            <p className="text-xs text-neutral-500">{userProfile.role}</p>
           </div>
         </div>
       </div>

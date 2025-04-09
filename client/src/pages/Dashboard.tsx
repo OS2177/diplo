@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { supabase } from "@/lib/supabaseClient";
+import { userCampaigns, userProfile, activeCampaigns } from "@/lib/mockData";
 import { Button } from "@/components/ui/button";
 import { getCurrentPosition, reverseGeocode } from "@/lib/geolocation";
 

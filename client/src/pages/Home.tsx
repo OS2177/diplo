@@ -7,25 +7,42 @@ import VoteResultsGraph from "@/components/VoteResultsGraph";
 import { recentResults } from "@/lib/mockData";
 import { initialLocation, getCurrentPosition, reverseGeocode } from "@/lib/geolocation";
 
-const [campaigns, setCampaigns] = useState<Campaign[]>([]);
-
-useEffect(() => {
-  const fetchCampaigns = async () => {
-    const { data, error } = await supabase
-      .from('campaigns')
-      .select('*')
-      .order('created_at', { ascending: false });
-      
-    if (error) {
-      console.error('Error fetching campaigns:', error);
-      return;
-    }
-    
-    setCampaigns(data || []);
-  };
-
-  fetchCampaigns();
-}, []);
+// Sample campaign data
+const campaignData: Campaign[] = [
+  {
+    id: "1",
+    title: "War or No War",
+    summary: "A collective vote on the future of the Ukraine-Russia conflict.",
+    type: "Regional",
+    status: "live",
+    countdown: "2 days",
+    lat: 50.4501,
+    long: 30.5234,
+    radius: 1500
+  },
+  {
+    id: "2",
+    title: "Universal Basic Income",
+    summary: "Should a global UBI be adopted as an economic right?",
+    type: "Global",
+    status: "pending",
+    countdown: "5 days",
+    lat: 0,
+    long: 0,
+    radius: 20000
+  },
+  {
+    id: "3",
+    title: "Ban Surveillance Drones",
+    summary: "A public vote on banning drone surveillance in civilian spaces.",
+    type: "Local",
+    status: "live",
+    countdown: "3 days",
+    lat: 48.8566,
+    long: 2.3522,
+    radius: 100
+  }
+];
 
 const Home: React.FC = () => {
   // State for user location

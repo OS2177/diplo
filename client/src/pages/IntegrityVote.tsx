@@ -1,32 +1,18 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
 import IntegrityVotingCard from "@/components/IntegrityVotingCard";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/lib/supabaseClient";
+import campaignData from "@/data/campaigns.json";
 
 export default function IntegrityVote() {
-  const [pendingCampaigns, setPendingCampaigns] = useState([]);
-  const [promotedCampaigns, setPromotedCampaigns] = useState([]);
+  const initialPending = campaignData
+    .filter(c => c.status === 'pending')
+    .map(c => ({ ...c, upvotes: 0, downvotes: 0 }));
+
+  const [pendingCampaigns, setPendingCampaigns] = useState(initialPending);
+  const [promotedCampaigns, setPromotedCampaigns] = useState<typeof initialPending>([]);
   const { toast } = useToast();
-
-  useEffect(() => {
-    const fetchPendingCampaigns = async () => {
-      const { data, error } = await supabase
-        .from('campaigns')
-        .select('*')
-        .eq('status', 'pending');
-
-      if (error) {
-        console.error('Error fetching pending campaigns:', error);
-        return;
-      }
-
-      setPendingCampaigns(data || []);
-    };
-
-    fetchPendingCampaigns();
-  }, []);
 
   const handleVote = async (campaignId: string, decision: 'approve' | 'flag', reason?: string) => {
     setPendingCampaigns(prev => 
@@ -38,15 +24,24 @@ export default function IntegrityVote() {
             downvotes: decision === 'flag' ? c.downvotes + 1 : c.downvotes
           };
 
+          // Auto-promote logic
           if (newCampaign.upvotes - newCampaign.downvotes >= 3) {
             const promotedCampaign = { ...newCampaign, status: 'live' };
-            setPromotedCampaigns(prev => [...prev, promotedCampaign]);
-            setPendingCampaigns(current => current.filter(camp => camp.id !== campaignId));
-            toast({
-              title: "Campaign Promoted",
-              description: `${newCampaign.title} has been promoted to live status.`
+            
+            // Update server status
+            fetch(`/api/campaigns/${campaignId}/promote`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' }
+            }).then(() => {
+              setPromotedCampaigns(prev => [...prev, promotedCampaign]);
+              setPendingCampaigns(current => current.filter(camp => camp.id !== campaignId));
+              toast({
+                title: "Campaign Promoted",
+                description: `${newCampaign.title} has been promoted to live status.`
+              });
             });
-            return null;
+            
+            return null; // Remove from pending
           }
           return newCampaign;
         }

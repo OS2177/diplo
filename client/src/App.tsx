@@ -1,45 +1,62 @@
+import { Route, Switch } from "wouter";
+import { Toaster } from "@/components/ui/toaster";
 import { useEffect, useState } from 'react';
-import { Routes, Route, Link } from 'react-router-dom';
 import { User } from '@supabase/supabase-js';
 import { supabase } from './lib/supabaseClient';
-import AuthPanel from './components/AuthPanel';
-import NewCampaignForm from './components/NewCampaignForm';
+import AuthButton from './components/AuthButton';
+import Layout from "@/components/Layout";
+import Home from "@/pages/Home";
+import CampaignPage from "@/pages/CampaignPage";
+import CreateCampaign from "@/pages/CreateCampaign";
+import IntegrityVote from "@/pages/IntegrityVote";
+import ResultsPage from "@/pages/ResultsPage";
+import Dashboard from "@/pages/Dashboard";
+import NotFound from "@/pages/not-found";
+
+import NavBar from "./components/NavBar";
 
 function App() {
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      setUser(data?.user || null);
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      console.log('Initial user state:', user);
+      setUser(user);
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('Auth state changed:', event, session);
       setUser(session?.user || null);
     });
 
-    return () => subscription.unsubscribe();
+    return () => listener.subscription.unsubscribe();
   }, []);
 
   return (
-    <div className="min-h-screen bg-white">
-      <header className="border-b border-neutral-200 p-4">
-        <nav className="flex gap-4">
-          <Link to="/" className="text-blue-600 hover:text-blue-800">Home</Link>
-          <Link to="/create" className="text-blue-600 hover:text-blue-800">Create Campaign</Link>
-        </nav>
-      </header>
-
-      <main className="p-8">
-        <AuthPanel user={user} setUser={setUser} />
-
-        <div className="mt-8">
-          <Routes>
-            <Route path="/" element={<p>Welcome to Diplo</p>} />
-            <Route path="/create" element={<NewCampaignForm user={user} />} />
-          </Routes>
-        </div>
-      </main>
-    </div>
+    <>
+      <NavBar user={user} setUser={setUser} />
+      <Layout>
+        <Switch>
+          {/* Note: More specific routes should come before general routes */}
+          <Route path="/campaign/:id" component={CampaignPage} />
+          <Route path="/integrity-vote/:id" component={IntegrityVote} />
+          <Route path="/results/:id" component={ResultsPage} />
+          
+          {/* More general routes come after specific ones */}
+          <Route path="/campaigns" component={Home} />
+          <Route path="/create-campaign" component={CreateCampaign} />
+          <Route path="/results" component={ResultsPage} />
+          <Route path="/dashboard" component={Dashboard} />
+          
+          {/* Home route should be last for proper wildcard matching */}
+          <Route path="/" component={Home} />
+          
+          {/* Not found page as fallback */}
+          <Route component={NotFound} />
+        </Switch>
+      </Layout>
+      <Toaster />
+    </>
   );
 }
 
