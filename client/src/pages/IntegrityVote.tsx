@@ -3,12 +3,28 @@ import React, { useState } from "react";
 import { motion } from "framer-motion";
 import IntegrityVotingCard from "@/components/IntegrityVotingCard";
 import { useToast } from "@/hooks/use-toast";
-import campaignData from "@/data/campaigns.json";
+import { supabase } from "@/lib/supabaseClient";
 
 export default function IntegrityVote() {
-  const initialPending = campaignData
-    .filter(c => c.status === 'pending')
-    .map(c => ({ ...c, upvotes: 0, downvotes: 0 }));
+  const [pendingCampaigns, setPendingCampaigns] = useState([]);
+
+  useEffect(() => {
+    const fetchPendingCampaigns = async () => {
+      const { data, error } = await supabase
+        .from('campaigns')
+        .select('*')
+        .eq('status', 'pending');
+
+      if (error) {
+        console.error('Error fetching pending campaigns:', error);
+        return;
+      }
+
+      setPendingCampaigns(data || []);
+    };
+
+    fetchPendingCampaigns();
+  }, []);
 
   const [pendingCampaigns, setPendingCampaigns] = useState(initialPending);
   const [promotedCampaigns, setPromotedCampaigns] = useState<typeof initialPending>([]);
