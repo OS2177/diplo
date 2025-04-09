@@ -1,3 +1,4 @@
+
 import React from "react";
 import { useParams, useLocation } from "wouter";
 import { motion } from "framer-motion";
@@ -8,7 +9,7 @@ import { Button } from "@/components/ui/button";
 const ResultsPage: React.FC = () => {
   const { toast } = useToast();
   const params = useParams();
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
 
   // Simple placeholder data for now
   const dummyResult = {
