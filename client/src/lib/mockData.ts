@@ -36,3 +36,10 @@ export const recentResults: VoteResult[] = [
     totalVotes: 12453
   }
 ];
+
+export const resolvedCampaigns = recentResults.map(result => ({
+  ...result,
+  status: 'resolved',
+  resolution: result.inFavor > 50 ? 'passed' : 'rejected',
+  resolutionDate: new Date(Date.now() - result.daysEnded * 24 * 60 * 60 * 1000).toISOString()
+}));
