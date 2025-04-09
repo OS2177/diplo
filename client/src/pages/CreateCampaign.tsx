@@ -1,31 +1,16 @@
-
-import { useState, useEffect } from 'react';
 import { motion } from "framer-motion";
-import { supabase } from "@/lib/supabaseClient";
+import { useAuth } from "@/hooks/useAuth";
 import NewCampaignForm from '@/components/NewCampaignForm';
-import { User } from '@supabase/supabase-js';
 
 export default function CreateCampaign() {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(false);
+  const { user } = useAuth();
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        setLoading(true);
-        const { data: { user } } = await supabase.auth.getUser();
-        setUser(user);
-      } catch (error) {
-        console.error('Error fetching user:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchUser();
-  }, []);
-
-  if (loading) {
-    return <div className="p-4">Loading...</div>;
+  if (!user) {
+    return (
+      <div className="p-4">
+        <p>Please log in to create a campaign.</p>
+      </div>
+    );
   }
 
   return (
