@@ -6,20 +6,32 @@ import NewCampaignForm from './components/NewCampaignForm';
 
 function App() {
   const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      setUser(user);
-    });
+    const getUser = async () => {
+      const { data, error } = await supabase.auth.getUser();
+      if (error) {
+        console.error('Error fetching user:', error);
+      } else {
+        setUser(data.user);
+      }
+      setLoading(false);
+    };
+
+    getUser();
   }, []);
 
   return (
-    <div>
+    <div style={{ padding: '2rem' }}>
       <h1>Diplo Prototype</h1>
-      {user === null ? (
-        <p>Loading...</p>
-      ) : (
+
+      {loading ? (
+        <p>Loading user...</p>
+      ) : user ? (
         <NewCampaignForm user={user} />
+      ) : (
+        <p>Please log in to create a campaign.</p>
       )}
     </div>
   );
