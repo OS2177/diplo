@@ -7,12 +7,14 @@ interface NewCampaignFormProps {
 }
 
 export default function NewCampaignForm({ user }: NewCampaignFormProps) {
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
+  const [formData, setFormData] = useState({
+    title: '',
+    description: ''
+  });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    alert(`Submitted: ${title}`);
+    console.log('Form submitted:', formData);
   };
 
   if (!user) {
@@ -25,22 +27,22 @@ export default function NewCampaignForm({ user }: NewCampaignFormProps) {
         <input
           type="text"
           placeholder="Campaign Title"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
+          value={formData.title}
+          onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
           className="w-full p-2 border rounded"
         />
       </div>
       <div>
         <textarea
           placeholder="Campaign Description"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
+          value={formData.description}
+          onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
           className="w-full p-2 border rounded h-32"
         />
       </div>
       <button 
         type="submit"
-        className="px-4 py-2 bg-primary text-white rounded hover:bg-primary/90"
+        className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
       >
         Create Campaign
       </button>
