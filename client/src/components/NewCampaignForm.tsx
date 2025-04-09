@@ -14,7 +14,7 @@ import { toast } from '@/hooks/use-toast';
 const formSchema = z.object({
   title: z.string().min(5, "Title must be at least 5 characters"),
   description: z.string().min(20, "Description must be at least 20 characters"),
-  image: z.string().url("Must be a valid URL").optional(),
+  image: z.string().url("Must be a valid URL").optional().or(z.literal('')),
   scope: z.enum(["personal", "social", "local", "global", "ecological"]),
   region: z.string().min(3, "Region must be at least 3 characters"),
 });
@@ -107,7 +107,7 @@ export default function NewCampaignForm({ user }: { user: any }) {
             name="image"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Image URL (optional)</FormLabel>
+                <FormLabel>Website (optional)</FormLabel>
                 <FormControl>
                   <Input placeholder="https://example.com/image.jpg" {...field} />
                 </FormControl>
