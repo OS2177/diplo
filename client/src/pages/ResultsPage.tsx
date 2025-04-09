@@ -3,16 +3,24 @@ import React from "react";
 import { useParams, useLocation } from "wouter";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
-import VoteResultsGraph from "@/components/VoteResultsGraph";
 import { Button } from "@/components/ui/button";
+
+interface Result {
+  id: string;
+  title: string;
+  daysEnded: number;
+  inFavor: number;
+  countriesParticipated: number;
+  totalVotes: number;
+}
 
 const ResultsPage: React.FC = () => {
   const { toast } = useToast();
   const params = useParams();
   const [location, setLocation] = useLocation();
 
-  // Simple placeholder data for now
-  const dummyResult = {
+  // Sample result data
+  const dummyResult: Result = {
     id: "1",
     title: "Sample Campaign",
     daysEnded: 2,
