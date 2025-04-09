@@ -8,7 +8,7 @@ interface NavigationProps {
   setUser: (user: User | null) => void;
 }
 
-export default function Navigation({ user, setUser }: NavigationProps) {
+const Navigation = ({ user, setUser }: NavigationProps) => {
   return (
     <header className="bg-white border-b border-neutral-200">
       <div className="max-w-7xl mx-auto px-4">
@@ -43,4 +43,6 @@ export default function Navigation({ user, setUser }: NavigationProps) {
       </div>
     </header>
   );
-}
+};
+
+export default Navigation;
