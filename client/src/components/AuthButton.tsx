@@ -17,7 +17,7 @@ export default function AuthButton({ user, setUser }: AuthButtonProps) {
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
-          redirectTo: window.location.origin,
+          redirectTo: 'https://diplo-jackvintage77.replit.app',
           queryParams: {
             prompt: 'select_account'
           }
