@@ -1,18 +1,24 @@
-import React, { useEffect, useState } from "react";
+
+import { useState, useEffect } from 'react';
 import { motion } from "framer-motion";
 import { supabase } from "@/lib/supabaseClient";
-// Importing the minimal NewCampaignForm component
 import NewCampaignForm from '@/components/NewCampaignForm';
-
+import { User } from '@supabase/supabase-js';
 
 export default function CreateCampaign() {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
       setUser(user);
+      setLoading(false);
     });
   }, []);
+
+  if (loading) {
+    return <div className="p-4">Loading...</div>;
+  }
 
   return (
     <div className="px-4 py-6 md:p-8">
@@ -31,7 +37,6 @@ export default function CreateCampaign() {
       </motion.div>
 
       <div className="max-w-2xl">
-        {/* Using the minimal NewCampaignForm component */}
         <NewCampaignForm user={user} />
       </div>
     </div>
