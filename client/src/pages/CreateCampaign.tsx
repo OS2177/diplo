@@ -10,10 +10,12 @@ export default function CreateCampaign() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
+    const fetchUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
       setUser(user);
       setLoading(false);
-    });
+    };
+    fetchUser();
   }, []);
 
   if (loading) {
@@ -22,18 +24,14 @@ export default function CreateCampaign() {
 
   return (
     <div className="px-4 py-6 md:p-8">
-      <motion.div 
-        className="mb-8"
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
+        className="mb-6"
       >
-        <h1 className="text-3xl md:text-4xl font-heading font-bold text-neutral-800">
-          Create a Campaign
-        </h1>
-        <p className="mt-3 text-lg text-neutral-600 max-w-3xl">
-          Submit your campaign proposal. All campaigns will be reviewed before going live.
-        </p>
+        <h1 className="text-2xl font-bold">Create New Campaign</h1>
+        <p className="text-neutral-600">Start a new campaign and engage with your audience.</p>
       </motion.div>
 
       <div className="max-w-2xl">
