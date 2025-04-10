@@ -1,4 +1,5 @@
 
+import { useEffect } from 'react';
 import { User } from '@supabase/supabase-js';
 import { Button } from './ui/button';
 import { supabase } from '../lib/supabaseClient';
