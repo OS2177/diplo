@@ -12,6 +12,16 @@ interface AuthButtonProps {
 export default function AuthButton({ user, setUser }: AuthButtonProps) {
   const { toast } = useToast();
 
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session?.user) {
+        setUser(session.user);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
   const handleOAuthLogin = async (provider: 'google' | 'apple') => {
     try {
       const { error } = await supabase.auth.signInWithOAuth({
