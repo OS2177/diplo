@@ -32,13 +32,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.post("/api/campaigns/:id/vote", async (req: Request, res: Response) => {
-    const { id } = req.params;
-    const { vote, reason } = req.body;
+    const { id: campaign_id } = req.params;
+    const { user_id, choice, latitude, longitude, impact } = req.body;
+
+    if (!user_id || !choice || !campaign_id) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+
     try {
-      await storage.addVote(id, vote, reason);
-      res.json({ success: true });
+      const { data, error } = await supabase
+        .from('votes')
+        .insert([{ 
+          campaign_id, 
+          user_id, 
+          choice, 
+          impact, 
+          latitude, 
+          longitude,
+          created_at: new Date().toISOString()
+        }]);
+
+      if (error) throw error;
+      res.status(200).json({ success: true, vote: data[0] });
     } catch (error) {
-      res.status(400).json({ error: "Invalid vote" });
+      console.error('Vote recording error:', error);
+      res.status(500).json({ error: error.message });
     }
   });
 

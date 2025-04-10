@@ -60,6 +60,16 @@ const VoteInterface: React.FC<VoteInterfaceProps> = ({
     }
   }, [campaignLat, campaignLong, radius, toast]);
 
+  const getGeoLocation = () => new Promise<{latitude: number, longitude: number}>((resolve, reject) =>
+    navigator.geolocation.getCurrentPosition(
+      pos => resolve({
+        latitude: pos.coords.latitude,
+        longitude: pos.coords.longitude
+      }),
+      err => reject(err)
+    )
+  );
+
   const handleSubmit = async () => {
     if (!selectedOption || hasVoted) return;
 
@@ -71,6 +81,27 @@ const VoteInterface: React.FC<VoteInterfaceProps> = ({
       
       if (impact === null) {
         throw new Error("Unable to calculate vote impact. Please ensure location access is enabled.");
+      }
+
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error("Please login to vote");
+      }
+
+      const location = await getGeoLocation();
+      const response = await fetch(`/api/campaigns/${campaignId}/vote`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_id: user.id,
+          choice: selectedOption,
+          impact,
+          ...location
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to submit vote');
       }
 
       if (onVoteSubmit) {
