@@ -4,42 +4,47 @@ import { useNavigate } from 'react-router-dom';
 
 export default function WelcomePage() {
   const navigate = useNavigate();
-  const [showSecondBg, setShowSecondBg] = useState(false);
+  const [showSecondImage, setShowSecondImage] = useState(false);
   const isMobile = window.innerWidth <= 768;
-
-  useEffect(() => {
-    setTimeout(() => setShowSecondBg(true), 1000);
-  }, []);
 
   const bgImage1 = isMobile ? '/1290x2796_iphone_bg.jpg' : '/diplo_bg_fade.jpg';
   const bgImage2 = isMobile ? '/1290x2796_iphone_bg.jpg' : '/diplo_bg_2880x1800.jpg';
 
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setShowSecondImage(true);
+    }, 1500); // Delay fade effect
+
+    return () => clearTimeout(timeout);
+  }, []);
+
+  const handleEnter = () => {
+    navigate('/home');
+  };
+
   return (
-    <div className="relative min-h-screen overflow-hidden bg-black">
-      <img 
+    <div className="relative min-h-screen overflow-hidden">
+      <img
         src={bgImage1}
-        className="bg-image"
-        style={{ opacity: showSecondBg ? 0 : 1 }}
-        alt=""
+        className={`absolute w-full h-full object-cover transition-opacity duration-1000 ${
+          showSecondImage ? 'opacity-0' : 'opacity-100'
+        }`}
+        alt="Background Fade"
       />
-      <img 
+      <img
         src={bgImage2}
-        className="bg-image"
-        style={{ opacity: showSecondBg ? 1 : 0 }}
-        alt=""
+        className="absolute w-full h-full object-cover transition-opacity duration-1000 opacity-100"
+        alt="Background"
       />
-      
-      <div className="relative z-10 flex flex-col items-center justify-center min-h-screen">
-        <img 
+      <div className="relative z-10 flex flex-col items-center justify-center min-h-screen text-white">
+        <img
           src="/diplo_logo_collective.png"
-          alt="Diplo"
-          className="w-64 md:w-96 fade-in"
+          alt="Diplo Logo"
+          className="w-64 mb-6 fade-in"
         />
-        
-        <button 
-          onClick={() => navigate('/login')}
-          className="mt-8 text-white text-xl hover:text-yellow-400 transition-colors fade-in"
-          style={{ animationDelay: '0.5s' }}
+        <button
+          onClick={handleEnter}
+          className="text-lg underline hover:text-gray-300 transition fade-in delay-500"
         >
           Click to Enter
         </button>
