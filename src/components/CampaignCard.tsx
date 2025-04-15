@@ -1,35 +1,26 @@
-
 import { Link } from 'react-router-dom';
 
-export default function CampaignCard({ campaign }) {
+type Campaign = {
+  id: string;
+  title: string;
+  description: string;
+  scope?: string;
+  image?: string;
+  url?: string;
+  created_at?: string;
+};
+
+export default function CampaignCard({ campaign }: { campaign: Campaign }) {
   return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden">
-      {campaign.image && (
-        <img 
-          src={campaign.image} 
-          alt={campaign.title}
-          className="w-full h-48 object-cover"
-        />
+    <div className="bg-white rounded shadow p-4 mb-4 border border-gray-100">
+      <h3 className="text-xl font-bold mb-2">{campaign.title}</h3>
+      <p className="text-sm text-gray-600 mb-2">{campaign.scope}</p>
+      <p className="text-gray-700">{campaign.description}</p>
+      {campaign.url && (
+        <a href={campaign.url} className="text-blue-600 underline mt-2 block" target="_blank">
+          Learn more
+        </a>
       )}
-      <div className="p-6">
-        <h3 className="text-xl font-semibold mb-2">{campaign.title}</h3>
-        <p className="text-gray-600 mb-4">{campaign.description}</p>
-        <div className="flex justify-between items-center">
-          <span className="text-sm text-gray-500">
-            {campaign.region || campaign.scope}
-          </span>
-          {campaign.url && (
-            <Link 
-              to={campaign.url}
-              className="text-blue-600 hover:text-blue-800"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Learn More
-            </Link>
-          )}
-        </div>
-      </div>
     </div>
   );
 }
