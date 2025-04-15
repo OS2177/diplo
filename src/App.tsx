@@ -28,6 +28,7 @@ export default function App() {
     <Router>
       <Routes>
         <Route path="/" element={<HomePage />} />
+        <Route path="/home" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/create" element={<CreateCampaign />} />
         <Route path="/profile" element={<ProfilePage />} />
