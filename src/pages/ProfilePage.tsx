@@ -1,8 +1,11 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
+import { useNavigate } from 'react-router-dom';
 
 export default function ProfilePage() {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState({
     name: '',
     email: '',
@@ -13,15 +16,24 @@ export default function ProfilePage() {
     bio: '',
   });
 
-  const [user, setUser] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      if (data?.user) {
-        setUser(data.user);
-        setProfile(prev => ({ ...prev, email: data.user.email }));
+    const getUser = async () => {
+      const { data, error } = await supabase.auth.getUser();
+
+      if (error || !data?.user) {
+        alert('You must be logged in to access your profile.');
+        navigate('/login');
+        return;
       }
-    });
+
+      setUser(data.user);
+      setProfile((prev) => ({ ...prev, email: data.user.email }));
+      setLoading(false);
+    };
+
+    getUser();
   }, []);
 
   const handleChange = (e) => {
@@ -34,6 +46,7 @@ export default function ProfilePage() {
       ...profile,
       age: parseInt(profile.age, 10),
     });
+
     if (error) {
       alert('Error saving profile: ' + error.message);
     } else {
@@ -41,13 +54,13 @@ export default function ProfilePage() {
     }
   };
 
-  if (!user) return <div className="p-6">Loading...</div>;
+  if (loading) return <div className="p-6">Loading profile...</div>;
 
   return (
     <div className="max-w-xl mx-auto p-6">
       <h2 className="text-2xl font-bold mb-4">Your Profile</h2>
       <div className="grid gap-4">
-        {['name', 'city', 'country', 'age', 'pronouns', 'bio'].map(field => (
+        {['name', 'city', 'country', 'age', 'pronouns', 'bio'].map((field) => (
           <input
             key={field}
             type="text"
