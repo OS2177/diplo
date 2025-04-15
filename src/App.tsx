@@ -2,7 +2,6 @@
 import { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { supabase } from './lib/supabaseClient';
-import WelcomePage from './pages/WelcomePage';
 import LoginPage from './pages/LoginPage';
 import HomePage from './pages/HomePage';
 import CreateCampaign from './pages/CreateCampaign';
@@ -28,9 +27,8 @@ export default function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<WelcomePage />} />
+        <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/home" element={<HomePage />} />
         <Route path="/create" element={<CreateCampaign />} />
         <Route path="/profile" element={<ProfilePage />} />
       </Routes>
