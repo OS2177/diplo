@@ -15,18 +15,18 @@ export default function WelcomePage() {
   const bgImage2 = isMobile ? '/1290x2796_iphone_bg.jpg' : '/diplo_bg_2880x1800.jpg';
 
   return (
-    <div className="relative min-h-screen overflow-hidden">
+    <div className="relative min-h-screen overflow-hidden bg-black">
       <img 
         src={bgImage1}
         className="bg-image"
         style={{ opacity: showSecondBg ? 0 : 1 }}
-        alt="Background"
+        alt=""
       />
       <img 
         src={bgImage2}
         className="bg-image"
         style={{ opacity: showSecondBg ? 1 : 0 }}
-        alt="Background"
+        alt=""
       />
       
       <div className="relative z-10 flex flex-col items-center justify-center min-h-screen">
@@ -38,7 +38,7 @@ export default function WelcomePage() {
         
         <button 
           onClick={() => navigate('/login')}
-          className="mt-8 text-white text-xl hover:text-gray-300 transition-colors fade-in"
+          className="mt-8 text-white text-xl hover:text-yellow-400 transition-colors fade-in"
           style={{ animationDelay: '0.5s' }}
         >
           Click to Enter
