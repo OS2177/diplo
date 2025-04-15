@@ -13,7 +13,7 @@ export default function WelcomePage() {
   useEffect(() => {
     const timeout = setTimeout(() => {
       setShowSecondImage(true);
-    }, 1500); // Delay fade effect
+    }, 1200); // Delay fade effect
 
     return () => clearTimeout(timeout);
   }, []);
