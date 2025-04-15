@@ -1,19 +1,49 @@
 
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 export default function WelcomePage() {
   const navigate = useNavigate();
-  
+  const [showSecondBg, setShowSecondBg] = useState(false);
+  const isMobile = window.innerWidth <= 768;
+
+  useEffect(() => {
+    setTimeout(() => setShowSecondBg(true), 1000);
+  }, []);
+
+  const bgImage1 = isMobile ? '/1290x2796_iphone_bg.jpg' : '/diplo_bg_fade.jpg';
+  const bgImage2 = isMobile ? '/1290x2796_iphone_bg.jpg' : '/diplo_bg_2880x1800.jpg';
+
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
-      <h1 className="text-4xl font-bold mb-8">Welcome to Diplo</h1>
-      <p className="text-xl mb-8">A collective diplomacy platform</p>
-      <button 
-        onClick={() => navigate('/login')}
-        className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
-      >
-        Get Started
-      </button>
+    <div className="relative min-h-screen overflow-hidden">
+      <img 
+        src={bgImage1}
+        className="bg-image"
+        style={{ opacity: showSecondBg ? 0 : 1 }}
+        alt="Background"
+      />
+      <img 
+        src={bgImage2}
+        className="bg-image"
+        style={{ opacity: showSecondBg ? 1 : 0 }}
+        alt="Background"
+      />
+      
+      <div className="relative z-10 flex flex-col items-center justify-center min-h-screen">
+        <img 
+          src="/diplo_logo_collective.png"
+          alt="Diplo"
+          className="w-64 md:w-96 fade-in"
+        />
+        
+        <button 
+          onClick={() => navigate('/login')}
+          className="mt-8 text-white text-xl hover:text-gray-300 transition-colors fade-in"
+          style={{ animationDelay: '0.5s' }}
+        >
+          Click to Enter
+        </button>
+      </div>
     </div>
   );
 }
