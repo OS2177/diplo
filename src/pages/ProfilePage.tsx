@@ -17,8 +17,10 @@ export default function ProfilePage() {
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
-      setUser(data.user);
-      setProfile(prev => ({ ...prev, email: data.user.email }));
+      if (data?.user) {
+        setUser(data.user);
+        setProfile(prev => ({ ...prev, email: data.user.email }));
+      }
     });
   }, []);
 
@@ -38,6 +40,8 @@ export default function ProfilePage() {
       alert('Profile saved!');
     }
   };
+
+  if (!user) return <div className="p-6">Loading...</div>;
 
   return (
     <div className="max-w-xl mx-auto p-6">
