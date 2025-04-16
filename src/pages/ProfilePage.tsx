@@ -1,4 +1,5 @@
 
+import ProfileIntegrity from '../components/ProfileIntegrity';
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useNavigate } from 'react-router-dom';
@@ -84,6 +85,7 @@ export default function ProfilePage() {
         >
           Save Profile
         </button>
+        <ProfileIntegrity profile={profile} />
       </div>
     </div>
   );
