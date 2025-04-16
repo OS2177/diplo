@@ -1,4 +1,5 @@
 
+import GlobalPulse from './pages/GlobalPulse';
 import { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { supabase } from './lib/supabaseClient';
@@ -29,6 +30,7 @@ export default function App() {
     <Router>
       <Header />
       <Routes>
+        <Route path="/global-pulse" element={<GlobalPulse />} />
         <Route path="/" element={<HomePage />} />
         <Route path="/home" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />

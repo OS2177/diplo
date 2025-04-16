@@ -35,6 +35,8 @@ export default function HomePage() {
         campaigns.map((campaign) => (
           <CampaignCard key={campaign.id} campaign={campaign} />
         ))}
+
     </div>
+    
   );
 }
