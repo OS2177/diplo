@@ -10,6 +10,11 @@ export default function Header() {
           <Link to="/profile">Profile</Link>
           <Link to="/global-pulse">Global Pulse</Link>
         </nav>
+
+        {/* ✅ Tailwind test block */}
+        <div className="mt-4 bg-pink-500 text-white p-4 text-xl font-bold rounded">
+          TAILWIND IS WORKING 🎉
+        </div>
       </div>
     </header>
   );

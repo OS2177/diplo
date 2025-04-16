@@ -2,36 +2,3 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-@layer base {
-  html {
-    font-family: 'Inter', system-ui, sans-serif;
-  }
-  
-  body {
-    @apply antialiased;
-  }
-}
-
-.bg-image {
-  @apply fixed inset-0 w-full h-full object-cover transition-opacity duration-1000;
-}
-
-.fade-in {
-  animation: fadeIn 1.2s ease-in forwards;
-}
-
-.fade-in.delay-500 {
-  animation-delay: 0.5s;
-}
-
-@keyframes fadeIn {
-  0% {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0px);
-  }
-}
