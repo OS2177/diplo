@@ -7,6 +7,7 @@ import VoteImpact from '../components/VoteImpact';
 import { getUserLocation } from '../utils/getUserLocation';
 
 export default function CampaignPage() {
+  const [voteCounts, setVoteCounts] = useState({ yes: 0, no: 0 });
   const { id } = useParams();
   const [campaign, setCampaign] = useState<any>(null);
   const [user, setUser] = useState<any>(null);
@@ -31,6 +32,24 @@ export default function CampaignPage() {
         .eq('id', user.id)
         .single();
       setProfile(profileData);
+
+      const fetchVotes = async () => {
+        const { data, error } = await supabase
+          .from('votes')
+          .select('choice')
+          .eq('campaign_id', id);
+
+        if (data) {
+          const yesVotes = data.filter((v) => v.choice === 'yes').length;
+          const noVotes = data.filter((v) => v.choice === 'no').length;
+          setVoteCounts({ yes: yesVotes, no: noVotes });
+        } else {
+          console.error('Error fetching votes:', error);
+        }
+      };
+
+      fetchVotes(); // 🔁 Call it inside fetchData()
+
 
       let score = 0;
       if (user.email) score += 20;
@@ -117,6 +136,10 @@ export default function CampaignPage() {
         >
           Submit Vote
         </button>
+        <div className="mt-4 text-sm text-gray-600">
+          <p>✅ YES: {voteCounts.yes}</p>
+          <p>❌ NO: {voteCounts.no}</p>
+        </div>
       </div>
     </div>
   );
