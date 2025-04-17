@@ -8,6 +8,7 @@ interface Campaign {
   description: string;
   scope: string;
   created_at: string;
+  votes: { choice: string }[];
 }
 
 export default function GlobalPulse() {
@@ -18,7 +19,10 @@ export default function GlobalPulse() {
     async function fetchCampaigns() {
       const { data, error } = await supabase
         .from('campaigns')
-        .select('id, title, description, scope, created_at')
+        .select(`
+          id, title, description, scope, created_at,
+          votes ( choice )
+        `)
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -42,17 +46,25 @@ export default function GlobalPulse() {
         <p className="text-gray-500">No campaigns yet. Be the first to create one!</p>
       ) : (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {campaigns.map((campaign) => (
-            <Link
-              key={campaign.id}
-              to={`/campaign/${campaign.id}`}
-              className="border rounded-xl p-4 hover:shadow-md transition bg-white"
-            >
-              <h2 className="text-lg font-bold mb-1">{campaign.title}</h2>
-              <p className="text-sm text-gray-700 line-clamp-3">{campaign.description}</p>
-              <span className="text-xs text-indigo-500 font-medium mt-2 inline-block">Scope: {campaign.scope}</span>
-            </Link>
-          ))}
+          {campaigns.map((campaign) => {
+            const yesVotes = campaign.votes?.filter((v) => v.choice === 'yes').length || 0;
+            const noVotes = campaign.votes?.filter((v) => v.choice === 'no').length || 0;
+
+            return (
+              <Link
+                key={campaign.id}
+                to={`/campaign/${campaign.id}`}
+                className="border rounded-xl p-4 hover:shadow-md transition bg-white"
+              >
+                <h2 className="text-lg font-bold mb-1">{campaign.title}</h2>
+                <p className="text-sm text-gray-700 line-clamp-3">{campaign.description}</p>
+                <div className="mt-2 text-xs text-indigo-500 font-medium">Scope: {campaign.scope}</div>
+                <div className="mt-2 text-xs text-gray-600">
+                  ✅ YES: <strong>{yesVotes}</strong> | ❌ NO: <strong>{noVotes}</strong>
+                </div>
+              </Link>
+            );
+          })}
         </div>
       )}
     </div>
