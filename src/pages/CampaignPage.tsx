@@ -1,3 +1,5 @@
+
+import VoteResults from '../components/VoteResults';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
@@ -90,7 +92,7 @@ export default function CampaignPage() {
         campaignLocation={{ lat: campaign.latitude, lng: campaign.longitude }}
         campaignRadius={campaign.radius}
       />
-
+<VoteResults campaignId={campaign.id} />
       {/* 🔘 Vote Buttons */}
       <div className="mt-6 flex gap-4">
         <button
