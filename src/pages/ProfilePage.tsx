@@ -43,10 +43,18 @@ export default function ProfilePage() {
 
   const saveProfile = async () => {
     const { error } = await supabase.from('profiles').upsert({
-      id: user.id,
-      ...profile,
-      age: parseInt(profile.age, 10),
-    });
+  id: user.id,
+  ...profile,
+  age: parseInt(profile.age, 10),
+});
+
+if (error) {
+  console.error('Supabase error:', error); // Log it to console
+  alert('Error saving profile: ' + (error.message || 'Unknown error'));
+} else {
+  alert('Profile saved!');
+}
+
 
     if (error) {
       alert('Error saving profile: ' + error.message);

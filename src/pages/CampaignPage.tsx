@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import VoteImpact from '../components/VoteImpact';
+import { getUserLocation } from '../utils/getUserLocation';
 
 export default function CampaignPage() {
   const { id } = useParams();
@@ -10,6 +11,7 @@ export default function CampaignPage() {
   const [profile, setProfile] = useState<any>(null);
   const [userLocation, setUserLocation] = useState({ lat: 0, lng: 0 });
   const [integrityScore, setIntegrityScore] = useState(0);
+  const [selectedVote, setSelectedVote] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -48,6 +50,32 @@ export default function CampaignPage() {
     fetchData();
   }, [id]);
 
+  const handleVote = async () => {
+    if (!user || !selectedVote) {
+      alert('Please log in and choose an option.');
+      return;
+    }
+
+    const location = await getUserLocation();
+
+    const { error } = await supabase.from('votes').insert({
+      campaign_id: campaign.id,
+      user_id: user.id,
+      choice: selectedVote,
+      latitude: location?.latitude ?? null,
+      longitude: location?.longitude ?? null,
+      timestamp: new Date().toISOString(),
+    });
+
+    if (error) {
+      console.error('Vote error:', error);
+      alert('Error submitting your vote.');
+    } else {
+      alert('Vote submitted successfully.');
+      setSelectedVote(null); // reset after vote
+    }
+  };
+
   if (!campaign) return <div className="p-6">Loading campaign...</div>;
 
   return (
@@ -63,12 +91,31 @@ export default function CampaignPage() {
         campaignRadius={campaign.radius}
       />
 
-      {/* 🔘 Placeholder for vote buttons */}
+      {/* 🔘 Vote Buttons */}
       <div className="mt-6 flex gap-4">
-        <button className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Vote YES</button>
-        <button className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">Vote NO</button>
+        <button
+          className={`px-4 py-2 rounded text-white ${
+            selectedVote === 'yes' ? 'bg-green-700' : 'bg-green-600 hover:bg-green-700'
+          }`}
+          onClick={() => setSelectedVote('yes')}
+        >
+          Vote YES
+        </button>
+        <button
+          className={`px-4 py-2 rounded text-white ${
+            selectedVote === 'no' ? 'bg-red-700' : 'bg-red-600 hover:bg-red-700'
+          }`}
+          onClick={() => setSelectedVote('no')}
+        >
+          Vote NO
+        </button>
+        <button
+          onClick={handleVote}
+          className="bg-black text-white px-4 py-2 rounded hover:bg-gray-800"
+        >
+          Submit Vote
+        </button>
       </div>
     </div>
   );
 }
-
