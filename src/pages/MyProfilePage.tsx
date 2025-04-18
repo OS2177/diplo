@@ -72,10 +72,21 @@ export default function MyProfilePage() {
         {votes.length === 0 ? (
           <p className="text-gray-500">You haven't voted yet.</p>
         ) : (
-          <ul className="list-disc list-inside">
+          <ul className="list-disc list-inside space-y-2">
             {votes.map((vote) => (
               <li key={vote.id}>
                 {vote.campaigns?.title} — <strong>{vote.choice.toUpperCase()}</strong>
+                <br />
+                <span className="text-sm text-gray-600">
+                  🗓 {new Date(vote.timestamp).toLocaleString('en-GB', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })}
+                  {vote.location_name ? ` | 📍 ${vote.location_name}` : ''}
+                </span>
               </li>
             ))}
           </ul>
