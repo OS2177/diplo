@@ -1,12 +1,14 @@
-import GlobalPulse from './pages/GlobalPulse';
-import { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { useEffect, useState } from 'react';
 import { supabase } from './lib/supabaseClient';
+
 import Header from './components/Header';
-import LoginPage from './pages/LoginPage';
 import HomePage from './pages/HomePage';
-import CreateCampaignPage from './pages/CreateCampaignPage';
+import GlobalPulse from './pages/GlobalPulse';
+import LoginPage from './pages/LoginPage';
 import ProfilePage from './pages/ProfilePage';
+import CreateCampaignPage from './pages/CreateCampaignPage'; // ✅ Correct component
+import CampaignPage from './pages/CampaignPage'; // Optional, if you have a single campaign route
 
 export default function App() {
   const [user, setUser] = useState(null);
@@ -29,12 +31,13 @@ export default function App() {
     <Router>
       <Header />
       <Routes>
-        <Route path="/global-pulse" element={<GlobalPulse />} />
         <Route path="/" element={<HomePage />} />
         <Route path="/home" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/create" element={<CreateCampaignPage />} /> {/* ✅ FIXED typo here */}
+        <Route path="/create" element={<CreateCampaignPage />} /> {/* ✅ FIXED */}
         <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/global-pulse" element={<GlobalPulse />} />
+        <Route path="/campaign/:id" element={<CampaignPage />} /> {/* optional */}
       </Routes>
     </Router>
   );
