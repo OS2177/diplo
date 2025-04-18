@@ -1,10 +1,10 @@
 // src/utils/getUserLocation.ts
 
-export const getUserLocation = (): Promise<{ latitude: number; longitude: number } | null> => {
+export async function getUserLocation(): Promise<{ latitude: number; longitude: number } | null> {
   return new Promise((resolve) => {
     if (!navigator.geolocation) {
-      console.warn('Geolocation is not supported by this browser.');
-      return resolve(null);
+      resolve(null);
+      return;
     }
 
     navigator.geolocation.getCurrentPosition(
@@ -14,11 +14,9 @@ export const getUserLocation = (): Promise<{ latitude: number; longitude: number
           longitude: position.coords.longitude,
         });
       },
-      (error) => {
-        console.error('Geolocation error:', error);
+      () => {
         resolve(null);
-      },
-      { enableHighAccuracy: true, timeout: 10000 }
+      }
     );
   });
-};
+}
