@@ -1,35 +1,28 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
+import { getUserLocation } from '../utils/getUserLocation';
 import VoteImpact from '../components/VoteImpact';
 import VoteResults from '../components/VoteResults';
-import { getUserLocation } from '../utils/getUserLocation';
 
 export default function CampaignPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-
   const [campaign, setCampaign] = useState<any>(null);
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
-  const [userLocation, setUserLocation] = useState({ lat: 0, lng: 0 });
-  const [integrityScore, setIntegrityScore] = useState(0);
-  const [selectedVote, setSelectedVote] = useState<string | null>(null);
   const [voteCounts, setVoteCounts] = useState({ yes: 0, no: 0 });
+  const [integrityScore, setIntegrityScore] = useState(0);
+  const [userLocation, setUserLocation] = useState({ lat: 0, lng: 0 });
+  const [selectedVote, setSelectedVote] = useState<string | null>(null);
 
-  // Fetch campaign and user data
   useEffect(() => {
-    const fetchData = async () => {
-      const { data: campaignData, error: campaignError } = await supabase
+    const fetchCampaignData = async () => {
+      const { data: campaignData } = await supabase
         .from('campaigns')
         .select('*')
         .eq('id', id)
         .single();
-
-      if (campaignError || !campaignData) {
-        alert('Campaign not found.');
-        return;
-      }
 
       setCampaign(campaignData);
 
@@ -52,7 +45,6 @@ export default function CampaignPage() {
 
       setProfile(profileData);
 
-      // Calculate integrity score
       let score = 0;
       if (user.email) score += 20;
       if (profileData?.name) score += 10;
@@ -62,7 +54,6 @@ export default function CampaignPage() {
       if (profileData?.pronouns) score += 10;
       setIntegrityScore(score);
 
-      // Get geolocation
       navigator.geolocation.getCurrentPosition((pos) => {
         setUserLocation({
           lat: pos.coords.latitude,
@@ -70,21 +61,18 @@ export default function CampaignPage() {
         });
       });
 
-      // Fetch vote results
-      const { data: voteData, error: voteError } = await supabase
+      const { data: votes } = await supabase
         .from('votes')
         .select('choice')
         .eq('campaign_id', id);
 
-      if (!voteError && voteData) {
-        const yes = voteData.filter((v) => v.choice === 'yes').length;
-        const no = voteData.filter((v) => v.choice === 'no').length;
-        setVoteCounts({ yes, no });
-      }
+      const yesVotes = votes?.filter((v) => v.choice === 'yes').length || 0;
+      const noVotes = votes?.filter((v) => v.choice === 'no').length || 0;
+      setVoteCounts({ yes: yesVotes, no: noVotes });
     };
 
-    fetchData();
-  }, [id, navigate]);
+    fetchCampaignData();
+  }, [id]);
 
   const handleVote = async () => {
     if (!user || !selectedVote) {
@@ -92,7 +80,6 @@ export default function CampaignPage() {
       return;
     }
 
-    // Prevent double voting
     const { data: existingVote } = await supabase
       .from('votes')
       .select('*')
@@ -122,15 +109,6 @@ export default function CampaignPage() {
     } else {
       alert('Vote submitted successfully.');
       setSelectedVote(null);
-      // Refresh vote counts
-      const { data: voteData } = await supabase
-        .from('votes')
-        .select('choice')
-        .eq('campaign_id', id);
-
-      const yes = voteData.filter((v) => v.choice === 'yes').length;
-      const no = voteData.filter((v) => v.choice === 'no').length;
-      setVoteCounts({ yes, no });
     }
   };
 
@@ -141,19 +119,19 @@ export default function CampaignPage() {
       <h1 className="text-2xl font-bold mb-2">{campaign.title}</h1>
       <p className="text-gray-700 mb-4">{campaign.description}</p>
 
-      {/* 🔥 Vote Impact Section */}
       <VoteImpact
         integrityScore={integrityScore}
         userLocation={userLocation}
-        campaignLocation={{ lat: campaign.latitude, lng: campaign.longitude }}
+        campaignLocation={{
+          lat: campaign.latitude,
+          lng: campaign.longitude,
+        }}
         campaignRadius={campaign.radius}
       />
 
-      {/* 📊 Vote Results */}
       <VoteResults campaignId={campaign.id} />
 
-      {/* 🗳 Vote Buttons */}
-      <div className="mt-6 flex flex-wrap gap-4">
+      <div className="mt-6 flex gap-4">
         <button
           className={`px-4 py-2 rounded text-white ${
             selectedVote === 'yes' ? 'bg-green-700' : 'bg-green-600 hover:bg-green-700'
@@ -178,7 +156,6 @@ export default function CampaignPage() {
         </button>
       </div>
 
-      {/* ✅ Live Totals */}
       <div className="mt-4 text-sm text-gray-600">
         <p>✅ YES: {voteCounts.yes}</p>
         <p>❌ NO: {voteCounts.no}</p>
