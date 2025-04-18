@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
-import { getUserLocation } from '../utils/getUserLocation';
+import { getUserLocation } from '@/utils/getUserLocation';
 import VoteImpact from '../components/VoteImpact';
 import VoteResults from '../components/VoteResults';
 

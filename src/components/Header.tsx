@@ -6,9 +6,11 @@ export default function Header() {
       <div className="max-w-7xl mx-auto px-4">
         <nav className="flex space-x-6 text-lg font-medium">
           <Link to="/">Home</Link>
+          <Link to="/global-pulse">Global Pulse</Link>
           <Link to="/create">Create Campaign</Link>
           <Link to="/profile">Profile</Link>
-          <Link to="/global-pulse">Global Pulse</Link>
+          <Link to="/my-profile">My Profile</Link>
+          
         </nav>
 
         {/* ✅ Tailwind test block */}

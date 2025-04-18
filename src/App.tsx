@@ -1,3 +1,4 @@
+import MyProfilePage from './pages/MyProfilePage'; // ✅ Add at the top
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { supabase } from './lib/supabaseClient';
@@ -35,6 +36,7 @@ export default function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/create" element={<CreateCampaignPage />} /> {/* ✅ FIXED */}
         <Route path="/profile" element={<ProfilePage />} />
+<Route path="/my-profile" element={<MyProfilePage />} />
         <Route path="/global-pulse" element={<GlobalPulse />} />
       </Routes>
     </Router>
