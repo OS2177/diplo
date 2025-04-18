@@ -31,7 +31,26 @@ export default function MyProfilePage() {
         .from('votes')
         .select('*, campaigns(title)')
         .eq('user_id', session.user.id);
-      setVotes(voteData || []);
+
+      const votesWithLocation = await Promise.all(
+        (voteData || []).map(async (vote) => {
+          let locationName = '';
+          if (vote.latitude && vote.longitude) {
+            try {
+              const response = await fetch(
+                `https://api.opencagedata.com/geocode/v1/json?q=${vote.latitude}+${vote.longitude}&key=${import.meta.env.VITE_GEOCODING_API_KEY}`
+              );
+              const json = await response.json();
+              locationName = json?.results?.[0]?.formatted || '';
+            } catch (err) {
+              console.error('Reverse geocoding failed:', err);
+            }
+          }
+          return { ...vote, locationName };
+        })
+      );
+
+      setVotes(votesWithLocation);
 
       const { data: createdCampaigns } = await supabase
         .from('campaigns')
@@ -50,7 +69,7 @@ export default function MyProfilePage() {
     };
 
     fetchData();
-  }, []);
+  }, [navigate]);
 
   if (!profile) return <div className="p-6">Loading your profile...</div>;
 
@@ -85,7 +104,7 @@ export default function MyProfilePage() {
                     hour: '2-digit',
                     minute: '2-digit',
                   })}
-                  {vote.location_name ? ` | 📍 ${vote.location_name}` : ''}
+                  {vote.locationName ? ` | 📍 ${vote.locationName}` : ''}
                 </span>
               </li>
             ))}
