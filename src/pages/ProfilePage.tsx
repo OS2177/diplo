@@ -1,4 +1,3 @@
-
 import ProfileIntegrity from '../components/ProfileIntegrity';
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
@@ -24,8 +23,7 @@ export default function ProfilePage() {
       const { data, error } = await supabase.auth.getUser();
 
       if (error || !data?.user) {
-        alert('You must be logged in to access your profile.');
-        navigate('/login');
+        navigate('/login', { state: { message: 'login-to-view-profile' } });
         return;
       }
 
@@ -43,21 +41,14 @@ export default function ProfilePage() {
 
   const saveProfile = async () => {
     const { error } = await supabase.from('profiles').upsert({
-  id: user.id,
-  ...profile,
-  age: parseInt(profile.age, 10),
-});
-
-if (error) {
-  console.error('Supabase error:', error); // Log it to console
-  alert('Error saving profile: ' + (error.message || 'Unknown error'));
-} else {
-  alert('Profile saved!');
-}
-
+      id: user.id,
+      ...profile,
+      age: parseInt(profile.age, 10),
+    });
 
     if (error) {
-      alert('Error saving profile: ' + error.message);
+      console.error('Supabase error:', error);
+      alert('Error saving profile: ' + (error.message || 'Unknown error'));
     } else {
       alert('Profile saved!');
     }

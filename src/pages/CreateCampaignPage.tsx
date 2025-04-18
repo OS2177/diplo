@@ -1,5 +1,4 @@
-
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '@/hooks/useUser';
@@ -12,9 +11,19 @@ export default function CreateCampaignPage() {
   const [image, setImage] = useState('');
   const [url, setUrl] = useState('');
   const [locations, setLocations] = useState(['']);
-  
+
   const navigate = useNavigate();
   const { user } = useUser();
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data } = await supabase.auth.getUser();
+      if (!data?.user) {
+        navigate('/login', { state: { message: 'login-to-create-campaign' } });
+      }
+    };
+    checkAuth();
+  }, [navigate]);
 
   const handleAddLocation = () => {
     setLocations([...locations, '']);
@@ -52,7 +61,7 @@ export default function CreateCampaignPage() {
       alert('Error: ' + error.message);
     } else {
       alert('Campaign created successfully!');
-      navigate('/campaigns'); // Redirect to Global Pulse
+      navigate('/campaigns');
     }
   };
 

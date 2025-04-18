@@ -24,6 +24,11 @@ export default function CampaignPage() {
       const {
         data: { user },
       } = await supabase.auth.getUser();
+      if (!user) {
+  navigate('/login', { state: { message: 'login-to-vote' } });
+  return;
+}
+      
       setUser(user);
 
       const { data: profileData } = await supabase
@@ -79,7 +84,20 @@ export default function CampaignPage() {
 
     const location = await getUserLocation();
 
-    const { error } = await supabase.from('votes').insert({
+    const { error } = await 
+    
+    const { data: existingVote } = await supabase
+  .from('votes')
+  .select('*')
+  .eq('campaign_id', campaign.id)
+  .eq('user_id', user.id)
+  .single();
+
+if (existingVote) {
+  alert('You’ve already voted on this campaign.');
+  return;
+}
+ supabase.from('votes').insert({
       campaign_id: campaign.id,
       user_id: user.id,
       choice: selectedVote,
