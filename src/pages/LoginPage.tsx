@@ -1,18 +1,33 @@
-
 import { supabase } from '../lib/supabaseClient';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useEffect, useState } from 'react';
 
 export default function LoginPage() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const [loginMessage, setLoginMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (location.state && location.state.message) {
+      const msgKey = location.state.message;
+      if (msgKey === 'login-to-create-campaign') {
+        setLoginMessage('Please log in to create a campaign.');
+      } else if (msgKey === 'login-to-view-profile') {
+        setLoginMessage('Please log in to view or edit your profile.');
+      } else if (msgKey === 'login-to-vote') {
+        setLoginMessage('Please log in to vote on a campaign.');
+      }
+    }
+  }, [location.state]);
 
   const loginWithGoogle = async () => {
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
       });
-      
+
       if (error) throw error;
-      
+
       navigate('/home');
     } catch (error) {
       console.error('Error logging in:', error);
@@ -21,7 +36,12 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex flex-col justify-center items-center bg-gray-50">
-      <h1 className="text-3xl font-bold mb-6">Login to Diplo</h1>
+      <h1 className="text-3xl font-bold mb-4">Login to Diplo</h1>
+
+      {loginMessage && (
+        <div className="text-red-600 text-sm mb-4">{loginMessage}</div>
+      )}
+
       <button
         onClick={loginWithGoogle}
         className="bg-black text-white px-6 py-3 rounded-lg hover:bg-gray-800 transition-colors flex items-center gap-2"

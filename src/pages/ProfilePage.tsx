@@ -1,7 +1,7 @@
-import ProfileIntegrity from '../components/ProfileIntegrity';
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useNavigate } from 'react-router-dom';
+import ProfileIntegrity from '../components/ProfileIntegrity';
 
 export default function ProfilePage() {
   const [user, setUser] = useState(null);
@@ -22,7 +22,7 @@ export default function ProfilePage() {
     const getUser = async () => {
       const { data, error } = await supabase.auth.getUser();
 
-      if (error || !data?.user) {
+      if (!data?.user) {
         navigate('/login', { state: { message: 'login-to-view-profile' } });
         return;
       }
@@ -33,7 +33,7 @@ export default function ProfilePage() {
     };
 
     getUser();
-  }, []);
+  }, [navigate]);
 
   const handleChange = (e) => {
     setProfile({ ...profile, [e.target.name]: e.target.value });

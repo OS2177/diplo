@@ -37,12 +37,9 @@ export default function CreateCampaignPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) {
-      alert('You must be logged in to create a campaign.');
-      return;
-    }
+    if (!user) return;
 
-    const { data, error } = await supabase.from('campaigns').insert([
+    const { error } = await supabase.from('campaigns').insert([
       {
         title,
         description,
@@ -69,33 +66,71 @@ export default function CreateCampaignPage() {
     <div className="p-6 max-w-xl mx-auto">
       <h1 className="text-2xl font-bold mb-4">Create Campaign</h1>
       <form onSubmit={handleSubmit} className="space-y-4">
-        <input value={title} onChange={e => setTitle(e.target.value)} placeholder="Title" required className="w-full border p-2" />
-        <textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="Description" required className="w-full border p-2" />
-        <select value={scope} onChange={e => setScope(e.target.value)} className="w-full border p-2">
+        <input
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder="Title"
+          required
+          className="w-full border p-2"
+        />
+        <textarea
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          placeholder="Description"
+          required
+          className="w-full border p-2"
+        />
+        <select
+          value={scope}
+          onChange={(e) => setScope(e.target.value)}
+          className="w-full border p-2"
+        >
           <option value="personal">Personal</option>
           <option value="social">Social</option>
           <option value="local">Local</option>
           <option value="global">Global</option>
           <option value="ecological">Ecological</option>
         </select>
-        <input value={region} onChange={e => setRegion(e.target.value)} placeholder="Region (optional)" className="w-full border p-2" />
-        <input value={image} onChange={e => setImage(e.target.value)} placeholder="Image URL (optional)" className="w-full border p-2" />
-        <input value={url} onChange={e => setUrl(e.target.value)} placeholder="Reference URL (optional)" className="w-full border p-2" />
+        <input
+          value={region}
+          onChange={(e) => setRegion(e.target.value)}
+          placeholder="Region (optional)"
+          className="w-full border p-2"
+        />
+        <input
+          value={image}
+          onChange={(e) => setImage(e.target.value)}
+          placeholder="Image URL (optional)"
+          className="w-full border p-2"
+        />
+        <input
+          value={url}
+          onChange={(e) => setUrl(e.target.value)}
+          placeholder="Reference URL (optional)"
+          className="w-full border p-2"
+        />
 
         {locations.map((loc, idx) => (
           <input
             key={idx}
             value={loc}
-            onChange={e => handleLocationChange(idx, e.target.value)}
+            onChange={(e) => handleLocationChange(idx, e.target.value)}
             placeholder={`Location ${idx + 1}`}
             className="w-full border p-2"
           />
         ))}
-        <button type="button" onClick={handleAddLocation} className="text-sm text-blue-600 underline">
+
+        <button
+          type="button"
+          onClick={handleAddLocation}
+          className="text-sm text-blue-600 underline"
+        >
           + Add another location
         </button>
 
-        <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded">Create Campaign</button>
+        <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded">
+          Create Campaign
+        </button>
       </form>
     </div>
   );
