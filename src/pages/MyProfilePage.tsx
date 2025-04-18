@@ -37,10 +37,16 @@ export default function MyProfilePage() {
           let locationName = '';
           if (vote.latitude && vote.longitude) {
             try {
+              console.log('Fetching location for vote:', vote.latitude, vote.longitude);
+              console.log('Using API Key:', import.meta.env.VITE_GEOCODING_API_KEY);
+
               const response = await fetch(
                 `https://api.opencagedata.com/geocode/v1/json?q=${vote.latitude}+${vote.longitude}&key=${import.meta.env.VITE_GEOCODING_API_KEY}`
               );
               const json = await response.json();
+
+              console.log('Geocoding result:', json);
+
               locationName = json?.results?.[0]?.formatted || '';
             } catch (err) {
               console.error('Reverse geocoding failed:', err);
