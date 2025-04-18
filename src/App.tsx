@@ -5,7 +5,6 @@ import { supabase } from './lib/supabaseClient';
 import Header from './components/Header';
 import LoginPage from './pages/LoginPage';
 import HomePage from './pages/HomePage';
-// 👇 Use the newer campaign page
 import CreateCampaignPage from './pages/CreateCampaignPage';
 import ProfilePage from './pages/ProfilePage';
 
@@ -34,8 +33,7 @@ export default function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/home" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
-        {/* ✅ Updated path to point to the new page */}
-        <Route path="/create" element={<CreateCampaignPage />} />
+        <Route path="/create" element={<CreateCampaignPage />} /> {/* ✅ FIXED typo here */}
         <Route path="/profile" element={<ProfilePage />} />
       </Routes>
     </Router>

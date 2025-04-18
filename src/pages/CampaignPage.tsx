@@ -1,34 +1,47 @@
-
-import VoteResults from '../components/VoteResults';
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import VoteImpact from '../components/VoteImpact';
+import VoteResults from '../components/VoteResults';
 import { getUserLocation } from '../utils/getUserLocation';
 
 export default function CampaignPage() {
-  const [voteCounts, setVoteCounts] = useState({ yes: 0, no: 0 });
   const { id } = useParams();
+  const navigate = useNavigate();
+
   const [campaign, setCampaign] = useState<any>(null);
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
   const [userLocation, setUserLocation] = useState({ lat: 0, lng: 0 });
   const [integrityScore, setIntegrityScore] = useState(0);
   const [selectedVote, setSelectedVote] = useState<string | null>(null);
+  const [voteCounts, setVoteCounts] = useState({ yes: 0, no: 0 });
 
+  // Fetch campaign and user data
   useEffect(() => {
     const fetchData = async () => {
-      const { data } = await supabase.from('campaigns').select('*').eq('id', id).single();
-      setCampaign(data);
+      const { data: campaignData, error: campaignError } = await supabase
+        .from('campaigns')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (campaignError || !campaignData) {
+        alert('Campaign not found.');
+        return;
+      }
+
+      setCampaign(campaignData);
 
       const {
         data: { user },
       } = await supabase.auth.getUser();
+
       if (!user) {
-  navigate('/login', { state: { message: 'login-to-vote' } });
-  return;
-}
-      
+        navigate('/login', { state: { message: 'login-to-vote' } });
+        return;
+      }
+
       setUser(user);
 
       const { data: profileData } = await supabase
@@ -36,45 +49,42 @@ export default function CampaignPage() {
         .select('*')
         .eq('id', user.id)
         .single();
+
       setProfile(profileData);
 
-      const fetchVotes = async () => {
-        const { data, error } = await supabase
-          .from('votes')
-          .select('choice')
-          .eq('campaign_id', id);
-
-        if (data) {
-          const yesVotes = data.filter((v) => v.choice === 'yes').length;
-          const noVotes = data.filter((v) => v.choice === 'no').length;
-          setVoteCounts({ yes: yesVotes, no: noVotes });
-        } else {
-          console.error('Error fetching votes:', error);
-        }
-      };
-
-      fetchVotes(); // 🔁 Call it inside fetchData()
-
-
+      // Calculate integrity score
       let score = 0;
       if (user.email) score += 20;
-      if (profileData.name) score += 10;
-      if (profileData.city && profileData.country) score += 10;
-      if (profileData.age) score += 10;
-      if (profileData.bio) score += 10;
-      if (profileData.pronouns) score += 10;
+      if (profileData?.name) score += 10;
+      if (profileData?.city && profileData?.country) score += 10;
+      if (profileData?.age) score += 10;
+      if (profileData?.bio) score += 10;
+      if (profileData?.pronouns) score += 10;
       setIntegrityScore(score);
 
+      // Get geolocation
       navigator.geolocation.getCurrentPosition((pos) => {
         setUserLocation({
           lat: pos.coords.latitude,
           lng: pos.coords.longitude,
         });
       });
+
+      // Fetch vote results
+      const { data: voteData, error: voteError } = await supabase
+        .from('votes')
+        .select('choice')
+        .eq('campaign_id', id);
+
+      if (!voteError && voteData) {
+        const yes = voteData.filter((v) => v.choice === 'yes').length;
+        const no = voteData.filter((v) => v.choice === 'no').length;
+        setVoteCounts({ yes, no });
+      }
     };
 
     fetchData();
-  }, [id]);
+  }, [id, navigate]);
 
   const handleVote = async () => {
     if (!user || !selectedVote) {
@@ -82,22 +92,22 @@ export default function CampaignPage() {
       return;
     }
 
+    // Prevent double voting
+    const { data: existingVote } = await supabase
+      .from('votes')
+      .select('*')
+      .eq('campaign_id', campaign.id)
+      .eq('user_id', user.id)
+      .single();
+
+    if (existingVote) {
+      alert('You’ve already voted on this campaign.');
+      return;
+    }
+
     const location = await getUserLocation();
 
-    const { error } = await 
-    
-    const { data: existingVote } = await supabase
-  .from('votes')
-  .select('*')
-  .eq('campaign_id', campaign.id)
-  .eq('user_id', user.id)
-  .single();
-
-if (existingVote) {
-  alert('You’ve already voted on this campaign.');
-  return;
-}
- supabase.from('votes').insert({
+    const { error } = await supabase.from('votes').insert({
       campaign_id: campaign.id,
       user_id: user.id,
       choice: selectedVote,
@@ -111,7 +121,16 @@ if (existingVote) {
       alert('Error submitting your vote.');
     } else {
       alert('Vote submitted successfully.');
-      setSelectedVote(null); // reset after vote
+      setSelectedVote(null);
+      // Refresh vote counts
+      const { data: voteData } = await supabase
+        .from('votes')
+        .select('choice')
+        .eq('campaign_id', id);
+
+      const yes = voteData.filter((v) => v.choice === 'yes').length;
+      const no = voteData.filter((v) => v.choice === 'no').length;
+      setVoteCounts({ yes, no });
     }
   };
 
@@ -129,9 +148,12 @@ if (existingVote) {
         campaignLocation={{ lat: campaign.latitude, lng: campaign.longitude }}
         campaignRadius={campaign.radius}
       />
-<VoteResults campaignId={campaign.id} />
-      {/* 🔘 Vote Buttons */}
-      <div className="mt-6 flex gap-4">
+
+      {/* 📊 Vote Results */}
+      <VoteResults campaignId={campaign.id} />
+
+      {/* 🗳 Vote Buttons */}
+      <div className="mt-6 flex flex-wrap gap-4">
         <button
           className={`px-4 py-2 rounded text-white ${
             selectedVote === 'yes' ? 'bg-green-700' : 'bg-green-600 hover:bg-green-700'
@@ -154,10 +176,12 @@ if (existingVote) {
         >
           Submit Vote
         </button>
-        <div className="mt-4 text-sm text-gray-600">
-          <p>✅ YES: {voteCounts.yes}</p>
-          <p>❌ NO: {voteCounts.no}</p>
-        </div>
+      </div>
+
+      {/* ✅ Live Totals */}
+      <div className="mt-4 text-sm text-gray-600">
+        <p>✅ YES: {voteCounts.yes}</p>
+        <p>❌ NO: {voteCounts.no}</p>
       </div>
     </div>
   );
