@@ -8,7 +8,6 @@ import GlobalPulse from './pages/GlobalPulse';
 import LoginPage from './pages/LoginPage';
 import ProfilePage from './pages/ProfilePage';
 import CreateCampaignPage from './pages/CreateCampaignPage'; // ✅ Correct component
-import CampaignPage from './pages/CampaignPage'; // Optional, if you have a single campaign route
 
 export default function App() {
   const [user, setUser] = useState(null);
@@ -37,7 +36,6 @@ export default function App() {
         <Route path="/create" element={<CreateCampaignPage />} /> {/* ✅ FIXED */}
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/global-pulse" element={<GlobalPulse />} />
-        <Route path="/campaign/:id" element={<CampaignPage />} /> {/* optional */}
       </Routes>
     </Router>
   );
