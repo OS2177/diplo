@@ -1,4 +1,3 @@
-
 import GlobalPulse from './pages/GlobalPulse';
 import { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
@@ -6,7 +5,8 @@ import { supabase } from './lib/supabaseClient';
 import Header from './components/Header';
 import LoginPage from './pages/LoginPage';
 import HomePage from './pages/HomePage';
-import CreateCampaign from './pages/CreateCampaign';
+// 👇 Use the newer campaign page
+import CreateCampaignPage from './pages/CreateCampaignPage';
 import ProfilePage from './pages/ProfilePage';
 
 export default function App() {
@@ -34,10 +34,10 @@ export default function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/home" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/create" element={<CreateCampaign />} />
+        {/* ✅ Updated path to point to the new page */}
+        <Route path="/create" element={<CreateCampaignPage />} />
         <Route path="/profile" element={<ProfilePage />} />
       </Routes>
     </Router>
   );
 }
-
