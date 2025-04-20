@@ -12,7 +12,7 @@ import CreateCampaignPage from './pages/CreateCampaignPage';
 import CampaignPage from './pages/CampaignPage';
 
 export default function App() {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
     // Initialize session
