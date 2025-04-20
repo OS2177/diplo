@@ -32,6 +32,7 @@ export default function App() {
 
   return (
     <Router>
+      <div className="min-h-screen bg-gray-100">
       <Header />
       <Routes>
         <Route path="/" element={<HomePage />} />
