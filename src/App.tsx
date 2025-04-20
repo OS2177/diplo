@@ -1,4 +1,4 @@
-import MyProfilePage from './pages/MyProfilePage'; // ✅ Add at the top
+// src/App.tsx
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { supabase } from './lib/supabaseClient';
@@ -8,14 +8,15 @@ import HomePage from './pages/HomePage';
 import GlobalPulse from './pages/GlobalPulse';
 import LoginPage from './pages/LoginPage';
 import ProfilePage from './pages/ProfilePage';
-import CreateCampaignPage from './pages/CreateCampaignPage'; // ✅ Correct component
+import CreateCampaignPage from './pages/CreateCampaignPage';
+import CampaignPage from './pages/CampaignPage';
 
 export default function App() {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    const session = supabase.auth.getSession().then(({ data }) => {
-      setUser(data?.session?.user ?? null);
+    supabase.auth.getSession().then(({ data }) => {
+      setUser(data.session?.user ?? null);
     });
 
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -34,10 +35,10 @@ export default function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/home" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/create" element={<CreateCampaignPage />} /> {/* ✅ FIXED */}
+        <Route path="/create" element={<CreateCampaignPage />} />
         <Route path="/profile" element={<ProfilePage />} />
-<Route path="/my-profile" element={<MyProfilePage />} />
         <Route path="/global-pulse" element={<GlobalPulse />} />
+        <Route path="/campaign/:id" element={<CampaignPage />} />
       </Routes>
     </Router>
   );
