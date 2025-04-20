@@ -15,10 +15,12 @@ export default function App() {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
+    // Initialize session
     supabase.auth.getSession().then(({ data }) => {
       setUser(data.session?.user ?? null);
     });
 
+    // Subscribe to auth changes
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
     });
