@@ -1,24 +1,58 @@
-import { Link } from 'react-router-dom';
+// src/components/Header.tsx
+import { NavLink } from 'react-router-dom';
 
 export default function Header() {
-  return (
-    <header className="bg-black text-white py-4">
-      <div className="max-w-7xl mx-auto px-4">
-        <nav className="flex space-x-6 text-lg font-medium">
-          <Link to="/">Home</Link>
-          <Link to="/global-pulse">Global Pulse</Link>
-          <Link to="/create">Create Campaign</Link>
-          <Link to="/profile">Profile</Link>
-          <Link to="/my-profile">My Profile</Link>
-          
-        </nav>
+  const linkClasses =
+    'px-3 py-2 rounded-md text-lg font-medium hover:bg-gray-800 hover:text-white';
+  const activeClasses = 'bg-gray-900 text-white';
 
-        {/* ✅ Tailwind test block */}
-        <div className="mt-4 bg-pink-500 text-white p-4 text-xl font-bold rounded">
-          TAILWIND IS WORKING 🎉
-        </div>
+  return (
+    <header className="bg-black text-gray-300">
+      <div className="max-w-7xl mx-auto flex items-center justify-between p-4">
+        {/* Logo / Title */}
+        <NavLink to="/" className="text-2xl font-bold text-white">
+          Diplo
+        </NavLink>
+
+        {/* Nav Links */}
+        <nav className="flex space-x-4">
+          <NavLink
+            to="/home"
+            className={({ isActive }) =>
+              `${linkClasses} ${isActive ? activeClasses : ''}`
+            }
+          >
+            Home
+          </NavLink>
+
+          <NavLink
+            to="/create"
+            className={({ isActive }) =>
+              `${linkClasses} ${isActive ? activeClasses : ''}`
+            }
+          >
+            Create Campaign
+          </NavLink>
+
+          <NavLink
+            to="/profile"
+            className={({ isActive }) =>
+              `${linkClasses} ${isActive ? activeClasses : ''}`
+            }
+          >
+            Profile
+          </NavLink>
+
+          <NavLink
+            to="/global-pulse"
+            className={({ isActive }) =>
+              `${linkClasses} ${isActive ? activeClasses : ''}`
+            }
+          >
+            Global Pulse
+          </NavLink>
+        </nav>
       </div>
     </header>
   );
 }
-
