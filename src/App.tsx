@@ -32,9 +32,10 @@ export default function App() {
 
   return (
     <Router>
-      <div className="min-h-screen bg-gray-100">
-      <Header />
-      <Routes>
+      <div className="min-h-screen bg-gray-100 flex flex-col">
+        <Header />
+        <main className="flex-1">
+          <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/home" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
@@ -43,6 +44,8 @@ export default function App() {
         <Route path="/global-pulse" element={<GlobalPulse />} />
         <Route path="/campaign/:id" element={<CampaignPage />} />
       </Routes>
+        </main>
+      </div>
     </Router>
   );
 }
