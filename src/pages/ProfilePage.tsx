@@ -25,7 +25,7 @@ interface Vote {
 }
 
 export default function ProfilePage() {
-  const user = useUser();
+const { user, loading } = useUser();
   const navigate = useNavigate();
 
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -34,12 +34,12 @@ export default function ProfilePage() {
   const [integrityScore, setIntegrityScore] = useState(0);
   const [loadingProfile, setLoadingProfile] = useState(true);
 
-  // Redirect if not logged in
   useEffect(() => {
-    if (user === null) {
-      navigate('/login', { state: { message: 'login-to-view-profile' } });
-    }
-  }, [user, navigate]);
+  if (!loading && user === null) {
+    navigate('/login', { state: { message: 'login-to-view-profile' } });
+  }
+}, [user, loading, navigate]);
+
 
   // Fetch profile
   useEffect(() => {
@@ -133,9 +133,9 @@ export default function ProfilePage() {
     alert(error ? `Error: ${error.message}` : 'Profile saved!');
   };
 
-  if (user === undefined || loadingProfile) {
-    return <div className="p-6">Loading profile…</div>;
-  }
+  if (loading || loadingProfile) {
+  return <div className="p-6">Loading profile…</div>;
+}
 
   return (
     <div className="max-w-xl mx-auto p-6 space-y-8">
