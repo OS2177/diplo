@@ -18,13 +18,14 @@
   </NavLink>
 
   <NavLink
-    to="/profile"
-    className={({ isActive }) =>
-      `${linkClasses} ${isActive ? activeClasses : ''}`
-    }
-  >
-    Profile
-  </NavLink>
+  to="/profile"
+  className={({ isActive }) =>
+    `${linkClasses} ${isActive ? activeClasses : ''}`
+  }
+>
+  Profile
+</NavLink>
+
 
   <NavLink
     to="/global-pulse"
