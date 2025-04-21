@@ -1,10 +1,9 @@
-export async function getUserLocation(): Promise<{ latitude: number; longitude: number } | null> {
-  return new Promise((resolve, reject) => {
-    if (!navigator.geolocation) {
-      console.error('Geolocation is not supported.');
-      return resolve(null);
-    }
-
+export async function getUserLocation(): Promise<{
+  latitude: number;
+  longitude: number;
+} | null> {
+  return new Promise((resolve) => {
+    if (!navigator.geolocation) return resolve(null);
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         resolve({
@@ -12,10 +11,7 @@ export async function getUserLocation(): Promise<{ latitude: number; longitude: 
           longitude: pos.coords.longitude,
         });
       },
-      (err) => {
-        console.error('Error getting location:', err);
-        resolve(null);
-      }
+      () => resolve(null)
     );
   });
 }
