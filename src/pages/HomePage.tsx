@@ -1,13 +1,8 @@
-
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import CampaignCard from '../components/CampaignCard';
 
 import { useCampaigns } from '../hooks/useCampaigns';
-// …inside your component
-const campaigns = useCampaigns();
-// …render as above or filter first 3 for a “preview”
-
 
 export default function HomePage() {
   const [campaigns, setCampaigns] = useState([]);
@@ -43,6 +38,6 @@ export default function HomePage() {
         ))}
 
     </div>
-    
+
   );
 }
