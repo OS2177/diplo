@@ -139,6 +139,10 @@ const { user, loading } = useUser();
 
   return (
     <div className="max-w-xl mx-auto p-6 space-y-8">
+      <pre className="bg-gray-100 text-xs p-2 rounded">
+        {JSON.stringify({ user, profile, votes, createdCampaigns }, null, 2)}
+      </pre>
+
       <h2 className="text-2xl font-bold">Your Profile</h2>
 
       {/* Edit form */}
