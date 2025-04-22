@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { supabase } from './lib/supabaseClient';
 
@@ -9,7 +9,7 @@ import LoginPage from './pages/LoginPage';
 import ProfilePage from './pages/ProfilePage';
 import CreateCampaignPage from './pages/CreateCampaignPage';
 import CampaignPage from './pages/CampaignPage';
-import { Navigate } from 'react-router-dom';
+
 
 
 export default function App() {
