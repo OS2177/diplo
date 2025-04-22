@@ -38,12 +38,12 @@ export default function App() {
         <main className="flex-1">
           <Routes>
             <Route path="/" element={<HomePage />} />
-            <Route path="/create" element={<CreateCampaignPage />} />
+            <Route path="/create" element={user ? <CreateCampaignPage /> : <Navigate to="/login" />} />
             <Route path="/global-pulse" element={<GlobalPulse />} />
             <Route path="/login" element={<LoginPage />} />
-            <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/profile" element={user ? <ProfilePage /> : <Navigate to="/login" />} />
             <Route path="/campaign/:id" element={<CampaignPage />} />
-            <Route path="/home" element={<Navigate to="/" />} />
+            <Route path="/home" element={<Navigate to="/" replace />} />
           </Routes>
         </main>
       </div>
