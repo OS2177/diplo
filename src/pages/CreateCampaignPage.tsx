@@ -50,7 +50,7 @@ export default function CreateCampaignPage() {
         url,
         locations,
         created_by: user.id,
-        status: 'active',
+        status: 'published',
       },
     ]);
 

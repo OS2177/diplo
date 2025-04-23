@@ -1,19 +1,23 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import path from 'path'; // ✅ required for resolving paths
+import path from 'path';
 
 export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, 'src'), // ✅ add this line
+      '@': path.resolve(__dirname, 'src'),
     },
   },
   server: {
-    host: true,
-    strictPort: false,
+    host: '0.0.0.0',              // ✅ required for Replit routing
+    port: 5173,                   // ✅ lock the dev port
+    strictPort: true,            // ✅ ensures consistency
+    watch: {
+      usePolling: true,          // ✅ better file change detection in Replit
+    },
     hmr: {
-      clientPort: 443,
+      clientPort: 443,           // ✅ required for secure Replit HMR
     },
     allowedHosts: [
       'localhost',

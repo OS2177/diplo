@@ -77,3 +77,13 @@ mode = "sequential"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "npm run dev -- --host 0.0.0.0 --port 5000"
+
+run = "npm run dev"
+
+[interpreter]
+command = ["node"]
+
+[env]
+NODE_ENV = "development"
+PORT = "5173"
+HOST = "0.0.0.0"

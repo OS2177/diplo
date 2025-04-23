@@ -10,7 +10,7 @@ export default function LoginPage() {
 
   // If already logged in, redirect home
   useEffect(() => {
-    if (user) navigate('/home');
+    if (user) navigate('/');
   }, [user, navigate]);
 
   // Display contextual message
