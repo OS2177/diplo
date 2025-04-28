@@ -1,17 +1,15 @@
 import { NavLink, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
-import { useUser } from '../hooks/useUser'; // ✅ Add this
 
 const linkClasses = 'text-gray-600 hover:text-black px-3 py-2 rounded-md text-sm font-medium';
 const activeClasses = 'bg-gray-200 text-black';
 
-export default function Header() {
-  const { user } = useUser(); // ✅ Get user from context
+export default function Header({ user }: { user: any }) {
   const navigate = useNavigate();
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    navigate('/login', { state: { message: 'logout-success' } });
+    navigate('/login');
   };
 
   return (
@@ -46,15 +44,14 @@ export default function Header() {
         </NavLink>
       </div>
 
-      {/* ✅ Logout button shown if logged in */}
-      {user && (
+      {user ? (
         <button
           onClick={handleLogout}
           className="text-sm text-red-600 hover:text-red-800 font-medium"
         >
           Logout
         </button>
-      )}
+      ) : null}
     </nav>
   );
 }
