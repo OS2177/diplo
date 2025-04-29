@@ -4,27 +4,28 @@ import react from '@vitejs/plugin-react';
 import path from 'path';
 
 export default defineConfig({
+  base: '/', // <--- ADD THIS
   plugins: [react()],
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, 'src'), // ✅ Allows @/components/... usage
+      '@': path.resolve(__dirname, 'src'),
     },
   },
   server: {
-    host: '0.0.0.0',          // ✅ Needed for Replit routing
-    port: 5173,               // ✅ Lock dev server port
-    strictPort: true,         // ✅ Don't randomly change ports
+    host: '0.0.0.0',
+    port: 5173,
+    strictPort: true,
     watch: {
-      usePolling: true,       // ✅ Stable file watching in Replit
+      usePolling: true,
     },
     hmr: {
-      clientPort: 443,        // ✅ Secure HMR over HTTPS
+      clientPort: 443,
     },
     allowedHosts: [
       'localhost',
       '127.0.0.1',
+      '571769ad-7014-4e96-b40c-d6039ffefe07-00-3nyw07towzbqe.picard.replit.dev',
       'diplo-jackvintage77.replit.app',
-      '571769ad-7014-4e96-b40c-d6039ffefe07-00-3nyw07towzbqe.picard.replit.dev'
     ],
   },
 });
