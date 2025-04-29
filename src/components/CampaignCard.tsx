@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 
 type Campaign = {
@@ -13,12 +14,28 @@ type Campaign = {
   country?: string;
   latitude?: number;
   longitude?: number;
+  created_by?: string;
 };
 
 export default function CampaignCard({ campaign }: { campaign: Campaign }) {
   const [voted, setVoted] = useState(false);
   const [voteChoice, setVoteChoice] = useState('');
   const [voteSuccess, setVoteSuccess] = useState(false);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const navigate = useNavigate();
+
+  // ✅ Prevent crash if campaign is not defined
+  if (!campaign) {
+    return <div className="p-4 text-gray-500">Campaign not found or still loading...</div>;
+  }
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const { data } = await supabase.auth.getUser();
+      setCurrentUser(data?.user || null);
+    };
+    fetchUser();
+  }, []);
 
   const castVote = async (choice: string) => {
     const { data: userData } = await supabase.auth.getUser();
@@ -48,15 +65,24 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
     });
   };
 
+  const handleDelete = async () => {
+    const confirmDelete = confirm('Are you sure you want to delete this campaign?');
+    if (!confirmDelete) return;
+
+    const { error } = await supabase.from('campaigns').delete().eq('id', campaign.id);
+    if (error) {
+      alert('Error deleting campaign: ' + error.message);
+    } else {
+      alert('Campaign deleted.');
+      navigate('/global-pulse');
+    }
+  };
+
   return (
     <div className="bg-white rounded shadow p-4 mb-4 border border-gray-100">
       {campaign.image && (
         <div className="w-full overflow-hidden rounded mt-6 mb-4">
-          <img
-            src={campaign.image}
-            alt={campaign.title}
-            className="w-full"
-          />
+          <img src={campaign.image} alt={campaign.title} className="w-full" />
         </div>
       )}
 
@@ -64,23 +90,22 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
       <p className="text-sm text-gray-600 mb-2">{campaign.scope}</p>
       <p className="text-gray-700 mb-2">{campaign.description}</p>
 
-     {(campaign.city || campaign.country) && (
-  <p className="text-sm text-gray-500 mb-4">
-    📍 {Array.isArray(campaign.city) ? campaign.city[0] : campaign.city}
-    {campaign.city && campaign.country ? ', ' : ''}
-    {campaign.country}
-  </p>
-      )}
-
       {campaign.url && (
         <div className="mt-4">
           <img
-            src={`https://api.microlink.io/?url=${encodeURIComponent(campaign.url)}&meta=true&embed=image.url`}
+            src={`https://api.microlink.io/?url=${encodeURIComponent(
+              campaign.url
+            )}&meta=true&embed=image.url`}
             alt="Website preview"
             className="w-full rounded mb-2 border"
           />
-          
-
+          {(campaign.city || campaign.country) && (
+            <p className="text-sm text-gray-500 mb-4">
+              📍{campaign.city}
+              {campaign.city && campaign.country ? ', ' : ''}
+              {campaign.country}
+            </p>
+          )}
           <a
             href={campaign.url}
             target="_blank"
@@ -143,6 +168,17 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
           </p>
         </div>
       )}
+
+      {currentUser &&
+        (currentUser.id === campaign.created_by ||
+          currentUser.email === 'your@email.com') && (
+          <button
+            onClick={handleDelete}
+            className="mt-6 text-red-600 underline"
+          >
+            Delete Campaign
+          </button>
+        )}
     </div>
   );
 }
