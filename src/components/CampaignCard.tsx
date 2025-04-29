@@ -34,11 +34,14 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
       });
 
       if (error) {
-        alert('Error submitting vote: ' + error.message);
-      } else {
-        setVoteChoice(choice);
-        setVoted(true);
-      }
+  alert('Error submitting vote: ' + error.message);
+} else {
+  setVoteChoice(choice);
+  setVoted(true);
+  setVoteSuccess(true);
+  setTimeout(() => setVoteSuccess(false), 3000);
+}
+
     });
   };
 

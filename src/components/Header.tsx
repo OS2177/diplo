@@ -30,14 +30,6 @@ export default function Header() {
           Home
         </NavLink>
         <NavLink
-          to="/create"
-          className={({ isActive }) =>
-            `${linkClasses} ${isActive ? activeClasses : ''}`
-          }
-        >
-          Create Campaign
-        </NavLink>
-        <NavLink
           to="/global-pulse"
           className={({ isActive }) =>
             `${linkClasses} ${isActive ? activeClasses : ''}`
@@ -45,6 +37,15 @@ export default function Header() {
         >
           Global Pulse
         </NavLink>
+        <NavLink
+          to="/create"
+          className={({ isActive }) =>
+            `${linkClasses} ${isActive ? activeClasses : ''}`
+          }
+        >
+          Create Campaign
+        </NavLink>
+        
       </div>
 
       {/* Right: Profile or Login */}
