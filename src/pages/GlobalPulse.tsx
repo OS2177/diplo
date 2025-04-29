@@ -20,6 +20,17 @@ export default function GlobalPulse() {
             to={`/campaign/${c.id}`}
             className="border rounded-xl p-4 hover:shadow-md transition bg-white"
           >
+            {/* ✅ Show image if available */}
+            {c.image && (
+              <div className="w-full h-40 mb-3 overflow-hidden rounded">
+                <img
+                  src={c.image}
+                  alt={c.title}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            )}
+
             <h2 className="text-lg font-bold mb-1">{c.title}</h2>
             <p className="text-sm text-gray-700 line-clamp-3">{c.description}</p>
             <span className="text-xs text-indigo-500 font-medium mt-2 inline-block">
