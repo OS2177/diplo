@@ -40,7 +40,8 @@ export default function CreateCampaignPage() {
           // Reverse geocoding using OpenStreetMap
           const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}`);
           const data = await response.json();
-          setCity(data.address.city || data.address.town || data.address.village || '');
+          const rawCity = data.address.city || data.address.town || data.address.village || '';
+          setCity(typeof rawCity === 'string' ? rawCity : '');
           setCountry(data.address.country || '');
         });
       }
