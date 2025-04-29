@@ -1,3 +1,4 @@
+// src/hooks/useUser.ts
 import { useState, useEffect } from 'react';
 import { User } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabaseClient';
@@ -12,18 +13,28 @@ export function useUser(): UseUserResult {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setUser(data.session?.user ?? null);
-      setLoading(false);
-    });
+    let mounted = true;
 
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-      setLoading(false);
+    const getSession = async () => {
+      const { data, error } = await supabase.auth.getSession();
+      if (mounted) {
+        setUser(data.session?.user ?? null);
+        setLoading(false);
+      }
+    };
+
+    getSession();
+
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (mounted) {
+        setUser(session?.user ?? null);
+        setLoading(false);
+      }
     });
 
     return () => {
-      listener.subscription.unsubscribe();
+      mounted = false;
+      authListener.subscription.unsubscribe();
     };
   }, []);
 
