@@ -34,15 +34,15 @@ export default function ProfilePage() {
   const [loadingProfile, setLoadingProfile] = useState(true);
 
   useEffect(() => {
-    if (!user && !loading) {
-      navigate('/login');
-      return;
-    }
+  if (loading) return; // Wait until loading is finished
 
-    if (user) {
-      fetchUserData();
-    }
-  }, [user, loading]);
+  if (!user) {
+    navigate('/login', { state: { message: 'login-to-view-profile' } });
+  } else {
+    fetchUserData();
+  }
+}, [user, loading]);
+
 
   const fetchUserData = async () => {
     try {
