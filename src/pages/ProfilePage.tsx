@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
@@ -14,7 +13,6 @@ interface Profile {
   age: string;
   pronouns: string;
   bio: string;
-  updated_at?: string;
 }
 
 interface Vote {
@@ -62,9 +60,9 @@ export default function ProfilePage() {
       const { data: campaignsData } = await supabase
         .from('campaigns')
         .select('*')
-        .eq('creator_id', user?.id);
+        .eq('created_by', user?.id);
 
-      if (profileData) setProfile(profileData as Profile);
+      if (profileData) setProfile(profileData);
       if (votesData) setVotes(votesData);
       if (campaignsData) setCreatedCampaigns(campaignsData);
     } catch (error) {
@@ -105,6 +103,7 @@ export default function ProfilePage() {
     <div className="max-w-xl mx-auto p-6 space-y-8">
       <h2 className="text-2xl font-bold mb-6">Your Profile</h2>
 
+      {/* Profile Form */}
       <div className="grid gap-4">
         {['name', 'city', 'country', 'age', 'pronouns', 'bio'].map((field) => (
           <input
@@ -132,8 +131,10 @@ export default function ProfilePage() {
         </button>
       </div>
 
+      {/* Profile Integrity */}
       {profile && <ProfileIntegrity profile={profile} />}
 
+      {/* Votes */}
       <div>
         <h3 className="text-xl font-semibold mt-10 mb-3">Your Votes</h3>
         {votes.length === 0 ? (
@@ -156,8 +157,9 @@ export default function ProfilePage() {
         )}
       </div>
 
+      {/* Created Campaigns */}
       <div>
-        <h3 className="text-xl font-semibold mt-10 mb-3">Your Campaigns</h3>
+        <h3 className="text-xl font-semibold mt-10 mb-3">Campaigns You Created</h3>
         {createdCampaigns.length === 0 ? (
           <p className="text-gray-500">No campaigns created yet.</p>
         ) : (
@@ -171,6 +173,7 @@ export default function ProfilePage() {
           </ul>
         )}
       </div>
-    </div>
+
+    </div> // ✅ Closing main wrapping div here!
   );
 }
