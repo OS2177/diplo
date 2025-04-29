@@ -20,7 +20,7 @@ export function useCampaigns(): Campaign[] {
     (async () => {
       const { data, error } = await supabase
         .from('campaigns')
-        .select('id, title, description, scope, created_at')
+        .select('id, title, description, scope, created_at, image')
         .order('created_at', { ascending: false });
       if (error) {
         console.error('Error loading campaigns:', error);
