@@ -1,13 +1,29 @@
-// src/pages/ProfilePage.tsx
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { useUser } from '../hooks/useUser';
 import ProfileIntegrity from '../components/ProfileIntegrity';
-import { reverseGeocode } from '../hooks/useReverseGeocode';
 
-interface Profile { ... } // same
-interface Vote { ... } // same
+interface Profile {
+  id: string;
+  name: string;
+  email: string;
+  city: string;
+  country: string;
+  age: string;
+  pronouns: string;
+  bio: string;
+}
+
+interface Vote {
+  id: string;
+  choice: string;
+  timestamp: string;
+  locationName?: string;
+  campaigns?: {
+    title: string;
+  };
+}
 
 export default function ProfilePage() {
   const { user, loading } = useUser();
@@ -15,19 +31,72 @@ export default function ProfilePage() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [votes, setVotes] = useState<Vote[]>([]);
   const [createdCampaigns, setCreatedCampaigns] = useState<any[]>([]);
-  const [integrityScore, setIntegrityScore] = useState(0);
   const [loadingProfile, setLoadingProfile] = useState(true);
 
-  useEffect(() => { ... }); // same
-  useEffect(() => { ... }); // same
-  useEffect(() => { ... }); // same
-  useEffect(() => { ... }); // same
+  useEffect(() => {
+    if (!user && !loading) {
+      navigate('/login');
+      return;
+    }
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => { ... };
-  const saveProfile = async () => { ... };
+    if (user) {
+      fetchUserData();
+    }
+  }, [user, loading]);
+
+  const fetchUserData = async () => {
+    try {
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user?.id)
+        .single();
+
+      const { data: votesData } = await supabase
+        .from('votes')
+        .select('*, campaigns(title)')
+        .eq('user_id', user?.id);
+
+      const { data: campaignsData } = await supabase
+        .from('campaigns')
+        .select('*')
+        .eq('creator_id', user?.id);
+
+      if (profileData) setProfile(profileData);
+      if (votesData) setVotes(votesData);
+      if (campaignsData) setCreatedCampaigns(campaignsData);
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+    } finally {
+      setLoadingProfile(false);
+    }
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setProfile((prev) => prev ? { ...prev, [name]: value } : null);
+  };
+
+  const saveProfile = async () => {
+    if (!user || !profile) return;
+
+    const { error } = await supabase
+      .from('profiles')
+      .upsert({
+        id: user.id,
+        ...profile,
+        updated_at: new Date().toISOString(),
+      });
+
+    if (error) {
+      console.error('Error updating profile:', error);
+    } else {
+      alert('Profile updated successfully!');
+    }
+  };
 
   if (loading || loadingProfile) {
-    return <div className="p-6">Loading profile…</div>;
+    return <div className="p-6">Loading profile...</div>;
   }
 
   return (
@@ -41,7 +110,7 @@ export default function ProfilePage() {
             type={field === 'age' ? 'number' : 'text'}
             name={field}
             placeholder={field.charAt(0).toUpperCase() + field.slice(1)}
-            value={profile ? profile[field as keyof Profile] as any : ''}
+            value={profile ? profile[field as keyof Profile] as string : ''}
             onChange={handleChange}
             className="border px-3 py-2 rounded"
           />
@@ -49,7 +118,7 @@ export default function ProfilePage() {
         <input
           type="text"
           name="email"
-          value={profile?.email ?? ''}
+          value={user?.email ?? ''}
           disabled
           className="bg-gray-100 border px-3 py-2 rounded"
         />
@@ -59,8 +128,9 @@ export default function ProfilePage() {
         >
           Save Profile
         </button>
-        <ProfileIntegrity profile={profile} />
       </div>
+
+      {profile && <ProfileIntegrity profile={profile} />}
 
       <div>
         <h3 className="text-xl font-semibold mt-10 mb-3">Your Votes</h3>
@@ -68,21 +138,15 @@ export default function ProfilePage() {
           <p className="text-gray-500">No votes yet.</p>
         ) : (
           <ul className="space-y-3">
-            {votes.map((v) => (
-              <li key={v.id} className="border rounded p-4 bg-white shadow">
+            {votes.map((vote) => (
+              <li key={vote.id} className="border rounded p-4 bg-white shadow">
                 <p>
-                  Voted <strong>{v.choice.toUpperCase()}</strong> on{' '}
-                  <span className="font-medium">{v.campaigns?.title}</span>
+                  Voted <strong>{vote.choice.toUpperCase()}</strong> on{' '}
+                  <span className="font-medium">{vote.campaigns?.title}</span>
                 </p>
                 <p className="text-xs text-gray-600">
-                  {new Date(v.timestamp).toLocaleString('en-GB', {
-                    day: '2-digit',
-                    month: '2-digit',
-                    year: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })}
-                  {v.locationName ? ` | 📍 ${v.locationName}` : ''}
+                  {new Date(vote.timestamp).toLocaleString()}
+                  {vote.locationName ? ` | 📍 ${vote.locationName}` : ''}
                 </p>
               </li>
             ))}
@@ -91,17 +155,16 @@ export default function ProfilePage() {
       </div>
 
       <div>
-        <h3 className="text-xl font-semibold mt-10 mb-3">Campaigns You Created</h3>
+        <h3 className="text-xl font-semibold mt-10 mb-3">Your Campaigns</h3>
         {createdCampaigns.length === 0 ? (
           <p className="text-gray-500">No campaigns created yet.</p>
         ) : (
-          <ul className="list-disc list-inside space-y-1">
-            {createdCampaigns.map((c) => (
-              <li key={c.id}>{c.title}</li>
+          <ul className="space-y-3">
+            {createdCampaigns.map((campaign) => (
+              <li key={campaign.id} className="border rounded p-4 bg-white shadow">
+                <h4 className="font-medium">{campaign.title}</h4>
+                <p className="text-sm text-gray-600">{campaign.description}</p>
+              </li>
             ))}
           </ul>
         )}
-      </div>
-    </div>
-  );
-}
