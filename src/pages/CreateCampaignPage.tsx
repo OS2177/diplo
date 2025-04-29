@@ -18,7 +18,7 @@ export default function CreateCampaignPage() {
     const checkAuth = async () => {
       const { data } = await supabase.auth.getUser();
       if (!data?.user) {
-        navigate('/login', { state: { message: 'login-to-create-campaign' } });
+        navigate('/login', { state: { message: 'login-to-create-campaign' }});
       } else {
         setUser(data.user);
       }
