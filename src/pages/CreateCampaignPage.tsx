@@ -143,6 +143,14 @@ export default function CreateCampaignPage() {
           className="w-full border p-2"
         />
 
+        <input
+          value={image}
+          onChange={(e) => setImage(e.target.value)}
+          placeholder="Image URL (optional)"
+          className="w-full border p-2"
+        />
+
+
         <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded">
           Create Campaign
         </button>
