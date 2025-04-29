@@ -5,8 +5,6 @@ import { useCampaigns } from '../hooks/useCampaigns';
 
 export default function GlobalPulse() {
   const campaigns = useCampaigns();
-  console.log('Campaigns:', campaigns);
-
 
   if (!campaigns.length) {
     return <div className="p-6 text-center">No campaigns yet. Be the first to create one!</div>;
