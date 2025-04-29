@@ -9,8 +9,8 @@ type Campaign = {
   image?: string;
   url?: string;
   created_at?: string;
-  locations?: string;
-  regions?: string;
+  city?: string;
+  country?: string;
   latitude?: number;
   longitude?: number;
 };
@@ -64,6 +64,13 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
       <p className="text-sm text-gray-600 mb-2">{campaign.scope}</p>
       <p className="text-gray-700 mb-2">{campaign.description}</p>
 
+     {(campaign.city || campaign.country) && (
+  <p className="text-sm text-gray-500 mb-4">
+    📍 {Array.isArray(campaign.city) ? campaign.city[0] : campaign.city}
+    {campaign.city && campaign.country ? ', ' : ''}
+    {campaign.country}
+  </p>
+      )}
 
       {campaign.url && (
         <div className="mt-4">
@@ -72,11 +79,8 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
             alt="Website preview"
             className="w-full rounded mb-2 border"
           />
-          {campaign.locations && (
-            <p className="text-sm text-gray-500 mb-4">
-              📍 {campaign.locations}
-            </p>
-          )}
+          
+
           <a
             href={campaign.url}
             target="_blank"
