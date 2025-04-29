@@ -6,10 +6,12 @@ export default function CreateCampaignPage() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [scope, setScope] = useState('personal');
-  const [region, setRegion] = useState('');
   const [image, setImage] = useState('');
   const [url, setUrl] = useState('');
-  const [locations, setLocations] = useState(['']);
+  const [city, setCity] = useState('');
+  const [country, setCountry] = useState('');
+  const [latitude, setLatitude] = useState<number | null>(null);
+  const [longitude, setLongitude] = useState<number | null>(null);
   const [user, setUser] = useState(null);
 
   const navigate = useNavigate();
@@ -18,7 +20,7 @@ export default function CreateCampaignPage() {
     const checkAuth = async () => {
       const { data } = await supabase.auth.getUser();
       if (!data?.user) {
-        navigate('/login', { state: { message: 'login-to-create-campaign' }});
+        navigate('/login', { state: { message: 'login-to-create-campaign' } });
       } else {
         setUser(data.user);
       }
@@ -26,29 +28,45 @@ export default function CreateCampaignPage() {
     checkAuth();
   }, [navigate]);
 
-  const handleAddLocation = () => {
-    setLocations([...locations, '']);
-  };
+  // New: Try to auto-fill location
+  useEffect(() => {
+    const fetchLocation = async () => {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(async (position) => {
+          const { latitude, longitude } = position.coords;
+          setLatitude(latitude);
+          setLongitude(longitude);
 
-  const handleLocationChange = (index: number, value: string) => {
-    const updated = [...locations];
-    updated[index] = value;
-    setLocations(updated);
-  };
+          // Reverse geocoding using OpenStreetMap
+          const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}`);
+          const data = await response.json();
+          setCity(data.address.city || data.address.town || data.address.village || '');
+          setCountry(data.address.country || '');
+        });
+      }
+    };
+    fetchLocation();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
+    if (!city || !country) {
+      alert('City and country are required.');
+      return;
+    }
 
     const { error } = await supabase.from('campaigns').insert([
       {
         title,
         description,
         scope,
-        region,
         image,
         url,
-        locations,
+        city,
+        country,
+        latitude,
+        longitude,
         created_by: user.id,
         status: 'published',
       },
@@ -59,7 +77,7 @@ export default function CreateCampaignPage() {
       alert('Error: ' + error.message);
     } else {
       alert('Campaign created successfully!');
-      navigate('/campaigns');
+      navigate('/global-pulse');
     }
   };
 
@@ -92,12 +110,7 @@ export default function CreateCampaignPage() {
           <option value="global">Global</option>
           <option value="ecological">Ecological</option>
         </select>
-        <input
-          value={region}
-          onChange={(e) => setRegion(e.target.value)}
-          placeholder="Region (optional)"
-          className="w-full border p-2"
-        />
+
         <input
           value={image}
           onChange={(e) => setImage(e.target.value)}
@@ -111,23 +124,23 @@ export default function CreateCampaignPage() {
           className="w-full border p-2"
         />
 
-        {locations.map((loc, idx) => (
-          <input
-            key={idx}
-            value={loc}
-            onChange={(e) => handleLocationChange(idx, e.target.value)}
-            placeholder={`Location ${idx + 1}`}
-            className="w-full border p-2"
-          />
-        ))}
+        {/* New City input */}
+        <input
+          value={city}
+          onChange={(e) => setCity(e.target.value)}
+          placeholder="City"
+          required
+          className="w-full border p-2"
+        />
 
-        <button
-          type="button"
-          onClick={handleAddLocation}
-          className="text-sm text-blue-600 underline"
-        >
-          + Add another location
-        </button>
+        {/* New Country input */}
+        <input
+          value={country}
+          onChange={(e) => setCountry(e.target.value)}
+          placeholder="Country"
+          required
+          className="w-full border p-2"
+        />
 
         <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded">
           Create Campaign
