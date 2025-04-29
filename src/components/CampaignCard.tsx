@@ -77,6 +77,13 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
           You voted <strong>{voteChoice.toUpperCase()}</strong> on this campaign.
         </p>
       )}
+      {campaign.image && (
+  <img
+    src={campaign.image}
+    alt={campaign.title}
+    className="w-full h-64 object-cover rounded mb-4"
+  />
+)}
     </div>
   );
 }
