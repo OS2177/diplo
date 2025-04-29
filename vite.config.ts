@@ -24,7 +24,7 @@ export default defineConfig({
       'localhost',
       '127.0.0.1',
       'diplo-jackvintage77.replit.app',
-      'your-vercel-project-name.vercel.app'
+      '571769ad-7014-4e96-b40c-d6039ffefe07-00-3nyw07towzbqe.picard.replit.dev'
     ],
   },
 });
