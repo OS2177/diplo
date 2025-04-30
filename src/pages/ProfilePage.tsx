@@ -20,6 +20,7 @@ interface Vote {
   choice: string;
   timestamp: string;
   locationName?: string;
+  campaign_id?: string;
   campaigns?: {
     title: string;
   };
@@ -34,15 +35,13 @@ export default function ProfilePage() {
   const [loadingProfile, setLoadingProfile] = useState(true);
 
   useEffect(() => {
-  if (loading) return; // Wait until loading is finished
-
-  if (!user) {
-    navigate('/login', { state: { message: 'login-to-view-profile' } });
-  } else {
-    fetchUserData();
-  }
-}, [user, loading]);
-
+    if (loading) return;
+    if (!user) {
+      navigate('/login', { state: { message: 'login-to-view-profile' } });
+    } else {
+      fetchUserData();
+    }
+  }, [user, loading]);
 
   const fetchUserData = async () => {
     try {
@@ -95,6 +94,25 @@ export default function ProfilePage() {
     }
   };
 
+  const deleteProfile = async () => {
+    if (!user) return;
+    const confirm = window.confirm('This will delete your account and data. Continue?');
+    if (!confirm) return;
+
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .delete()
+      .eq('id', user.id);
+
+    if (profileError) {
+      alert('Error deleting profile: ' + profileError.message);
+      return;
+    }
+
+    alert('Your profile data has been deleted.');
+    navigate('/');
+  };
+
   if (loading || loadingProfile) {
     return <div className="p-6">Loading profile...</div>;
   }
@@ -123,12 +141,20 @@ export default function ProfilePage() {
           disabled
           className="bg-gray-100 border px-3 py-2 rounded"
         />
-        <button
-          onClick={saveProfile}
-          className="bg-black text-white px-4 py-2 rounded hover:bg-gray-700"
-        >
-          Save Profile
-        </button>
+        <div className="flex gap-4">
+          <button
+            onClick={saveProfile}
+            className="bg-black text-white px-4 py-2 rounded hover:bg-gray-700"
+          >
+            Save Profile
+          </button>
+          <button
+            onClick={deleteProfile}
+            className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+          >
+            Delete Profile
+          </button>
+        </div>
       </div>
 
       {/* Profile Integrity */}
@@ -142,7 +168,7 @@ export default function ProfilePage() {
         ) : (
           <ul className="space-y-3">
             {votes.map((vote) => (
-              <li key={vote.id} className="border rounded p-4 bg-white shadow">
+              <li key={vote.id} className="border rounded p-4 bg-white shadow space-y-2">
                 <p>
                   Voted <strong>{vote.choice.toUpperCase()}</strong> on{' '}
                   <span className="font-medium">{vote.campaigns?.title}</span>
@@ -151,6 +177,26 @@ export default function ProfilePage() {
                   {new Date(vote.timestamp).toLocaleString()}
                   {vote.locationName ? ` | 📍 ${vote.locationName}` : ''}
                 </p>
+                <button
+                  onClick={async () => {
+                    const confirm = window.confirm('Remove your vote?');
+                    if (!confirm) return;
+
+                    const { error } = await supabase
+                      .from('votes')
+                      .delete()
+                      .eq('id', vote.id);
+
+                    if (error) {
+                      alert('Error removing vote: ' + error.message);
+                    } else {
+                      setVotes((prev) => prev.filter((v) => v.id !== vote.id));
+                    }
+                  }}
+                  className="text-sm text-red-600 hover:underline"
+                >
+                  Unvote
+                </button>
               </li>
             ))}
           </ul>
@@ -165,15 +211,34 @@ export default function ProfilePage() {
         ) : (
           <ul className="space-y-3">
             {createdCampaigns.map((campaign) => (
-              <li key={campaign.id} className="border rounded p-4 bg-white shadow">
+              <li key={campaign.id} className="border rounded p-4 bg-white shadow space-y-2">
                 <h4 className="font-medium">{campaign.title}</h4>
                 <p className="text-sm text-gray-600">{campaign.description}</p>
+                <button
+                  onClick={async () => {
+                    const confirm = window.confirm(`Delete campaign "${campaign.title}"?`);
+                    if (!confirm) return;
+
+                    const { error } = await supabase
+                      .from('campaigns')
+                      .delete()
+                      .eq('id', campaign.id);
+
+                    if (error) {
+                      alert('Error deleting campaign: ' + error.message);
+                    } else {
+                      setCreatedCampaigns((prev) => prev.filter((c) => c.id !== campaign.id));
+                    }
+                  }}
+                  className="text-sm text-red-600 hover:underline"
+                >
+                  Delete Campaign
+                </button>
               </li>
             ))}
           </ul>
         )}
       </div>
-
-    </div> // ✅ Closing main wrapping div here!
+    </div>
   );
 }
