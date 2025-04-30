@@ -26,12 +26,19 @@ interface Vote {
   };
 }
 
+interface Campaign {
+  id: string;
+  title: string;
+  description: string;
+  created_by: string;
+}
+
 export default function ProfilePage() {
   const { user, loading } = useUser();
   const navigate = useNavigate();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [votes, setVotes] = useState<Vote[]>([]);
-  const [createdCampaigns, setCreatedCampaigns] = useState<any[]>([]);
+  const [createdCampaigns, setCreatedCampaigns] = useState<Campaign[]>([]);
   const [loadingProfile, setLoadingProfile] = useState(true);
 
   useEffect(() => {
