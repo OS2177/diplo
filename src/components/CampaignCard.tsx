@@ -15,6 +15,31 @@ type Campaign = {
   longitude?: number;
 };
 
+function calculateIntegrityScore(profile: any): number {
+  let score = 0;
+  if (profile?.location_permission) score += 0.2;
+  if (profile?.profile_complete) score += 0.2;
+  if (profile?.two_factor_enabled) score += 0.2;
+  if (profile?.blockchain_id) score += 0.3;
+  if (profile?.community_verified) score += 0.1;
+  return Math.min(score, 1.0);
+}
+
+function calculateProximity(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const toRad = (deg: number) => (deg * Math.PI) / 180;
+  const R = 6371; // Earth radius in km
+
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
+
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
 export default function CampaignCard({ campaign }: { campaign: Campaign }) {
   const [voted, setVoted] = useState(false);
   const [voteChoice, setVoteChoice] = useState('');
@@ -49,19 +74,37 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
 
   const castVote = async (choice: string) => {
     const { data: userData } = await supabase.auth.getUser();
-    if (!userData?.user) return alert('Please log in to vote.');
+    const user = userData?.user;
+    if (!user) return alert('Please log in to vote.');
+
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', user.id)
+      .single();
 
     navigator.geolocation.getCurrentPosition(async (pos) => {
-      const { latitude, longitude } = pos.coords;
-      const integrity = 1.0; // This will be dynamic later
+      const userLat = pos.coords.latitude;
+      const userLon = pos.coords.longitude;
+
+      const integrity = calculateIntegrityScore(profile);
+
+      const proximity = campaign.latitude && campaign.longitude
+        ? calculateProximity(userLat, userLon, campaign.latitude, campaign.longitude)
+        : 1000; // Default distant if no campaign location
+
+      const globalModifier = 1.0; // Placeholder for dynamic adjustment
+      const impact = proximity * integrity * globalModifier;
 
       const { error } = await supabase.from('votes').insert({
         campaign_id: campaign.id,
-        user_id: userData.user.id,
+        user_id: user.id,
         choice,
-        latitude,
-        longitude,
+        latitude: userLat,
+        longitude: userLon,
         integrity,
+        proximity,
+        impact,
       });
 
       if (error) {
@@ -79,11 +122,7 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
     <div className="bg-white rounded shadow p-4 mb-4 border border-gray-100">
       {campaign.image && (
         <div className="w-full overflow-hidden rounded mt-6 mb-4">
-          <img
-            src={campaign.image}
-            alt={campaign.title}
-            className="w-full"
-          />
+          <img src={campaign.image} alt={campaign.title} className="w-full" />
         </div>
       )}
 
@@ -106,7 +145,6 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
             alt="Website preview"
             className="w-full rounded mb-2 border"
           />
-
           <a
             href={campaign.url}
             target="_blank"
