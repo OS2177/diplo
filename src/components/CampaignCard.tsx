@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 
 type Campaign = {
@@ -20,13 +20,40 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
   const [voteChoice, setVoteChoice] = useState('');
   const [voteSuccess, setVoteSuccess] = useState(false);
 
+  useEffect(() => {
+    checkIfUserVoted();
+  }, []);
+
+  const checkIfUserVoted = async () => {
+    const { data: auth } = await supabase.auth.getUser();
+    const user = auth?.user;
+    if (!user) return;
+
+    const { data: vote, error } = await supabase
+      .from('votes')
+      .select('choice')
+      .eq('user_id', user.id)
+      .eq('campaign_id', campaign.id)
+      .maybeSingle();
+
+    if (error) {
+      console.error('Error checking vote:', error.message);
+      return;
+    }
+
+    if (vote) {
+      setVoteChoice(vote.choice);
+      setVoted(true);
+    }
+  };
+
   const castVote = async (choice: string) => {
     const { data: userData } = await supabase.auth.getUser();
     if (!userData?.user) return alert('Please log in to vote.');
 
     navigator.geolocation.getCurrentPosition(async (pos) => {
       const { latitude, longitude } = pos.coords;
-      const impact = 1.0;
+      const integrity = 1.0; // This will be dynamic later
 
       const { error } = await supabase.from('votes').insert({
         campaign_id: campaign.id,
@@ -34,7 +61,7 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
         choice,
         latitude,
         longitude,
-        impact,
+        integrity,
       });
 
       if (error) {
@@ -108,7 +135,7 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
         </div>
       ) : (
         <p className="mt-4 text-sm text-green-700">
-          You voted <strong>{voteChoice.toUpperCase()}</strong> on this campaign.
+          ✅ You voted <strong>{voteChoice.toUpperCase()}</strong> on this campaign.
         </p>
       )}
 
