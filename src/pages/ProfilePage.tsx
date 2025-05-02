@@ -13,10 +13,6 @@ interface Profile {
   age: string;
   gender: string;
   bio: string;
-  location_permission?: boolean;
-  two_factor_enabled?: boolean;
-  blockchain_id?: string;
-  community_verified?: boolean;
 }
 
 interface Vote {
@@ -35,6 +31,7 @@ interface Campaign {
   title: string;
   description: string;
   created_by: string;
+  creator_integrity?: number;
 }
 
 export default function ProfilePage() {
@@ -43,6 +40,7 @@ export default function ProfilePage() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [votes, setVotes] = useState<Vote[]>([]);
   const [createdCampaigns, setCreatedCampaigns] = useState<Campaign[]>([]);
+  const [creatorIntegrityAverage, setCreatorIntegrityAverage] = useState<number | null>(null);
   const [loadingProfile, setLoadingProfile] = useState(true);
 
   useEffect(() => {
@@ -74,7 +72,20 @@ export default function ProfilePage() {
 
       if (profileData) setProfile(profileData);
       if (votesData) setVotes(votesData);
-      if (campaignsData) setCreatedCampaigns(campaignsData);
+      if (campaignsData) {
+        setCreatedCampaigns(campaignsData);
+
+        const validScores = campaignsData
+          .filter((c) => typeof c.creator_integrity === 'number')
+          .map((c) => c.creator_integrity!);
+
+        if (validScores.length > 0) {
+          const average = validScores.reduce((sum, val) => sum + val, 0) / validScores.length;
+          setCreatorIntegrityAverage(parseFloat(average.toFixed(4)));
+        } else {
+          setCreatorIntegrityAverage(null);
+        }
+      }
     } catch (error) {
       console.error('Error fetching user data:', error);
     } finally {
@@ -122,16 +133,6 @@ export default function ProfilePage() {
     navigate('/');
   };
 
-  const calculateIntegrityScore = (profile: any): number => {
-    let score = 0;
-    if (profile?.location_permission) score += 0.2;
-    if (profile?.two_factor_enabled) score += 0.2;
-    if (profile?.name && profile.age && profile.city && profile.country && profile.gender) score += 0.2;
-    if (profile?.blockchain_id) score += 0.2;
-    if (profile?.community_verified) score += 0.2;
-    return Math.min(score, 1);
-  };
-
   if (loading || loadingProfile) {
     return <div className="p-6">Loading profile...</div>;
   }
@@ -146,7 +147,7 @@ export default function ProfilePage() {
             key={field}
             type={field === 'age' ? 'number' : 'text'}
             name={field}
-            placeholder={field === 'gender' ? 'Gender / Identifies As' : field.charAt(0).toUpperCase() + field.slice(1)}
+            placeholder={field.charAt(0).toUpperCase() + field.slice(1)}
             value={profile ? (profile[field as keyof Profile] as string) : ''}
             onChange={handleChange}
             className="border px-3 py-2 rounded"
@@ -175,28 +176,17 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {profile && (
-        <>
-          <ProfileIntegrity profile={profile} />
+      {profile && <ProfileIntegrity profile={profile} />}
 
-          <div className="bg-purple-50 border border-purple-200 p-4 rounded mt-4">
-            <h4 className="text-md font-semibold text-purple-700 mb-2">🧬 Creator Integrity Score</h4>
-            <p className="text-sm text-purple-800">
-              {(calculateIntegrityScore(profile) * 100).toFixed(0)}%
-            </p>
-          </div>
-
-          <div className="bg-purple-50 border border-purple-200 p-4 rounded mt-4 space-y-4">
-            <h4 className="text-md font-semibold text-purple-700 mb-2">🧭 How to Improve Your Creator Integrity</h4>
-            <ul className="text-sm text-gray-700 list-disc pl-5 space-y-1">
-              <li>🔒 Enable <strong>Two-Factor Authentication</strong> in your account settings.</li>
-              <li>📍 Allow <strong>location access</strong> when voting or creating campaigns.</li>
-              <li>🧾 Fill in all <strong>required profile fields</strong>: name, age, city, country, gender.</li>
-              <li>🪪 Connect a <strong>blockchain ID</strong> (coming soon).</li>
-              <li>🤝 Get <strong>community verified</strong> through trusted interactions (coming soon).</li>
-            </ul>
-          </div>
-        </>
+      {creatorIntegrityAverage !== null && (
+        <div className="bg-green-50 border border-green-200 p-4 rounded mt-4">
+          <h4 className="text-md font-semibold text-green-700 mb-2">
+            🧬 Average Creator Integrity Score
+          </h4>
+          <p className="text-sm text-green-800">
+            {(creatorIntegrityAverage * 100).toFixed(1)}%
+          </p>
+        </div>
       )}
 
       <div>
@@ -249,7 +239,7 @@ export default function ProfilePage() {
                 <p className="text-sm text-gray-600">{campaign.description}</p>
                 <button
                   onClick={async () => {
-                    const confirm = window.confirm(`Delete campaign \"${campaign.title}\"?`);
+                    const confirm = window.confirm(`Delete campaign "${campaign.title}"?`);
                     if (!confirm) return;
                     const { error } = await supabase
                       .from('campaigns')
