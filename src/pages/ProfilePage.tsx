@@ -186,25 +186,29 @@ export default function ProfilePage() {
                 </p>
                 <button
                   onClick={async () => {
-  const confirm = window.confirm('Remove your vote?');
-  if (!confirm) return;
+                    const confirm = window.confirm('Remove your vote?');
+                    if (!confirm) return;
 
-  const { error } = await supabase
-    .from('votes')
-    .delete()
-    .eq('id', vote.id);
+                    console.log("🧪 Trying to delete vote with ID:", vote.id);
 
-  if (error) {
-    alert('Error removing vote: ' + error.message);
-  } else {
-    await fetchUserData(); // 👈 re-fetch from Supabase to ensure all components are in sync
-  }
-}}
+                    const { error } = await supabase
+                      .from('votes')
+                      .delete()
+                      .eq('id', vote.id);
 
+                    if (error) {
+                      console.error("❌ Deletion error:", error.message);
+                      alert('Error removing vote: ' + error.message);
+                    } else {
+                      console.log("✅ Vote deleted. Refreshing...");
+                      await fetchUserData();
+                    }
+                  }}
                   className="text-sm text-red-600 hover:underline"
                 >
                   Unvote
                 </button>
+
               </li>
             ))}
           </ul>
