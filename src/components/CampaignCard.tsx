@@ -13,6 +13,7 @@ type Campaign = {
   country?: string;
   latitude?: number;
   longitude?: number;
+  creator_integrity?: number;
 };
 
 function calculateIntegrityScore(profile: any): number {
@@ -55,7 +56,7 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
     const user = auth?.user;
     if (!user) return;
 
-    const { data: vote, error } = await supabase
+    const { data: vote } = await supabase
       .from('votes')
       .select('choice, impact')
       .eq('user_id', user.id)
@@ -70,12 +71,12 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
   };
 
   const fetchVoteCount = async () => {
-    const { count, error } = await supabase
+    const { count } = await supabase
       .from('votes')
       .select('*', { count: 'exact', head: true })
       .eq('campaign_id', campaign.id);
 
-    if (!error) setVoteCount(count);
+    if (count !== null) setVoteCount(count);
   };
 
   const castVote = async (choice: string) => {
@@ -109,12 +110,6 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
 
         const globalModifier = 1.0;
         const impact = integrity * (1 / (proximity + 1)) * globalModifier;
-
-        // 🔍 Debug Logs
-        console.log("📍 User Location:", userLat, userLon);
-        console.log("🧬 Integrity Score:", integrity);
-        console.log("📡 Proximity (km):", proximity);
-        console.log("🎯 Vote Impact:", impact);
 
         const { error } = await supabase.from('votes').insert({
           campaign_id: campaign.id,
@@ -155,6 +150,12 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
       <h3 className="text-2xl font-bold mb-2">{campaign.title}</h3>
       <p className="text-sm text-gray-600 mb-2">{campaign.scope}</p>
       <p className="text-gray-700 mb-2">{campaign.description}</p>
+
+      {campaign.creator_integrity !== undefined && (
+        <p className="text-sm text-purple-600 mb-2">
+          🧬 Creator Integrity: <strong>{(campaign.creator_integrity * 100).toFixed(0)}%</strong>
+        </p>
+      )}
 
       {(campaign.city || campaign.country) && (
         <p className="text-sm text-gray-500 mb-4">

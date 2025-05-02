@@ -31,6 +31,7 @@ interface Campaign {
   title: string;
   description: string;
   created_by: string;
+  creator_integrity?: number;
 }
 
 export default function ProfilePage() {
@@ -40,6 +41,7 @@ export default function ProfilePage() {
   const [votes, setVotes] = useState<Vote[]>([]);
   const [createdCampaigns, setCreatedCampaigns] = useState<Campaign[]>([]);
   const [loadingProfile, setLoadingProfile] = useState(true);
+  const [averageCreatorIntegrity, setAverageCreatorIntegrity] = useState<number | null>(null);
 
   useEffect(() => {
     if (loading) return;
@@ -70,7 +72,16 @@ export default function ProfilePage() {
 
       if (profileData) setProfile(profileData);
       if (votesData) setVotes(votesData);
-      if (campaignsData) setCreatedCampaigns(campaignsData);
+      if (campaignsData) {
+        setCreatedCampaigns(campaignsData);
+        const validIntegrities = campaignsData
+          .map((c: Campaign) => c.creator_integrity)
+          .filter((val): val is number => typeof val === 'number');
+        if (validIntegrities.length > 0) {
+          const avg = validIntegrities.reduce((a, b) => a + b, 0) / validIntegrities.length;
+          setAverageCreatorIntegrity(avg);
+        }
+      }
     } catch (error) {
       console.error('Error fetching user data:', error);
     } finally {
@@ -167,6 +178,13 @@ export default function ProfilePage() {
       {/* Profile Integrity */}
       {profile && <ProfileIntegrity profile={profile} />}
 
+      {/* Creator Integrity */}
+      {averageCreatorIntegrity !== null && (
+        <p className="text-sm text-blue-700 mt-4">
+          🧬 Your Creator Integrity Score: <strong>{(averageCreatorIntegrity * 100).toFixed(0)}%</strong>
+        </p>
+      )}
+
       {/* Votes */}
       <div>
         <h3 className="text-xl font-semibold mt-10 mb-3">Your Votes</h3>
@@ -186,31 +204,29 @@ export default function ProfilePage() {
                 </p>
                 <button
                   onClick={async () => {
-  const confirm = window.confirm('Remove your vote?');
-  if (!confirm) return;
+                    const confirm = window.confirm('Remove your vote?');
+                    if (!confirm) return;
 
-  console.log("🧪 Trying to delete vote with ID:", vote.id);
+                    console.log("🧪 Trying to delete vote with ID:", vote.id);
 
-  const { error } = await supabase
-    .from('votes')
-    .delete()
-    .eq('id', vote.id);
+                    const { error } = await supabase
+                      .from('votes')
+                      .delete()
+                      .eq('id', vote.id);
 
-  if (error) {
-    console.error("❌ Deletion error:", error.message);
-    alert('Error removing vote: ' + error.message);
-  } else {
-    console.log("✅ Vote deleted. Refreshing...");
-    setVotes((prev) => prev.filter((v) => v.id !== vote.id)); // 👈 local state cleanup
-    await fetchUserData(); // Re-pull from Supabase just to be sure
-  }
-}}
-
+                    if (error) {
+                      console.error("❌ Deletion error:", error.message);
+                      alert('Error removing vote: ' + error.message);
+                    } else {
+                      console.log("✅ Vote deleted. Refreshing...");
+                      setVotes((prev) => prev.filter((v) => v.id !== vote.id));
+                      await fetchUserData();
+                    }
+                  }}
                   className="text-sm text-red-600 hover:underline"
                 >
                   Unvote
                 </button>
-
               </li>
             ))}
           </ul>
