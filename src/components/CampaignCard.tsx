@@ -70,12 +70,12 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
   };
 
   const fetchVoteCount = async () => {
-    const { count } = await supabase
+    const { count, error } = await supabase
       .from('votes')
       .select('*', { count: 'exact', head: true })
       .eq('campaign_id', campaign.id);
 
-    if (count !== null) setVoteCount(count);
+    if (!error) setVoteCount(count);
   };
 
   const castVote = async (choice: string) => {
@@ -101,21 +101,20 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
         const userLat = pos.coords.latitude;
         const userLon = pos.coords.longitude;
 
-        if (campaign.latitude == null || campaign.longitude == null) {
-          setVoteError('Campaign location is missing.');
-          return;
-        }
-
         const integrity = calculateIntegrityScore(profile);
-        const proximity = calculateProximity(userLat, userLon, campaign.latitude, campaign.longitude);
+
+        const proximity = campaign.latitude && campaign.longitude
+          ? calculateProximity(userLat, userLon, campaign.latitude, campaign.longitude)
+          : 1000;
+
         const globalModifier = 1.0;
         const impact = integrity * (1 / (proximity + 1)) * globalModifier;
 
+        // 🔍 Debug Logs
         console.log("📍 User Location:", userLat, userLon);
-        console.log("📍 Campaign Location:", campaign.latitude, campaign.longitude);
-        console.log("📡 Proximity (km):", proximity.toFixed(2));
         console.log("🧬 Integrity Score:", integrity);
-        console.log("🎯 Vote Impact:", impact.toFixed(6));
+        console.log("📡 Proximity (km):", proximity);
+        console.log("🎯 Vote Impact:", impact);
 
         const { error } = await supabase.from('votes').insert({
           campaign_id: campaign.id,
@@ -140,13 +139,7 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
         }
       },
       (err) => {
-        console.error("❌ Geolocation failed:", err.message);
         setVoteError('Failed to get location: ' + err.message);
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 8000,
-        maximumAge: 0,
       }
     );
   };
@@ -235,7 +228,7 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
         )}
       </div>
 
-      {campaign.latitude != null && campaign.longitude != null && (
+      {campaign.latitude && campaign.longitude && (
         <div className="mt-6 mb-4">
           <iframe
             width="100%"
