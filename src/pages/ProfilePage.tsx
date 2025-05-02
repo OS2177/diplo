@@ -11,7 +11,7 @@ interface Profile {
   city: string;
   country: string;
   age: string;
-  pronouns: string;
+  gender: string;
   bio: string;
   location_permission?: boolean;
   two_factor_enabled?: boolean;
@@ -126,7 +126,7 @@ export default function ProfilePage() {
     let score = 0;
     if (profile?.location_permission) score += 0.2;
     if (profile?.two_factor_enabled) score += 0.2;
-    if (profile?.name && profile.age && profile.city && profile.country && profile.pronouns) score += 0.2;
+    if (profile?.name && profile.age && profile.city && profile.country && profile.gender) score += 0.2;
     if (profile?.blockchain_id) score += 0.2;
     if (profile?.community_verified) score += 0.2;
     return Math.min(score, 1);
@@ -141,12 +141,12 @@ export default function ProfilePage() {
       <h2 className="text-2xl font-bold mb-6">Your Profile</h2>
 
       <div className="grid gap-4">
-        {['name', 'city', 'country', 'age', 'pronouns', 'bio'].map((field) => (
+        {['name', 'city', 'country', 'age', 'gender', 'bio'].map((field) => (
           <input
             key={field}
             type={field === 'age' ? 'number' : 'text'}
             name={field}
-            placeholder={field.charAt(0).toUpperCase() + field.slice(1)}
+            placeholder={field === 'gender' ? 'Gender / Identifies As' : field.charAt(0).toUpperCase() + field.slice(1)}
             value={profile ? (profile[field as keyof Profile] as string) : ''}
             onChange={handleChange}
             className="border px-3 py-2 rounded"
@@ -191,7 +191,7 @@ export default function ProfilePage() {
             <ul className="text-sm text-gray-700 list-disc pl-5 space-y-1">
               <li>🔒 Enable <strong>Two-Factor Authentication</strong> in your account settings.</li>
               <li>📍 Allow <strong>location access</strong> when voting or creating campaigns.</li>
-              <li>🧾 Fill in all <strong>required profile fields</strong>: name, age, city, country, pronouns.</li>
+              <li>🧾 Fill in all <strong>required profile fields</strong>: name, age, city, country, gender.</li>
               <li>🪪 Connect a <strong>blockchain ID</strong> (coming soon).</li>
               <li>🤝 Get <strong>community verified</strong> through trusted interactions (coming soon).</li>
             </ul>
