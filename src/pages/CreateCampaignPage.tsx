@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useNavigate } from 'react-router-dom';
 
-function calculateIntegrityScore(profile: any): number {
+function calculateVoteIntegrity(profile: any): number {
   let score = 0;
   if (profile?.location_permission) score += 0.2;
   if (profile?.name && profile?.age && profile?.city && profile?.country && profile?.gender) score += 0.2;
@@ -10,6 +10,31 @@ function calculateIntegrityScore(profile: any): number {
   if (profile?.blockchain_id) score += 0.3;
   if (profile?.community_verified) score += 0.1;
   return Math.min(score, 1.0);
+}
+
+function calculateLocationAccuracy(userLat: number, userLon: number, campLat: number, campLon: number): number {
+  const toRad = (deg: number) => (deg * Math.PI) / 180;
+  const R = 6371;
+  const dLat = toRad(campLat - userLat);
+  const dLon = toRad(campLon - userLon);
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(userLat)) * Math.cos(toRad(campLat)) * Math.sin(dLon / 2) ** 2;
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  const distance = R * c;
+
+  if (distance <= 10) return 1.0;
+  if (distance <= 50) return 0.7;
+  if (distance <= 200) return 0.4;
+  return 0.0;
+}
+
+function calculateCampaignActivityScore(totalCampaigns: number): number {
+  if (totalCampaigns >= 7) return 0.2;
+  if (totalCampaigns >= 4) return 0.15;
+  if (totalCampaigns >= 2) return 0.1;
+  if (totalCampaigns >= 1) return 0.05;
+  return 0;
 }
 
 export default function CreateCampaignPage() {
@@ -60,28 +85,39 @@ export default function CreateCampaignPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
-    if (!city || !country) {
-      alert('City and country are required.');
+    if (!city || !country || latitude === null || longitude === null) {
+      alert('City, country, and location required.');
       return;
     }
 
-    // 🔍 Fetch profile with logging
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', user.id)
       .single();
 
-    if (profileError) {
-      console.error('❌ Error fetching profile:', profileError.message);
-    } else {
-      console.log('👤 Profile fetched:', profile);
+    if (profileError || !profile) {
+      alert('Unable to fetch your profile.');
+      return;
     }
 
-    const creator_integrity = profile ? calculateIntegrityScore(profile) : 0;
-    const creator_verified_2fa = profile?.two_factor_enabled || false;
+    const vote_integrity = calculateVoteIntegrity(profile);
+    const location_score = calculateLocationAccuracy(latitude, longitude, latitude, longitude); // User = Campaign creator location
 
-    console.log('🧬 Calculated Integrity Score:', creator_integrity);
+    const { count: campaignCount } = await supabase
+      .from('campaigns')
+      .select('*', { count: 'exact', head: true })
+      .eq('created_by', user.id);
+
+    const experience_score = calculateCampaignActivityScore(campaignCount || 0);
+
+    const creator_integrity = parseFloat(
+      (
+        0.5 * vote_integrity +
+        0.3 * location_score +
+        0.2 * experience_score
+      ).toFixed(4)
+    );
 
     const { error } = await supabase.from('campaigns').insert([
       {
@@ -97,7 +133,7 @@ export default function CreateCampaignPage() {
         created_by: user.id,
         status: 'published',
         creator_integrity,
-        creator_verified_2fa,
+        creator_verified_2fa: profile.two_factor_enabled || false,
         created_at: new Date().toISOString()
       },
     ]);
