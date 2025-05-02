@@ -13,6 +13,10 @@ interface Profile {
   age: string;
   gender: string;
   bio: string;
+  location_permission?: boolean;
+  two_factor_enabled?: boolean;
+  blockchain_id?: string;
+  community_verified?: boolean;
 }
 
 interface Vote {
@@ -32,6 +36,16 @@ interface Campaign {
   description: string;
   created_by: string;
   creator_integrity?: number;
+}
+
+function calculateIntegrityScore(profile: any): number {
+  let score = 0;
+  if (profile?.location_permission) score += 0.2;
+  if (profile?.name && profile?.age && profile?.city && profile?.country && profile?.gender) score += 0.2;
+  if (profile?.two_factor_enabled) score += 0.2;
+  if (profile?.blockchain_id) score += 0.3;
+  if (profile?.community_verified) score += 0.1;
+  return Math.min(score, 1.0);
 }
 
 export default function ProfilePage() {
@@ -74,11 +88,9 @@ export default function ProfilePage() {
       if (votesData) setVotes(votesData);
       if (campaignsData) {
         setCreatedCampaigns(campaignsData);
-
         const validScores = campaignsData
           .filter((c) => typeof c.creator_integrity === 'number')
           .map((c) => c.creator_integrity!);
-
         if (validScores.length > 0) {
           const average = validScores.reduce((sum, val) => sum + val, 0) / validScores.length;
           setCreatorIntegrityAverage(parseFloat(average.toFixed(4)));
@@ -133,6 +145,8 @@ export default function ProfilePage() {
     navigate('/');
   };
 
+  const liveIntegrity = profile ? calculateIntegrityScore(profile) : 0;
+
   if (loading || loadingProfile) {
     return <div className="p-6">Loading profile...</div>;
   }
@@ -178,16 +192,32 @@ export default function ProfilePage() {
 
       {profile && <ProfileIntegrity profile={profile} />}
 
-      {creatorIntegrityAverage !== null && (
-        <div className="bg-green-50 border border-green-200 p-4 rounded mt-4">
-          <h4 className="text-md font-semibold text-green-700 mb-2">
-            🧬 Average Creator Integrity Score
-          </h4>
-          <p className="text-sm text-green-800">
-            {(creatorIntegrityAverage * 100).toFixed(1)}%
-          </p>
-        </div>
-      )}
+      <div className="bg-blue-50 border border-blue-200 p-4 rounded">
+        <h4 className="text-md font-semibold text-blue-700 mb-2">
+          🔐 Vote Integrity Score (Live)
+        </h4>
+        <p className="text-sm text-blue-800">{(liveIntegrity * 100).toFixed(1)}%</p>
+      </div>
+
+      <div className="bg-green-50 border border-green-200 p-4 rounded">
+        <h4 className="text-md font-semibold text-green-700 mb-2">
+          🧬 Creator Integrity (Average from Campaigns)
+        </h4>
+        <p className="text-sm text-green-800">
+          {creatorIntegrityAverage !== null ? `${(creatorIntegrityAverage * 100).toFixed(1)}%` : 'N/A'}
+        </p>
+      </div>
+
+      <div className="bg-purple-50 border border-purple-200 p-4 rounded">
+        <h4 className="text-md font-semibold text-purple-700 mb-2">🧭 How to Improve Your Creator Integrity</h4>
+        <ul className="text-sm text-gray-700 list-disc pl-5 space-y-1">
+          <li>🔒 Enable <strong>Two-Factor Authentication</strong> in your account settings.</li>
+          <li>📍 Allow <strong>location access</strong> when voting or creating campaigns.</li>
+          <li>🧾 Fill in all <strong>required profile fields</strong>: name, age, city, country, gender.</li>
+          <li>🪪 Connect a <strong>blockchain ID</strong> (coming soon).</li>
+          <li>🤝 Get <strong>community verified</strong> through trusted interactions (coming soon).</li>
+        </ul>
+      </div>
 
       <div>
         <h3 className="text-xl font-semibold mt-10 mb-3">Your Votes</h3>
