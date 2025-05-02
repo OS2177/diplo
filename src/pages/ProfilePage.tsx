@@ -175,27 +175,28 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {profile && <ProfileIntegrity profile={profile} />}
-
       {profile && (
-        <div className="bg-purple-50 border border-purple-200 p-4 rounded mt-8 space-y-4">
-          <div>
-            <h4 className="text-md font-semibold text-purple-700 mb-2">Creator Integrity Score</h4>
+        <>
+          <ProfileIntegrity profile={profile} />
+
+          <div className="bg-purple-50 border border-purple-200 p-4 rounded mt-4">
+            <h4 className="text-md font-semibold text-purple-700 mb-2">🧬 Creator Integrity Score</h4>
             <p className="text-sm text-purple-800">
               {(calculateIntegrityScore(profile) * 100).toFixed(0)}%
             </p>
           </div>
-          <div>
-            <h4 className="text-md font-semibold text-purple-700 mb-2">How to Improve Your Creator Integrity</h4>
+
+          <div className="bg-purple-50 border border-purple-200 p-4 rounded mt-4 space-y-4">
+            <h4 className="text-md font-semibold text-purple-700 mb-2">🧭 How to Improve Your Creator Integrity</h4>
             <ul className="text-sm text-gray-700 list-disc pl-5 space-y-1">
-              <li>Enable <strong>Two-Factor Authentication</strong> in your account settings.</li>
-              <li>Allow <strong>location access</strong> when voting or creating campaigns.</li>
-              <li>Fill in all <strong>required profile fields</strong>: name, age, city, country, pronouns.</li>
-              <li>Connect a <strong>blockchain ID</strong> (coming soon).</li>
-              <li>Get <strong>community verified</strong> through trusted interactions (coming soon).</li>
+              <li>🔒 Enable <strong>Two-Factor Authentication</strong> in your account settings.</li>
+              <li>📍 Allow <strong>location access</strong> when voting or creating campaigns.</li>
+              <li>🧾 Fill in all <strong>required profile fields</strong>: name, age, city, country, pronouns.</li>
+              <li>🪪 Connect a <strong>blockchain ID</strong> (coming soon).</li>
+              <li>🤝 Get <strong>community verified</strong> through trusted interactions (coming soon).</li>
             </ul>
           </div>
-        </div>
+        </>
       )}
 
       <div>
