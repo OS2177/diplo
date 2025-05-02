@@ -1,3 +1,5 @@
+// 👉 Full working ProfilePage with restored location autofill + integrity score
+
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
@@ -83,12 +85,52 @@ export default function ProfilePage() {
         community_verified: false,
       };
 
-      setProfile({ ...baseProfile, ...profileData });
+      const mergedProfile = { ...baseProfile, ...profileData };
+      setProfile(mergedProfile);
+
+      if (!mergedProfile.city || !mergedProfile.country) {
+        getAndSetLocation(); // Auto-fill location if missing
+      }
     } catch (error) {
       console.error('Error fetching user data:', error);
     } finally {
       setLoadingProfile(false);
     }
+  };
+
+  const getAndSetLocation = async () => {
+    if (!navigator.geolocation) return;
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+
+        try {
+          const res = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`
+          );
+          const data = await res.json();
+          const city = data.address.city || data.address.town || data.address.village || '';
+          const country = data.address.country || '';
+
+          setProfile((prev) => ({
+            ...prev,
+            city,
+            country,
+            location_permission: true,
+          }));
+        } catch (err) {
+          console.error('Reverse geocoding failed:', err);
+        }
+      },
+      (err) => {
+        console.warn('Geolocation not allowed or failed:', err);
+        setProfile((prev) => ({
+          ...prev,
+          location_permission: false,
+        }));
+      }
+    );
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -114,6 +156,7 @@ export default function ProfilePage() {
       phone_number: profile.phone_number?.trim() || '',
       bio: profile.bio || '',
       two_factor_enabled: !!profile.two_factor_enabled,
+      location_permission: !!profile.location_permission,
       updated_at: new Date().toISOString(),
     };
 
