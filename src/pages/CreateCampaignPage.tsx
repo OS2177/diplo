@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 function calculateIntegrityScore(profile: any): number {
   let score = 0;
   if (profile?.location_permission) score += 0.2;
-  if (profile?.profile_complete) score += 0.2;
+  if (profile?.name && profile?.age && profile?.city && profile?.country && profile?.gender) score += 0.2;
   if (profile?.two_factor_enabled) score += 0.2;
   if (profile?.blockchain_id) score += 0.3;
   if (profile?.community_verified) score += 0.1;
@@ -65,7 +65,6 @@ export default function CreateCampaignPage() {
       return;
     }
 
-    // Fetch profile to get integrity and 2FA status
     const { data: profile } = await supabase
       .from('profiles')
       .select('*')
@@ -89,7 +88,8 @@ export default function CreateCampaignPage() {
         created_by: user.id,
         status: 'published',
         creator_integrity,
-        creator_verified_2fa, // ✅ Store creator's 2FA status
+        creator_verified_2fa,
+        created_at: new Date().toISOString()
       },
     ]);
 
