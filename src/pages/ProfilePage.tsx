@@ -44,7 +44,23 @@ interface Campaign {
 export default function ProfilePage() {
   const { user, loading } = useUser();
   const navigate = useNavigate();
-  const [profile, setProfile] = useState<Profile | null>(null);
+  const [profile, setProfile] = useState<Profile>({
+    id: '',
+    name: '',
+    email: '',
+    city: '',
+    country: '',
+    age: '',
+    gender: '',
+    phone_number: '',
+    street: '',
+    postcode: '',
+    bio: '',
+    location_permission: false,
+    two_factor_enabled: false,
+    blockchain_id: '',
+    community_verified: false,
+  });
   const [votes, setVotes] = useState<Vote[]>([]);
   const [createdCampaigns, setCreatedCampaigns] = useState<Campaign[]>([]);
   const [loadingProfile, setLoadingProfile] = useState(true);
@@ -59,49 +75,41 @@ export default function ProfilePage() {
   }, [user, loading]);
 
   const fetchUserData = async () => {
-  try {
-    const { data: profileData, error: profileError } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', user?.id)
-      .maybeSingle();
+    try {
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user?.id)
+        .maybeSingle();
 
-    if (profileError) throw profileError;
+      if (profileError) throw profileError;
 
-    const defaultProfile = {
-      id: user?.id,
-      name: '',
-      email: user?.email || '',
-      city: '',
-      country: '',
-      age: '',
-      gender: '',
-      phone_number: '',
-      street: '',
-      postcode: '',
-      bio: '',
-      location_permission: false,
-      two_factor_enabled: false,
-      blockchain_id: '',
-      community_verified: false,
-    };
+      setProfile((prev) => ({ ...prev, ...profileData }));
 
-    setProfile({ ...defaultProfile, ...profileData });
-  } catch (error) {
-    console.error('Error fetching user data:', error);
-  } finally {
-    setLoadingProfile(false);
-  }
-};
+      const { data: votesData } = await supabase
+        .from('votes')
+        .select('id, choice, created_at, campaign_id, campaigns(title)')
+        .eq('user_id', user?.id);
 
+      const { data: campaignsData } = await supabase
+        .from('campaigns')
+        .select('*')
+        .eq('created_by', user?.id);
 
+      if (votesData) setVotes(votesData);
+      if (campaignsData) setCreatedCampaigns(campaignsData);
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+    } finally {
+      setLoadingProfile(false);
+    }
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-  const { name, value, type, checked } = e.target;
-  const newValue = type === 'checkbox' ? checked : value;
-  setProfile((prev) => prev ? { ...prev, [name]: newValue } : null);
-};
-
+    const { name, value, type, checked } = e.target;
+    const newValue = type === 'checkbox' ? checked : value;
+    setProfile((prev) => ({ ...prev, [name]: newValue }));
+  };
 
   const saveProfile = async () => {
     if (!user || !profile) return;
@@ -140,36 +148,32 @@ export default function ProfilePage() {
   };
 
   const deleteProfile = async () => {
-  if (!user) return;
+    if (!user) return;
 
-  const confirmDelete = window.confirm(
-    'This will delete your profile data and log you out. Continue?'
-  );
-  if (!confirmDelete) return;
+    const confirmDelete = window.confirm(
+      'This will delete your profile data and log you out. Continue?'
+    );
+    if (!confirmDelete) return;
 
-  // Step 1: Delete from public 'profiles' table
-  const { error: profileError } = await supabase
-    .from('profiles')
-    .delete()
-    .eq('id', user.id);
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .delete()
+      .eq('id', user.id);
 
-  if (profileError) {
-    alert('❌ Error deleting profile: ' + profileError.message);
-    return;
-  }
+    if (profileError) {
+      alert('❌ Error deleting profile: ' + profileError.message);
+      return;
+    }
 
-  // Step 2: Sign out the user
-  const { error: signOutError } = await supabase.auth.signOut();
-  if (signOutError) {
-    alert('⚠️ Profile deleted, but sign-out failed: ' + signOutError.message);
-  } else {
-    alert('✅ Your profile has been deleted and you’ve been signed out.');
-  }
+    const { error: signOutError } = await supabase.auth.signOut();
+    if (signOutError) {
+      alert('⚠️ Profile deleted, but sign-out failed: ' + signOutError.message);
+    } else {
+      alert('✅ Your profile has been deleted and you’ve been signed out.');
+    }
 
-  // Step 3: Redirect
-  navigate('/');
-};
-
+    navigate('/');
+  };
 
   const calculateIntegrityScore = (profile: Profile): number => {
     let score = 0;
@@ -197,7 +201,7 @@ export default function ProfilePage() {
             type={field === 'age' ? 'number' : 'text'}
             name={field}
             placeholder={field.charAt(0).toUpperCase() + field.replace('_', ' ').slice(1)}
-            value={profile ? (profile as any)[field] || '' : ''}
+            value={(profile as any)[field] || ''}
             onChange={handleChange}
             className={`border px-3 py-2 rounded ${field === 'age' ? 'appearance-none' : ''}`}
           />
@@ -247,88 +251,6 @@ export default function ProfilePage() {
           <li>🪪 Connect a <strong>blockchain ID</strong> (coming soon).</li>
           <li>🤝 Get <strong>community verified</strong> through trusted interactions (coming soon).</li>
         </ul>
-      </div>
-
-      <div>
-        <h3 className="text-xl font-semibold mt-10 mb-3">Your Votes</h3>
-        {votes.length === 0 ? (
-          <p className="text-gray-500">No votes yet.</p>
-        ) : (
-          <ul className="space-y-3">
-            {votes.map((vote) => (
-              <li key={vote.id} className="border rounded p-4 bg-white shadow space-y-2">
-                <p>
-                  Voted <strong>{vote.choice.toUpperCase()}</strong> on{' '}
-                  <span className="font-medium">{vote.campaigns?.title}</span>
-                </p>
-                <p className="text-xs text-gray-600">
-                  {new Date(vote.timestamp).toLocaleString()}
-                  {vote.locationName ? ` | 📍 ${vote.locationName}` : ''}
-                </p>
-                <button
-                  onClick={async () => {
-                    const confirm = window.confirm('Remove your vote?');
-                    if (!confirm) return;
-
-                    const { error } = await supabase
-                      .from('votes')
-                      .delete()
-                      .eq('id', vote.id);
-
-                    if (error) {
-                      alert('Error removing vote: ' + error.message);
-                    } else {
-                      setVotes((prev) => prev.filter((v) => v.id !== vote.id));
-                      await fetchUserData();
-                    }
-                  }}
-                  className="text-sm text-red-600 hover:underline"
-                >
-                  Unvote
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-
-      <div>
-        <h3 className="text-xl font-semibold mt-10 mb-3">Campaigns You Created</h3>
-        {createdCampaigns.length === 0 ? (
-          <p className="text-gray-500">No campaigns created yet.</p>
-        ) : (
-          <ul className="space-y-3">
-            {createdCampaigns.map((campaign) => (
-              <li key={campaign.id} className="border rounded p-4 bg-white shadow space-y-2">
-                <h4 className="font-medium">{campaign.title}</h4>
-                {campaign.creator_verified_2fa && (
-                  <span className="inline-block text-xs text-green-600 font-semibold bg-green-100 px-2 py-1 rounded">✅ 2FA Verified Creator</span>
-                )}
-                <p className="text-sm text-gray-600">{campaign.description}</p>
-                <button
-                  onClick={async () => {
-                    const confirm = window.confirm(`Delete campaign \"${campaign.title}\"?`);
-                    if (!confirm) return;
-
-                    const { error } = await supabase
-                      .from('campaigns')
-                      .delete()
-                      .eq('id', campaign.id);
-
-                    if (error) {
-                      alert('Error deleting campaign: ' + error.message);
-                    } else {
-                      setCreatedCampaigns((prev) => prev.filter((c) => c.id !== campaign.id));
-                    }
-                  }}
-                  className="text-sm text-red-600 hover:underline"
-                >
-                  Delete Campaign
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
       </div>
     </div>
   );
