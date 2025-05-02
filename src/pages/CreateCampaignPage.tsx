@@ -88,6 +88,12 @@ export default function CreateCampaignPage() {
     if (!city || !country || latitude === null || longitude === null) {
       alert('City, country, and location required.');
       return;
+      console.log('👤 Profile:', profile);
+      console.log('🧮 Vote Integrity:', vote_integrity);
+      console.log('📍 Location Accuracy Score:', location_score);
+      console.log('📊 Campaign Activity Score:', experience_score);
+      console.log('🧬 Final Creator Integrity:', creator_integrity);
+
     }
 
     const { data: profile, error: profileError } = await supabase
