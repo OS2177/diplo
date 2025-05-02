@@ -1,382 +1,239 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { supabase } from '../lib/supabaseClient';
-import { useUser } from '../hooks/useUser';
-import ProfileIntegrity from '../components/ProfileIntegrity';
+      import React, { useEffect, useState } from 'react';
+      import { useNavigate } from 'react-router-dom';
+      import { supabase } from '../lib/supabaseClient';
+      import { useUser } from '../hooks/useUser';
+      import ProfileIntegrity from '../components/ProfileIntegrity';
 
-interface Profile {
-  id: string;
-  name: string;
-  email: string;
-  city: string;
-  country: string;
-  age: string;
-  gender: string;
-  phone_number?: string;
-  street?: string;
-  postcode?: string;
-  bio: string;
-  location_permission?: boolean;
-  two_factor_enabled?: boolean;
-  blockchain_id?: string;
-  community_verified?: boolean;
-}
-
-export default function ProfilePage() {
-  const { user, loading } = useUser();
-  const navigate = useNavigate();
-
-  const [profile, setProfile] = useState<Profile>({
-    id: '',
-    name: '',
-    email: '',
-    city: '',
-    country: '',
-    age: '',
-    gender: '',
-    phone_number: '',
-    street: '',
-    postcode: '',
-    bio: '',
-    location_permission: false,
-    two_factor_enabled: false,
-    blockchain_id: '',
-    community_verified: false,
-  });
-
-  const [loadingProfile, setLoadingProfile] = useState(true);
-  const [createdCampaigns, setCreatedCampaigns] = useState<any[]>([]);
-  const [votedCampaigns, setVotedCampaigns] = useState<any[]>([]);
-
-  useEffect(() => {
-    if (loading) return;
-    if (!user) {
-      navigate('/login', { state: { message: 'login-to-view-profile' } });
-    } else {
-      fetchUserData();
-      fetchCreatedCampaigns();
-      fetchVotedCampaigns();
-    }
-  }, [user, loading]);
-
-  const fetchUserData = async () => {
-    try {
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user?.id)
-        .maybeSingle();
-
-      if (profileError) throw profileError;
-
-      const baseProfile = {
-        id: user?.id || '',
-        email: user?.email || '',
-        name: '',
-        city: '',
-        country: '',
-        age: '',
-        gender: '',
-        phone_number: '',
-        street: '',
-        postcode: '',
-        bio: '',
-        location_permission: false,
-        two_factor_enabled: false,
-        blockchain_id: '',
-        community_verified: false,
-      };
-
-      const mergedProfile = { ...baseProfile, ...profileData };
-      setProfile(mergedProfile);
-
-      if (!mergedProfile.city || !mergedProfile.country) {
-        getAndSetLocation(); // Auto-fill location if missing
+      interface Profile {
+        id: string;
+        name: string;
+        email: string;
+        city: string;
+        country: string;
+        age: string;
+        pronouns: string;
+        bio: string;
       }
-    } catch (error) {
-      console.error('Error fetching user data:', error);
-    } finally {
-      setLoadingProfile(false);
-    }
-  };
 
-  const fetchCreatedCampaigns = async () => {
-    if (!user) return;
-    const { data, error } = await supabase
-      .from('campaigns')
-      .select('*')
-      .eq('creator_id', user.id)
-      .order('created_at', { ascending: false });
+      interface Vote {
+        id: string;
+        choice: string;
+        created_at: string;
+        locationName?: string;
+        campaign_id?: string;
+        campaigns?: {
+          title: string;
+        };
+      }
 
-    if (error) {
-      console.error('Error fetching created campaigns:', error);
-    } else {
-      setCreatedCampaigns(data || []);
-    }
-  };
+      interface Campaign {
+        id: string;
+        title: string;
+        description: string;
+        created_by: string;
+      }
 
-  const fetchVotedCampaigns = async () => {
-    if (!user) return;
-    const { data, error } = await supabase
-      .from('votes')
-      .select('campaigns(*)')
-      .eq('user_id', user.id);
+      export default function ProfilePage() {
+        const { user, loading } = useUser();
+        const navigate = useNavigate();
+        const [profile, setProfile] = useState<Profile | null>(null);
+        const [votes, setVotes] = useState<Vote[]>([]);
+        const [createdCampaigns, setCreatedCampaigns] = useState<Campaign[]>([]);
+        const [loadingProfile, setLoadingProfile] = useState(true);
 
-    if (error) {
-      console.error('Error fetching voted campaigns:', error);
-    } else {
-      const campaigns = data.map((entry: any) => entry.campaigns);
-      setVotedCampaigns(campaigns || []);
-    }
-  };
+        useEffect(() => {
+          if (loading) return;
+          if (!user) {
+            navigate('/login', { state: { message: 'login-to-view-profile' } });
+          } else {
+            fetchUserData();
+          }
+        }, [user, loading]);
 
-  const getAndSetLocation = async () => {
-    if (!navigator.geolocation) return;
+        const fetchUserData = async () => {
+          try {
+            const { data: profileData } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('id', user?.id)
+              .single();
 
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        const { latitude, longitude } = position.coords;
+            const { data: votesData } = await supabase
+              .from('votes')
+              .select('id, choice, created_at, campaign_id, campaigns(title)')
+              .eq('user_id', user?.id);
 
-        try {
-          const res = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`
-          );
-          const data = await res.json();
-          const city = data.address.city || data.address.town || data.address.village || '';
-          const country = data.address.country || '';
+            const { data: campaignsData } = await supabase
+              .from('campaigns')
+              .select('*')
+              .eq('created_by', user?.id);
 
-          setProfile((prev) => ({
-            ...prev,
-            city,
-            country,
-            location_permission: true,
-          }));
-        } catch (err) {
-          console.error('Reverse geocoding failed:', err);
+            if (profileData) setProfile(profileData);
+            if (votesData) setVotes(votesData);
+            if (campaignsData) setCreatedCampaigns(campaignsData);
+          } catch (error) {
+            console.error('Error fetching user data:', error);
+          } finally {
+            setLoadingProfile(false);
+          }
+        };
+
+        const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+          const { name, value } = e.target;
+          setProfile((prev) => (prev ? { ...prev, [name]: value } : null));
+        };
+
+        const saveProfile = async () => {
+          if (!user || !profile) return;
+
+          const { error } = await supabase.from('profiles').upsert({
+            id: user.id,
+            ...profile,
+            updated_at: new Date().toISOString(),
+          });
+
+          if (error) {
+            console.error('Error updating profile:', error);
+          } else {
+            alert('Profile updated successfully!');
+          }
+        };
+
+        const deleteProfile = async () => {
+          if (!user) return;
+          const confirmDelete = window.confirm('This will delete your account and data. Continue?');
+          if (!confirmDelete) return;
+
+          const { error: profileError } = await supabase
+            .from('profiles')
+            .delete()
+            .eq('id', user.id);
+
+          if (profileError) {
+            alert('Error deleting profile: ' + profileError.message);
+            return;
+          }
+
+          alert('Your profile data has been deleted.');
+          navigate('/');
+        };
+
+        if (loading || loadingProfile) {
+          return <div className="p-6">Loading profile...</div>;
         }
-      },
-      (err) => {
-        console.warn('Geolocation not allowed or failed:', err);
-        setProfile((prev) => ({
-          ...prev,
-          location_permission: false,
-        }));
+
+        return (
+          <div className="max-w-xl mx-auto p-6 space-y-8">
+            <h2 className="text-2xl font-bold mb-6">Your Profile</h2>
+
+            <div className="grid gap-4">
+              {['name', 'city', 'country', 'age', 'pronouns', 'bio'].map((field) => (
+                <input
+                  key={field}
+                  type={field === 'age' ? 'number' : 'text'}
+                  name={field}
+                  placeholder={field.charAt(0).toUpperCase() + field.slice(1)}
+                  value={profile ? (profile[field as keyof Profile] as string) : ''}
+                  onChange={handleChange}
+                  className="border px-3 py-2 rounded"
+                />
+              ))}
+              <input
+                type="text"
+                name="email"
+                value={user?.email ?? ''}
+                disabled
+                className="bg-gray-100 border px-3 py-2 rounded"
+              />
+              <div className="flex gap-4">
+                <button
+                  onClick={saveProfile}
+                  className="bg-black text-white px-4 py-2 rounded hover:bg-gray-700"
+                >
+                  Save Profile
+                </button>
+                <button
+                  onClick={deleteProfile}
+                  className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+                >
+                  Delete Profile
+                </button>
+              </div>
+            </div>
+
+            {profile && <ProfileIntegrity profile={profile} />}
+
+            <div>
+              <h3 className="text-xl font-semibold mt-10 mb-3">Your Votes</h3>
+              {votes.length === 0 ? (
+                <p className="text-gray-500">No votes yet.</p>
+              ) : (
+                <ul className="space-y-3">
+                  {votes.map((vote) => (
+                    <li key={vote.id} className="border rounded p-4 bg-white shadow space-y-2">
+                      <p>
+                        Voted <strong>{vote.choice.toUpperCase()}</strong> on{' '}
+                        <span className="font-medium">{vote.campaigns?.title}</span>
+                      </p>
+                      <p className="text-xs text-gray-600">
+                        {new Date(vote.created_at).toLocaleString()}
+                        {vote.locationName ? ` | ${vote.locationName}` : ''}
+                      </p>
+                      <button
+                        onClick={async () => {
+                          const confirm = window.confirm('Remove your vote?');
+                          if (!confirm) return;
+                          const { error } = await supabase.from('votes').delete().eq('id', vote.id);
+                          if (error) {
+                            alert('Error removing vote: ' + error.message);
+                          } else {
+                            setVotes((prev) => prev.filter((v) => v.id !== vote.id));
+                            await fetchUserData();
+                          }
+                        }}
+                        className="text-sm text-red-600 hover:underline"
+                      >
+                        Unvote
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+
+            <div>
+              <h3 className="text-xl font-semibold mt-10 mb-3">Campaigns You Created</h3>
+              {createdCampaigns.length === 0 ? (
+                <p className="text-gray-500">No campaigns created yet.</p>
+              ) : (
+                <ul className="space-y-3">
+                  {createdCampaigns.map((campaign) => (
+                    <li key={campaign.id} className="border rounded p-4 bg-white shadow space-y-2">
+                      <h4 className="font-medium">{campaign.title}</h4>
+                      <p className="text-sm text-gray-600">{campaign.description}</p>
+                      <button
+                        onClick={async () => {
+                          const confirm = window.confirm(`Delete campaign "${campaign.title}"?`);
+                          if (!confirm) return;
+                          const { error } = await supabase
+                            .from('campaigns')
+                            .delete()
+                            .eq('id', campaign.id);
+                          if (error) {
+                            alert('Error deleting campaign: ' + error.message);
+                          } else {
+                            setCreatedCampaigns((prev) => prev.filter((c) => c.id !== campaign.id));
+                          }
+                        }}
+                        className="text-sm text-red-600 hover:underline"
+                      >
+                        Delete Campaign
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>
+        );
       }
-    );
-  };
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type, checked } = e.target;
-    const newValue = type === 'checkbox' ? checked : value;
-    setProfile((prev) => ({ ...prev, [name]: newValue }));
-  };
-
-  const saveProfile = async () => {
-    if (!user || !profile) return;
-
-    const cleanedAge =
-      profile.age && !isNaN(Number(profile.age)) ? parseInt(profile.age) : null;
-
-    const updatePayload: any = {
-      id: user.id,
-      name: profile.name?.trim() || '',
-      street: profile.street?.trim() || '',
-      postcode: profile.postcode?.trim() || '',
-      city: profile.city?.trim() || '',
-      country: profile.country?.trim() || '',
-      gender: profile.gender?.trim() || '',
-      phone_number: profile.phone_number?.trim() || '',
-      bio: profile.bio || '',
-      two_factor_enabled: !!profile.two_factor_enabled,
-      location_permission: !!profile.location_permission,
-      updated_at: new Date().toISOString(),
-    };
-
-    if (cleanedAge !== null) {
-      updatePayload.age = cleanedAge;
-    }
-
-    const { error } = await supabase.from('profiles').upsert(updatePayload);
-
-    if (error) {
-      console.error('❌ Supabase error:', error);
-      alert('❌ Error saving profile');
-    } else {
-      alert('✅ Profile saved');
-      await fetchUserData();
-    }
-  };
-
-  const deleteProfile = async () => {
-    if (!user) return;
-
-    const confirmDelete = window.confirm(
-      'This will delete your profile data and log you out. Continue?'
-    );
-    if (!confirmDelete) return;
-
-    const { error: profileError } = await supabase
-      .from('profiles')
-      .delete()
-      .eq('id', user.id);
-
-    if (profileError) {
-      alert('❌ Error deleting profile: ' + profileError.message);
-      return;
-    }
-
-    const { error: signOutError } = await supabase.auth.signOut();
-    if (signOutError) {
-      alert('⚠️ Profile deleted, but sign-out failed: ' + signOutError.message);
-    } else {
-      alert('✅ Your profile has been deleted and you’ve been signed out.');
-    }
-
-    navigate('/');
-  };
-
-  const calculateIntegrityScore = (profile: Profile): number => {
-    let score = 0;
-    if (profile?.location_permission) score += 0.2;
-    if (profile?.two_factor_enabled) score += 0.2;
-    if (profile?.blockchain_id) score += 0.3;
-    if (profile?.community_verified) score += 0.1;
-    return Math.min(score, 1.0);
-  };
-
-  const creatorIntegrity = calculateIntegrityScore(profile);
-
-  if (loading || loadingProfile) {
-    return <div className="p-6">Loading profile...</div>;
-  }
-
-  return (
-    <div className="max-w-xl mx-auto p-6 space-y-8">
-      <h2 className="text-2xl font-bold mb-6">Your Profile</h2>
-
-      <div className="grid gap-4">
-        {[
-          'name',
-          'street',
-          'postcode',
-          'city',
-          'country',
-          'age',
-          'gender',
-          'phone_number',
-          'bio',
-        ].map((field) => (
-          <input
-            key={field}
-            type={field === 'age' ? 'number' : 'text'}
-            name={field}
-            placeholder={
-              field.charAt(0).toUpperCase() +
-              field.replace('_', ' ').slice(1)
-            }
-            value={(profile as any)[field] || ''}
-            onChange={handleChange}
-            className={`border px-3 py-2 rounded ${
-              field === 'age' ? 'appearance-none' : ''
-            }`}
-          />
-        ))}
-        <input
-          type="text"
-          name="email"
-          value={user?.email ?? ''}
-          disabled
-          className="bg-gray-100 border px-3 py-2 rounded"
-        />
-        <label className="flex items-center space-x-2">
-          <input
-            type="checkbox"
-            name="two_factor_enabled"
-            checked={profile?.two_factor_enabled || false}
-            onChange={handleChange}
-          />
-          <span>Enable Two-Factor Authentication (2FA)</span>
-        </label>
-        <div className="flex gap-4">
-          <button
-            onClick={saveProfile}
-            className="bg-black text-white px-4 py-2 rounded hover:bg-gray-700"
-          >
-            Save Profile
-          </button>
-          <button
-            onClick={deleteProfile}
-            className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
-          >
-            Delete Profile
-          </button>
-        </div>
-      </div>
-
-      {profile && <ProfileIntegrity profile={profile} />}
-
-      <div className="bg-purple-50 border border-purple-200 p-4 rounded mt-4">
-        <h4 className="text-md font-semibold text-purple-700 mb-2">
-          Creator Integrity Score
-        </h4>
-        <p className="text-sm text-purple-800 mb-2">
-          {(creatorIntegrity * 100).toFixed(0)}%
-        </p>
-      </div>
-
-      {/* Created Campaigns */}
-      <div className="mt-10">
-        <h3 className="text-xl font-semibold mb-4">Campaigns You Created</h3>
-        {createdCampaigns.length === 0 ? (
-          <p className="text-sm text-gray-600">You haven’t created any campaigns yet.</p>
-        ) : (
-          <div className="space-y-4">
-            {createdCampaigns.map((campaign) => (
-              <div
-                key={campaign.id}
-                className="border border-gray-200 rounded-lg p-4 shadow-sm bg-white"
-              >
-                <Link
-                  to={`/campaign/${campaign.id}`}
-                  className="text-lg font-medium text-blue-700 hover:underline"
-                >
-                  {campaign.title}
-                </Link>
-                <p className="text-sm text-gray-500">
-                  Created on {new Date(campaign.created_at).toLocaleDateString()}
-                </p>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Voted Campaigns */}
-      <div className="mt-10">
-        <h3 className="text-xl font-semibold mb-4">Campaigns You Voted On</h3>
-        {votedCampaigns.length === 0 ? (
-          <p className="text-sm text-gray-600">You haven’t voted on any campaigns yet.</p>
-        ) : (
-          <div className="space-y-4">
-            {votedCampaigns.map((campaign) => (
-              <div
-                key={campaign.id}
-                className="border border-gray-200 rounded-lg p-4 shadow-sm bg-white"
-              >
-                <Link
-                  to={`/campaign/${campaign.id}`}
-                  className="text-lg font-medium text-blue-700 hover:underline"
-                >
-                  {campaign.title}
-                </Link>
-                <p className="text-sm text-gray-500">
-                  Created on {new Date(campaign.created_at).toLocaleDateString()}
-                </p>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
