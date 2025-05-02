@@ -8,16 +8,15 @@ interface Profile {
   id: string;
   name: string;
   email: string;
-  street?: string;
-  postcode?: string;
   city: string;
   country: string;
   age: string;
   gender: string;
   phone_number?: string;
+  street?: string;
+  postcode?: string;
   bio: string;
   location_permission?: boolean;
-  profile_complete?: boolean;
   two_factor_enabled?: boolean;
   blockchain_id?: string;
   community_verified?: boolean;
@@ -60,32 +59,46 @@ export default function ProfilePage() {
   }, [user, loading]);
 
   const fetchUserData = async () => {
-    try {
-      const { data: profileData } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user?.id)
-        .single();
+  try {
+    const { data: profileData, error: profileError } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', user?.id)
+      .limit(1)
+      .maybeSingle(); // ✅ avoids 406 error when profile is missing
 
-      const { data: votesData } = await supabase
-        .from('votes')
-        .select('id, choice, created_at, campaign_id, campaigns(title)')
-        .eq('user_id', user?.id);
-
-      const { data: campaignsData } = await supabase
-        .from('campaigns')
-        .select('*')
-        .eq('created_by', user?.id);
-
-      if (profileData) setProfile(profileData);
-      if (votesData) setVotes(votesData);
-      if (campaignsData) setCreatedCampaigns(campaignsData);
-    } catch (error) {
-      console.error('Error fetching user data:', error);
-    } finally {
-      setLoadingProfile(false);
+    if (profileError) {
+      console.error('Error fetching profile:', profileError.message);
     }
-  };
+
+    const { data: votesData, error: votesError } = await supabase
+      .from('votes')
+      .select('id, choice, created_at, campaign_id, campaigns(title)')
+      .eq('user_id', user?.id);
+
+    if (votesError) {
+      console.error('Error fetching votes:', votesError.message);
+    }
+
+    const { data: campaignsData, error: campaignsError } = await supabase
+      .from('campaigns')
+      .select('*')
+      .eq('created_by', user?.id);
+
+    if (campaignsError) {
+      console.error('Error fetching campaigns:', campaignsError.message);
+    }
+
+    if (profileData) setProfile(profileData);
+    if (votesData) setVotes(votesData);
+    if (campaignsData) setCreatedCampaigns(campaignsData);
+  } catch (error) {
+    console.error('Unexpected error fetching user data:', error);
+  } finally {
+    setLoadingProfile(false);
+  }
+};
+
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
@@ -96,44 +109,74 @@ export default function ProfilePage() {
   const saveProfile = async () => {
     if (!user || !profile) return;
 
+    const cleanedAge = profile.age && !isNaN(Number(profile.age)) ? parseInt(profile.age) : null;
+
+    const updatePayload: any = {
+      id: user.id,
+      name: profile.name?.trim() || '',
+      street: profile.street?.trim() || '',
+      postcode: profile.postcode?.trim() || '',
+      city: profile.city?.trim() || '',
+      country: profile.country?.trim() || '',
+      gender: profile.gender?.trim() || '',
+      phone_number: profile.phone_number?.trim() || '',
+      bio: profile.bio || '',
+      two_factor_enabled: !!profile.two_factor_enabled,
+      updated_at: new Date().toISOString(),
+    };
+
+    if (cleanedAge !== null) {
+      updatePayload.age = cleanedAge;
+    }
+
     const { error } = await supabase
       .from('profiles')
-      .upsert({
-        id: user.id,
-        ...profile,
-        updated_at: new Date().toISOString(),
-      });
+      .upsert(updatePayload);
 
     if (error) {
-      console.error('Error updating profile:', error);
+      console.error('❌ Supabase error:', error);
+      alert('❌ Error saving profile');
     } else {
-      alert('Profile updated successfully!');
+      alert('✅ Profile saved');
+      await fetchUserData();
     }
   };
 
   const deleteProfile = async () => {
-    if (!user) return;
-    const confirm = window.confirm('This will delete your account and data. Continue?');
-    if (!confirm) return;
+  if (!user) return;
 
-    const { error: profileError } = await supabase
-      .from('profiles')
-      .delete()
-      .eq('id', user.id);
+  const confirmDelete = window.confirm(
+    'This will delete your profile data and log you out. Continue?'
+  );
+  if (!confirmDelete) return;
 
-    if (profileError) {
-      alert('Error deleting profile: ' + profileError.message);
-      return;
-    }
+  // Step 1: Delete from public 'profiles' table
+  const { error: profileError } = await supabase
+    .from('profiles')
+    .delete()
+    .eq('id', user.id);
 
-    alert('Your profile data has been deleted.');
-    navigate('/');
-  };
+  if (profileError) {
+    alert('❌ Error deleting profile: ' + profileError.message);
+    return;
+  }
+
+  // Step 2: Sign out the user
+  const { error: signOutError } = await supabase.auth.signOut();
+  if (signOutError) {
+    alert('⚠️ Profile deleted, but sign-out failed: ' + signOutError.message);
+  } else {
+    alert('✅ Your profile has been deleted and you’ve been signed out.');
+  }
+
+  // Step 3: Redirect
+  navigate('/');
+};
+
 
   const calculateIntegrityScore = (profile: Profile): number => {
     let score = 0;
     if (profile?.location_permission) score += 0.2;
-    if (profile?.profile_complete) score += 0.2;
     if (profile?.two_factor_enabled) score += 0.2;
     if (profile?.blockchain_id) score += 0.3;
     if (profile?.community_verified) score += 0.1;
@@ -150,7 +193,6 @@ export default function ProfilePage() {
     <div className="max-w-xl mx-auto p-6 space-y-8">
       <h2 className="text-2xl font-bold mb-6">Your Profile</h2>
 
-      {/* Profile Form */}
       <div className="grid gap-4">
         {['name', 'street', 'postcode', 'city', 'country', 'age', 'gender', 'phone_number', 'bio'].map((field) => (
           <input
@@ -160,7 +202,7 @@ export default function ProfilePage() {
             placeholder={field.charAt(0).toUpperCase() + field.replace('_', ' ').slice(1)}
             value={profile ? (profile as any)[field] || '' : ''}
             onChange={handleChange}
-            className="border px-3 py-2 rounded"
+            className={`border px-3 py-2 rounded ${field === 'age' ? 'appearance-none' : ''}`}
           />
         ))}
         <input
@@ -195,10 +237,8 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* Profile Integrity */}
       {profile && <ProfileIntegrity profile={profile} />}
 
-      {/* Creator Integrity Display */}
       <div className="bg-purple-50 border border-purple-200 p-4 rounded mt-4">
         <h4 className="text-md font-semibold text-purple-700 mb-2">🧬 Creator Integrity Score</h4>
         <p className="text-sm text-purple-800 mb-2">{(creatorIntegrity * 100).toFixed(0)}%</p>
@@ -206,13 +246,12 @@ export default function ProfilePage() {
         <ul className="text-sm text-gray-700 list-disc pl-5 space-y-1">
           <li>🔒 Enable <strong>Two-Factor Authentication</strong> in your account settings.</li>
           <li>📍 Allow <strong>location access</strong> when voting or creating campaigns.</li>
-          <li>🧾 Fill in all <strong>required profile fields</strong>: name, age, street, postcode, city, country, gender, phone number.</li>
+          <li>🧾 Fill in key <strong>profile fields</strong> to increase your score: name, age, city, country, gender, phone number.</li>
           <li>🪪 Connect a <strong>blockchain ID</strong> (coming soon).</li>
           <li>🤝 Get <strong>community verified</strong> through trusted interactions (coming soon).</li>
         </ul>
       </div>
 
-      {/* Votes */}
       <div>
         <h3 className="text-xl font-semibold mt-10 mb-3">Your Votes</h3>
         {votes.length === 0 ? (
@@ -256,7 +295,6 @@ export default function ProfilePage() {
         )}
       </div>
 
-      {/* Created Campaigns */}
       <div>
         <h3 className="text-xl font-semibold mt-10 mb-3">Campaigns You Created</h3>
         {createdCampaigns.length === 0 ? (
