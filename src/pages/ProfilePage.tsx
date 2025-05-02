@@ -1,7 +1,5 @@
-// 👉 Full working ProfilePage with restored location autofill + integrity score
-
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { useUser } from '../hooks/useUser';
 import ProfileIntegrity from '../components/ProfileIntegrity';
@@ -47,6 +45,8 @@ export default function ProfilePage() {
   });
 
   const [loadingProfile, setLoadingProfile] = useState(true);
+  const [createdCampaigns, setCreatedCampaigns] = useState<any[]>([]);
+  const [votedCampaigns, setVotedCampaigns] = useState<any[]>([]);
 
   useEffect(() => {
     if (loading) return;
@@ -54,6 +54,8 @@ export default function ProfilePage() {
       navigate('/login', { state: { message: 'login-to-view-profile' } });
     } else {
       fetchUserData();
+      fetchCreatedCampaigns();
+      fetchVotedCampaigns();
     }
   }, [user, loading]);
 
@@ -95,6 +97,36 @@ export default function ProfilePage() {
       console.error('Error fetching user data:', error);
     } finally {
       setLoadingProfile(false);
+    }
+  };
+
+  const fetchCreatedCampaigns = async () => {
+    if (!user) return;
+    const { data, error } = await supabase
+      .from('campaigns')
+      .select('*')
+      .eq('creator_id', user.id)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching created campaigns:', error);
+    } else {
+      setCreatedCampaigns(data || []);
+    }
+  };
+
+  const fetchVotedCampaigns = async () => {
+    if (!user) return;
+    const { data, error } = await supabase
+      .from('votes')
+      .select('campaigns(*)')
+      .eq('user_id', user.id);
+
+    if (error) {
+      console.error('Error fetching voted campaigns:', error);
+    } else {
+      const campaigns = data.map((entry: any) => entry.campaigns);
+      setVotedCampaigns(campaigns || []);
     }
   };
 
@@ -290,6 +322,40 @@ export default function ProfilePage() {
         <p className="text-sm text-purple-800 mb-2">
           {(creatorIntegrity * 100).toFixed(0)}%
         </p>
+      </div>
+
+      <div className="mt-8">
+        <h3 className="text-lg font-semibold mb-2">📢 Campaigns You Created</h3>
+        {createdCampaigns.length === 0 ? (
+          <p className="text-sm text-gray-600">You haven’t created any campaigns yet.</p>
+        ) : (
+          <ul className="space-y-2">
+            {createdCampaigns.map((campaign) => (
+              <li key={campaign.id} className="border p-3 rounded bg-white">
+                <Link to={`/campaign/${campaign.id}`} className="text-blue-600 hover:underline">
+                  {campaign.title}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      <div className="mt-8">
+        <h3 className="text-lg font-semibold mb-2">🗳️ Campaigns You Voted On</h3>
+        {votedCampaigns.length === 0 ? (
+          <p className="text-sm text-gray-600">You haven’t voted on any campaigns yet.</p>
+        ) : (
+          <ul className="space-y-2">
+            {votedCampaigns.map((campaign) => (
+              <li key={campaign.id} className="border p-3 rounded bg-white">
+                <Link to={`/campaign/${campaign.id}`} className="text-blue-600 hover:underline">
+                  {campaign.title}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     </div>
   );
