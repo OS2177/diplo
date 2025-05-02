@@ -28,14 +28,11 @@ function calculateIntegrityScore(profile: any): number {
 function calculateProximity(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const toRad = (deg: number) => (deg * Math.PI) / 180;
   const R = 6371; // Earth radius in km
-
   const dLat = toRad(lat2 - lat1);
   const dLon = toRad(lon2 - lon1);
-
   const a =
     Math.sin(dLat / 2) ** 2 +
     Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
-
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return R * c;
 }
@@ -44,9 +41,13 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
   const [voted, setVoted] = useState(false);
   const [voteChoice, setVoteChoice] = useState('');
   const [voteSuccess, setVoteSuccess] = useState(false);
+  const [voteError, setVoteError] = useState('');
+  const [voteImpact, setVoteImpact] = useState<number | null>(null);
+  const [voteCount, setVoteCount] = useState<number | null>(null);
 
   useEffect(() => {
     checkIfUserVoted();
+    fetchVoteCount();
   }, []);
 
   const checkIfUserVoted = async () => {
@@ -56,20 +57,25 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
 
     const { data: vote, error } = await supabase
       .from('votes')
-      .select('choice')
+      .select('choice, impact')
       .eq('user_id', user.id)
       .eq('campaign_id', campaign.id)
       .maybeSingle();
 
-    if (error) {
-      console.error('Error checking vote:', error.message);
-      return;
-    }
-
     if (vote) {
       setVoteChoice(vote.choice);
+      setVoteImpact(vote.impact);
       setVoted(true);
     }
+  };
+
+  const fetchVoteCount = async () => {
+    const { count, error } = await supabase
+      .from('votes')
+      .select('*', { count: 'exact', head: true })
+      .eq('campaign_id', campaign.id);
+
+    if (!error) setVoteCount(count);
   };
 
   const castVote = async (choice: string) => {
@@ -83,39 +89,53 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
       .eq('id', user.id)
       .single();
 
-    navigator.geolocation.getCurrentPosition(async (pos) => {
-      const userLat = pos.coords.latitude;
-      const userLon = pos.coords.longitude;
+    if (!profile) return alert('Profile not found.');
 
-      const integrity = calculateIntegrityScore(profile);
+    if (!navigator.geolocation) {
+      setVoteError('Geolocation not supported in your browser.');
+      return;
+    }
 
-      const proximity = campaign.latitude && campaign.longitude
-        ? calculateProximity(userLat, userLon, campaign.latitude, campaign.longitude)
-        : 1000; // Default distant if no campaign location
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const userLat = pos.coords.latitude;
+        const userLon = pos.coords.longitude;
 
-      const globalModifier = 1.0; // Placeholder for dynamic adjustment
-      const impact = proximity * integrity * globalModifier;
+        const integrity = calculateIntegrityScore(profile);
 
-      const { error } = await supabase.from('votes').insert({
-        campaign_id: campaign.id,
-        user_id: user.id,
-        choice,
-        latitude: userLat,
-        longitude: userLon,
-        integrity,
-        proximity,
-        impact,
-      });
+        const proximity = campaign.latitude && campaign.longitude
+          ? calculateProximity(userLat, userLon, campaign.latitude, campaign.longitude)
+          : 1000;
 
-      if (error) {
-        alert('Error submitting vote: ' + error.message);
-      } else {
-        setVoteChoice(choice);
-        setVoted(true);
-        setVoteSuccess(true);
-        setTimeout(() => setVoteSuccess(false), 3000);
+        const globalModifier = 1.0;
+        const impact = integrity * (1 / (proximity + 1)) * globalModifier;
+
+        const { error } = await supabase.from('votes').insert({
+          campaign_id: campaign.id,
+          user_id: user.id,
+          choice,
+          latitude: userLat,
+          longitude: userLon,
+          integrity,
+          proximity,
+          impact,
+        });
+
+        if (error) {
+          setVoteError(error.message);
+        } else {
+          setVoteChoice(choice);
+          setVoteImpact(impact);
+          setVoted(true);
+          setVoteSuccess(true);
+          fetchVoteCount();
+          setTimeout(() => setVoteSuccess(false), 3000);
+        }
+      },
+      (err) => {
+        setVoteError('Failed to get location: ' + err.message);
       }
-    });
+    );
   };
 
   return (
@@ -156,32 +176,51 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
         </div>
       )}
 
-      {!voted ? (
-        <div className="flex gap-4 mt-6">
-          <button
-            onClick={() => castVote('yes')}
-            className="bg-green-600 text-white px-4 py-2 rounded"
-          >
-            Vote Yes
-          </button>
-          <button
-            onClick={() => castVote('no')}
-            className="bg-red-600 text-white px-4 py-2 rounded"
-          >
-            Vote No
-          </button>
-        </div>
-      ) : (
-        <p className="mt-4 text-sm text-green-700">
-          ✅ You voted <strong>{voteChoice.toUpperCase()}</strong> on this campaign.
-        </p>
-      )}
+      <div className="mt-4">
+        {voteCount !== null && (
+          <p className="text-sm text-gray-700 mb-2">Total Votes: {voteCount}</p>
+        )}
 
-      {voteSuccess && (
-        <div className="mt-4 text-green-700 text-sm">
-          ✅ Your vote was submitted successfully.
-        </div>
-      )}
+        {!voted ? (
+          <div className="flex gap-4 mt-2">
+            <button
+              onClick={() => castVote('yes')}
+              className="bg-green-600 text-white px-4 py-2 rounded"
+            >
+              Vote Yes
+            </button>
+            <button
+              onClick={() => castVote('no')}
+              className="bg-red-600 text-white px-4 py-2 rounded"
+            >
+              Vote No
+            </button>
+          </div>
+        ) : (
+          <>
+            <p className="mt-4 text-sm text-green-700">
+              ✅ You voted <strong>{voteChoice.toUpperCase()}</strong> on this campaign.
+            </p>
+            {voteImpact !== null && (
+              <p className="text-sm text-blue-700">
+                🧠 Your vote impact: <strong>{voteImpact.toFixed(2)}</strong>
+              </p>
+            )}
+          </>
+        )}
+
+        {voteSuccess && (
+          <div className="mt-4 text-green-700 text-sm">
+            ✅ Your vote was submitted successfully.
+          </div>
+        )}
+
+        {voteError && (
+          <div className="mt-4 text-red-600 text-sm">
+            ❌ {voteError}
+          </div>
+        )}
+      </div>
 
       {campaign.latitude && campaign.longitude && (
         <div className="mt-6 mb-4">
