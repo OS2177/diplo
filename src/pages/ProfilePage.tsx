@@ -8,10 +8,12 @@ interface Profile {
   id: string;
   name: string;
   email: string;
+  street?: string;
+  postcode?: string;
   city: string;
   country: string;
   age: string;
-  pronouns: string;
+  gender: string; // previously 'pronouns'
   bio: string;
   location_permission?: boolean;
   profile_complete?: boolean;
@@ -147,13 +149,13 @@ export default function ProfilePage() {
 
       {/* Profile Form */}
       <div className="grid gap-4">
-        {['name', 'city', 'country', 'age', 'pronouns', 'bio'].map((field) => (
+        {['name', 'street', 'postcode', 'city', 'country', 'age', 'gender', 'bio'].map((field) => (
           <input
             key={field}
             type={field === 'age' ? 'number' : 'text'}
             name={field}
             placeholder={field.charAt(0).toUpperCase() + field.slice(1)}
-            value={profile ? profile[field as keyof Profile] as string : ''}
+            value={profile ? (profile as any)[field] || '' : ''}
             onChange={handleChange}
             className="border px-3 py-2 rounded"
           />
@@ -192,7 +194,7 @@ export default function ProfilePage() {
         <ul className="text-sm text-gray-700 list-disc pl-5 space-y-1">
           <li>🔒 Enable <strong>Two-Factor Authentication</strong> in your account settings.</li>
           <li>📍 Allow <strong>location access</strong> when voting or creating campaigns.</li>
-          <li>🧾 Fill in all <strong>required profile fields</strong>: name, age, city, country, pronouns.</li>
+          <li>🧾 Fill in all <strong>required profile fields</strong>: name, age, street, postcode, city, country, gender.</li>
           <li>🪪 Connect a <strong>blockchain ID</strong> (coming soon).</li>
           <li>🤝 Get <strong>community verified</strong> through trusted interactions (coming soon).</li>
         </ul>
