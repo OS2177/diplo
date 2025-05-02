@@ -65,14 +65,23 @@ export default function CreateCampaignPage() {
       return;
     }
 
-    const { data: profile } = await supabase
+    // 🔍 Fetch profile with logging
+    const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', user.id)
       .single();
 
+    if (profileError) {
+      console.error('❌ Error fetching profile:', profileError.message);
+    } else {
+      console.log('👤 Profile fetched:', profile);
+    }
+
     const creator_integrity = profile ? calculateIntegrityScore(profile) : 0;
     const creator_verified_2fa = profile?.two_factor_enabled || false;
+
+    console.log('🧬 Calculated Integrity Score:', creator_integrity);
 
     const { error } = await supabase.from('campaigns').insert([
       {
@@ -97,7 +106,7 @@ export default function CreateCampaignPage() {
       console.error('Error creating campaign:', error.message);
       alert('Error: ' + error.message);
     } else {
-      alert('Campaign created successfully!');
+      alert('✅ Campaign created successfully!');
       navigate('/global-pulse');
     }
   };
