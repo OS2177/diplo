@@ -2,6 +2,16 @@ import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useNavigate } from 'react-router-dom';
 
+function calculateIntegrityScore(profile: any): number {
+  let score = 0;
+  if (profile?.location_permission) score += 0.2;
+  if (profile?.profile_complete) score += 0.2;
+  if (profile?.two_factor_enabled) score += 0.2;
+  if (profile?.blockchain_id) score += 0.3;
+  if (profile?.community_verified) score += 0.1;
+  return Math.min(score, 1.0);
+}
+
 export default function CreateCampaignPage() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -28,7 +38,6 @@ export default function CreateCampaignPage() {
     checkAuth();
   }, [navigate]);
 
-  // New: Try to auto-fill location
   useEffect(() => {
     const fetchLocation = async () => {
       if (navigator.geolocation) {
@@ -37,7 +46,6 @@ export default function CreateCampaignPage() {
           setLatitude(latitude);
           setLongitude(longitude);
 
-          // Reverse geocoding using OpenStreetMap
           const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}`);
           const data = await response.json();
           const rawCity = data.address.city || data.address.town || data.address.village || '';
@@ -57,6 +65,15 @@ export default function CreateCampaignPage() {
       return;
     }
 
+    // Fetch profile to get integrity
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', user.id)
+      .single();
+
+    const creator_integrity = profile ? calculateIntegrityScore(profile) : 0;
+
     const { error } = await supabase.from('campaigns').insert([
       {
         title,
@@ -70,6 +87,7 @@ export default function CreateCampaignPage() {
         longitude,
         created_by: user.id,
         status: 'published',
+        creator_integrity, // 🔥 Store creator's score
       },
     ]);
 
@@ -86,74 +104,20 @@ export default function CreateCampaignPage() {
     <div className="p-6 max-w-xl mx-auto">
       <h1 className="text-2xl font-bold mb-4">Create Campaign</h1>
       <form onSubmit={handleSubmit} className="space-y-4">
-        <input
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="Title"
-          required
-          className="w-full border p-2"
-        />
-        <textarea
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          placeholder="Description"
-          required
-          className="w-full border p-2"
-        />
-        <select
-          value={scope}
-          onChange={(e) => setScope(e.target.value)}
-          className="w-full border p-2"
-        >
+        <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Title" required className="w-full border p-2" />
+        <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Description" required className="w-full border p-2" />
+        <select value={scope} onChange={(e) => setScope(e.target.value)} className="w-full border p-2">
           <option value="personal">Personal</option>
           <option value="social">Social</option>
           <option value="local">Local</option>
           <option value="global">Global</option>
           <option value="ecological">Ecological</option>
         </select>
-
-        <input
-          value={image}
-          onChange={(e) => setImage(e.target.value)}
-          placeholder="Image URL (optional)"
-          className="w-full border p-2"
-        />
-        <input
-          value={url}
-          onChange={(e) => setUrl(e.target.value)}
-          placeholder="Reference URL (optional)"
-          className="w-full border p-2"
-        />
-
-        {/* New City input */}
-        <input
-          value={city}
-          onChange={(e) => setCity(e.target.value)}
-          placeholder="City"
-          required
-          className="w-full border p-2"
-        />
-
-        {/* New Country input */}
-        <input
-          value={country}
-          onChange={(e) => setCountry(e.target.value)}
-          placeholder="Country"
-          required
-          className="w-full border p-2"
-        />
-
-        <input
-          value={image}
-          onChange={(e) => setImage(e.target.value)}
-          placeholder="Image URL (optional)"
-          className="w-full border p-2"
-        />
-
-
-        <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded">
-          Create Campaign
-        </button>
+        <input value={image} onChange={(e) => setImage(e.target.value)} placeholder="Image URL (optional)" className="w-full border p-2" />
+        <input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="Reference URL (optional)" className="w-full border p-2" />
+        <input value={city} onChange={(e) => setCity(e.target.value)} placeholder="City" required className="w-full border p-2" />
+        <input value={country} onChange={(e) => setCountry(e.target.value)} placeholder="Country" required className="w-full border p-2" />
+        <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded">Create Campaign</button>
       </form>
     </div>
   );
