@@ -13,6 +13,7 @@ interface Profile {
   age: string;
   pronouns: string;
   bio: string;
+  creator_integrity?: number;
 }
 
 interface Vote {
@@ -31,7 +32,6 @@ interface Campaign {
   title: string;
   description: string;
   created_by: string;
-  creator_integrity?: number;
 }
 
 export default function ProfilePage() {
@@ -41,7 +41,6 @@ export default function ProfilePage() {
   const [votes, setVotes] = useState<Vote[]>([]);
   const [createdCampaigns, setCreatedCampaigns] = useState<Campaign[]>([]);
   const [loadingProfile, setLoadingProfile] = useState(true);
-  const [averageCreatorIntegrity, setAverageCreatorIntegrity] = useState<number | null>(null);
 
   useEffect(() => {
     if (loading) return;
@@ -72,16 +71,7 @@ export default function ProfilePage() {
 
       if (profileData) setProfile(profileData);
       if (votesData) setVotes(votesData);
-      if (campaignsData) {
-        setCreatedCampaigns(campaignsData);
-        const validIntegrities = campaignsData
-          .map((c: Campaign) => c.creator_integrity)
-          .filter((val): val is number => typeof val === 'number');
-        if (validIntegrities.length > 0) {
-          const avg = validIntegrities.reduce((a, b) => a + b, 0) / validIntegrities.length;
-          setAverageCreatorIntegrity(avg);
-        }
-      }
+      if (campaignsData) setCreatedCampaigns(campaignsData);
     } catch (error) {
       console.error('Error fetching user data:', error);
     } finally {
@@ -179,9 +169,9 @@ export default function ProfilePage() {
       {profile && <ProfileIntegrity profile={profile} />}
 
       {/* Creator Integrity */}
-      {averageCreatorIntegrity !== null && (
-        <p className="text-sm text-blue-700 mt-4">
-          🧬 Your Creator Integrity Score: <strong>{(averageCreatorIntegrity * 100).toFixed(0)}%</strong>
+      {profile?.creator_integrity !== undefined && (
+        <p className="text-purple-700 text-sm">
+          🎯 Creator Integrity Score: <strong>{(profile.creator_integrity * 100).toFixed(0)}%</strong>
         </p>
       )}
 
@@ -207,18 +197,14 @@ export default function ProfilePage() {
                     const confirm = window.confirm('Remove your vote?');
                     if (!confirm) return;
 
-                    console.log("🧪 Trying to delete vote with ID:", vote.id);
-
                     const { error } = await supabase
                       .from('votes')
                       .delete()
                       .eq('id', vote.id);
 
                     if (error) {
-                      console.error("❌ Deletion error:", error.message);
                       alert('Error removing vote: ' + error.message);
                     } else {
-                      console.log("✅ Vote deleted. Refreshing...");
                       setVotes((prev) => prev.filter((v) => v.id !== vote.id));
                       await fetchUserData();
                     }
