@@ -130,20 +130,23 @@ export default function ProfilePage() {
       updated_at: new Date().toISOString(),
     };
 
-    if (cleanedAge !== null) {
+    if (cleanedAge !== null && !isNaN(cleanedAge)) {
       updatePayload.age = cleanedAge;
     }
 
-    const { error } = await supabase
-      .from('profiles')
-      .upsert(updatePayload);
+    try {
+      const { error } = await supabase.from('profiles').upsert(updatePayload);
 
-    if (error) {
-      console.error('❌ Supabase error:', error);
-      alert('❌ Error saving profile');
-    } else {
-      alert('✅ Profile saved');
-      await fetchUserData();
+      if (error) {
+        console.error('❌ Supabase error:', JSON.stringify(error, null, 2));
+        alert(`❌ Error saving profile: ${error.message}`);
+      } else {
+        alert('✅ Profile saved');
+        await fetchUserData();
+      }
+    } catch (err) {
+      console.error('❌ Unexpected error:', err);
+      alert('❌ Something went wrong saving your profile.');
     }
   };
 
