@@ -60,7 +60,7 @@ export default function ProfilePage() {
 
       const { data: votesData } = await supabase
         .from('votes')
-        .select('*, campaigns(title)')
+        .select('id, choice, created_at, campaign_id, campaigns(title)')
         .eq('user_id', user?.id);
 
       const { data: campaignsData } = await supabase
