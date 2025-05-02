@@ -186,20 +186,21 @@ export default function ProfilePage() {
                 </p>
                 <button
                   onClick={async () => {
-                    const confirm = window.confirm('Remove your vote?');
-                    if (!confirm) return;
+  const confirm = window.confirm('Remove your vote?');
+  if (!confirm) return;
 
-                    const { error } = await supabase
-                      .from('votes')
-                      .delete()
-                      .eq('id', vote.id);
+  const { error } = await supabase
+    .from('votes')
+    .delete()
+    .eq('id', vote.id);
 
-                    if (error) {
-                      alert('Error removing vote: ' + error.message);
-                    } else {
-                      setVotes((prev) => prev.filter((v) => v.id !== vote.id));
-                    }
-                  }}
+  if (error) {
+    alert('Error removing vote: ' + error.message);
+  } else {
+    await fetchUserData(); // 👈 re-fetch from Supabase to ensure all components are in sync
+  }
+}}
+
                   className="text-sm text-red-600 hover:underline"
                 >
                   Unvote
