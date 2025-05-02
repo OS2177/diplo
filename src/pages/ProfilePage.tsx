@@ -317,44 +317,64 @@ export default function ProfilePage() {
 
       <div className="bg-purple-50 border border-purple-200 p-4 rounded mt-4">
         <h4 className="text-md font-semibold text-purple-700 mb-2">
-          🧬 Creator Integrity Score
+          Creator Integrity Score
         </h4>
         <p className="text-sm text-purple-800 mb-2">
           {(creatorIntegrity * 100).toFixed(0)}%
         </p>
       </div>
 
-      <div className="mt-8">
-        <h3 className="text-lg font-semibold mb-2">📢 Campaigns You Created</h3>
+      {/* Created Campaigns */}
+      <div className="mt-10">
+        <h3 className="text-xl font-semibold mb-4">Campaigns You Created</h3>
         {createdCampaigns.length === 0 ? (
           <p className="text-sm text-gray-600">You haven’t created any campaigns yet.</p>
         ) : (
-          <ul className="space-y-2">
+          <div className="space-y-4">
             {createdCampaigns.map((campaign) => (
-              <li key={campaign.id} className="border p-3 rounded bg-white">
-                <Link to={`/campaign/${campaign.id}`} className="text-blue-600 hover:underline">
+              <div
+                key={campaign.id}
+                className="border border-gray-200 rounded-lg p-4 shadow-sm bg-white"
+              >
+                <Link
+                  to={`/campaign/${campaign.id}`}
+                  className="text-lg font-medium text-blue-700 hover:underline"
+                >
                   {campaign.title}
                 </Link>
-              </li>
+                <p className="text-sm text-gray-500">
+                  Created on {new Date(campaign.created_at).toLocaleDateString()}
+                </p>
+              </div>
             ))}
-          </ul>
+          </div>
         )}
       </div>
 
-      <div className="mt-8">
-        <h3 className="text-lg font-semibold mb-2">🗳️ Campaigns You Voted On</h3>
+      {/* Voted Campaigns */}
+      <div className="mt-10">
+        <h3 className="text-xl font-semibold mb-4">Campaigns You Voted On</h3>
         {votedCampaigns.length === 0 ? (
           <p className="text-sm text-gray-600">You haven’t voted on any campaigns yet.</p>
         ) : (
-          <ul className="space-y-2">
+          <div className="space-y-4">
             {votedCampaigns.map((campaign) => (
-              <li key={campaign.id} className="border p-3 rounded bg-white">
-                <Link to={`/campaign/${campaign.id}`} className="text-blue-600 hover:underline">
+              <div
+                key={campaign.id}
+                className="border border-gray-200 rounded-lg p-4 shadow-sm bg-white"
+              >
+                <Link
+                  to={`/campaign/${campaign.id}`}
+                  className="text-lg font-medium text-blue-700 hover:underline"
+                >
                   {campaign.title}
                 </Link>
-              </li>
+                <p className="text-sm text-gray-500">
+                  Created on {new Date(campaign.created_at).toLocaleDateString()}
+                </p>
+              </div>
             ))}
-          </ul>
+          </div>
         )}
       </div>
     </div>
