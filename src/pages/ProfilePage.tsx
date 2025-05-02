@@ -64,47 +64,44 @@ export default function ProfilePage() {
       .from('profiles')
       .select('*')
       .eq('id', user?.id)
-      .limit(1)
-      .maybeSingle(); // ✅ avoids 406 error when profile is missing
+      .maybeSingle();
 
-    if (profileError) {
-      console.error('Error fetching profile:', profileError.message);
-    }
+    if (profileError) throw profileError;
 
-    const { data: votesData, error: votesError } = await supabase
-      .from('votes')
-      .select('id, choice, created_at, campaign_id, campaigns(title)')
-      .eq('user_id', user?.id);
+    const defaultProfile = {
+      id: user?.id,
+      name: '',
+      email: user?.email || '',
+      city: '',
+      country: '',
+      age: '',
+      gender: '',
+      phone_number: '',
+      street: '',
+      postcode: '',
+      bio: '',
+      location_permission: false,
+      two_factor_enabled: false,
+      blockchain_id: '',
+      community_verified: false,
+    };
 
-    if (votesError) {
-      console.error('Error fetching votes:', votesError.message);
-    }
-
-    const { data: campaignsData, error: campaignsError } = await supabase
-      .from('campaigns')
-      .select('*')
-      .eq('created_by', user?.id);
-
-    if (campaignsError) {
-      console.error('Error fetching campaigns:', campaignsError.message);
-    }
-
-    if (profileData) setProfile(profileData);
-    if (votesData) setVotes(votesData);
-    if (campaignsData) setCreatedCampaigns(campaignsData);
+    setProfile({ ...defaultProfile, ...profileData });
   } catch (error) {
-    console.error('Unexpected error fetching user data:', error);
+    console.error('Error fetching user data:', error);
   } finally {
     setLoadingProfile(false);
   }
 };
 
 
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type, checked } = e.target;
-    const newValue = type === 'checkbox' ? checked : value;
-    setProfile((prev) => prev ? { ...prev, [name]: newValue } : null);
-  };
+  const { name, value, type, checked } = e.target;
+  const newValue = type === 'checkbox' ? checked : value;
+  setProfile((prev) => prev ? { ...prev, [name]: newValue } : null);
+};
+
 
   const saveProfile = async () => {
     if (!user || !profile) return;
