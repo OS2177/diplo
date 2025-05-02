@@ -27,7 +27,7 @@ function calculateIntegrityScore(profile: any): number {
 
 function calculateProximity(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const toRad = (deg: number) => (deg * Math.PI) / 180;
-  const R = 6371; // Earth radius in km
+  const R = 6371;
   const dLat = toRad(lat2 - lat1);
   const dLon = toRad(lon2 - lon1);
   const a =
@@ -109,6 +109,12 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
 
         const globalModifier = 1.0;
         const impact = integrity * (1 / (proximity + 1)) * globalModifier;
+
+        // 🔍 Debug Logs
+        console.log("📍 User Location:", userLat, userLon);
+        console.log("🧬 Integrity Score:", integrity);
+        console.log("📡 Proximity (km):", proximity);
+        console.log("🎯 Vote Impact:", impact);
 
         const { error } = await supabase.from('votes').insert({
           campaign_id: campaign.id,
@@ -203,7 +209,7 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
             </p>
             {voteImpact !== null && (
               <p className="text-sm text-blue-700">
-                🧠 Your vote impact: <strong>{voteImpact.toFixed(2)}</strong>
+                🧠 Your vote impact: <strong>{voteImpact.toFixed(4)}</strong>
               </p>
             )}
           </>
