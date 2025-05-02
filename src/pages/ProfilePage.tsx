@@ -22,28 +22,10 @@ interface Profile {
   community_verified?: boolean;
 }
 
-interface Vote {
-  id: string;
-  choice: string;
-  timestamp: string;
-  locationName?: string;
-  campaign_id?: string;
-  campaigns?: {
-    title: string;
-  };
-}
-
-interface Campaign {
-  id: string;
-  title: string;
-  description: string;
-  created_by: string;
-  creator_verified_2fa?: boolean;
-}
-
 export default function ProfilePage() {
   const { user, loading } = useUser();
   const navigate = useNavigate();
+
   const [profile, setProfile] = useState<Profile>({
     id: '',
     name: '',
@@ -61,8 +43,7 @@ export default function ProfilePage() {
     blockchain_id: '',
     community_verified: false,
   });
-  const [votes, setVotes] = useState<Vote[]>([]);
-  const [createdCampaigns, setCreatedCampaigns] = useState<Campaign[]>([]);
+
   const [loadingProfile, setLoadingProfile] = useState(true);
 
   useEffect(() => {
@@ -84,20 +65,25 @@ export default function ProfilePage() {
 
       if (profileError) throw profileError;
 
-      setProfile((prev) => ({ ...prev, ...profileData }));
+      const baseProfile = {
+        id: user?.id || '',
+        email: user?.email || '',
+        name: '',
+        city: '',
+        country: '',
+        age: '',
+        gender: '',
+        phone_number: '',
+        street: '',
+        postcode: '',
+        bio: '',
+        location_permission: false,
+        two_factor_enabled: false,
+        blockchain_id: '',
+        community_verified: false,
+      };
 
-      const { data: votesData } = await supabase
-        .from('votes')
-        .select('id, choice, created_at, campaign_id, campaigns(title)')
-        .eq('user_id', user?.id);
-
-      const { data: campaignsData } = await supabase
-        .from('campaigns')
-        .select('*')
-        .eq('created_by', user?.id);
-
-      if (votesData) setVotes(votesData);
-      if (campaignsData) setCreatedCampaigns(campaignsData);
+      setProfile({ ...baseProfile, ...profileData });
     } catch (error) {
       console.error('Error fetching user data:', error);
     } finally {
@@ -114,7 +100,8 @@ export default function ProfilePage() {
   const saveProfile = async () => {
     if (!user || !profile) return;
 
-    const cleanedAge = profile.age && !isNaN(Number(profile.age)) ? parseInt(profile.age) : null;
+    const cleanedAge =
+      profile.age && !isNaN(Number(profile.age)) ? parseInt(profile.age) : null;
 
     const updatePayload: any = {
       id: user.id,
@@ -130,23 +117,18 @@ export default function ProfilePage() {
       updated_at: new Date().toISOString(),
     };
 
-    if (cleanedAge !== null && !isNaN(cleanedAge)) {
+    if (cleanedAge !== null) {
       updatePayload.age = cleanedAge;
     }
 
-    try {
-      const { error } = await supabase.from('profiles').upsert(updatePayload);
+    const { error } = await supabase.from('profiles').upsert(updatePayload);
 
-      if (error) {
-        console.error('❌ Supabase error:', JSON.stringify(error, null, 2));
-        alert(`❌ Error saving profile: ${error.message}`);
-      } else {
-        alert('✅ Profile saved');
-        await fetchUserData();
-      }
-    } catch (err) {
-      console.error('❌ Unexpected error:', err);
-      alert('❌ Something went wrong saving your profile.');
+    if (error) {
+      console.error('❌ Supabase error:', error);
+      alert('❌ Error saving profile');
+    } else {
+      alert('✅ Profile saved');
+      await fetchUserData();
     }
   };
 
@@ -187,7 +169,7 @@ export default function ProfilePage() {
     return Math.min(score, 1.0);
   };
 
-  const creatorIntegrity = profile ? calculateIntegrityScore(profile) : 0;
+  const creatorIntegrity = calculateIntegrityScore(profile);
 
   if (loading || loadingProfile) {
     return <div className="p-6">Loading profile...</div>;
@@ -198,15 +180,30 @@ export default function ProfilePage() {
       <h2 className="text-2xl font-bold mb-6">Your Profile</h2>
 
       <div className="grid gap-4">
-        {['name', 'street', 'postcode', 'city', 'country', 'age', 'gender', 'phone_number', 'bio'].map((field) => (
+        {[
+          'name',
+          'street',
+          'postcode',
+          'city',
+          'country',
+          'age',
+          'gender',
+          'phone_number',
+          'bio',
+        ].map((field) => (
           <input
             key={field}
             type={field === 'age' ? 'number' : 'text'}
             name={field}
-            placeholder={field.charAt(0).toUpperCase() + field.replace('_', ' ').slice(1)}
+            placeholder={
+              field.charAt(0).toUpperCase() +
+              field.replace('_', ' ').slice(1)
+            }
             value={(profile as any)[field] || ''}
             onChange={handleChange}
-            className={`border px-3 py-2 rounded ${field === 'age' ? 'appearance-none' : ''}`}
+            className={`border px-3 py-2 rounded ${
+              field === 'age' ? 'appearance-none' : ''
+            }`}
           />
         ))}
         <input
@@ -244,16 +241,12 @@ export default function ProfilePage() {
       {profile && <ProfileIntegrity profile={profile} />}
 
       <div className="bg-purple-50 border border-purple-200 p-4 rounded mt-4">
-        <h4 className="text-md font-semibold text-purple-700 mb-2">🧬 Creator Integrity Score</h4>
-        <p className="text-sm text-purple-800 mb-2">{(creatorIntegrity * 100).toFixed(0)}%</p>
-        <h4 className="text-md font-semibold text-purple-700 mb-2">🧭 How to Improve Your Creator Integrity</h4>
-        <ul className="text-sm text-gray-700 list-disc pl-5 space-y-1">
-          <li>🔒 Enable <strong>Two-Factor Authentication</strong> in your account settings.</li>
-          <li>📍 Allow <strong>location access</strong> when voting or creating campaigns.</li>
-          <li>🧾 Fill in key <strong>profile fields</strong> to increase your score: name, age, city, country, gender, phone number.</li>
-          <li>🪪 Connect a <strong>blockchain ID</strong> (coming soon).</li>
-          <li>🤝 Get <strong>community verified</strong> through trusted interactions (coming soon).</li>
-        </ul>
+        <h4 className="text-md font-semibold text-purple-700 mb-2">
+          🧬 Creator Integrity Score
+        </h4>
+        <p className="text-sm text-purple-800 mb-2">
+          {(creatorIntegrity * 100).toFixed(0)}%
+        </p>
       </div>
     </div>
   );
