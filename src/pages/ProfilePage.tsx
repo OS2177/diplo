@@ -13,7 +13,8 @@ interface Profile {
   city: string;
   country: string;
   age: string;
-  gender: string; // previously 'pronouns'
+  gender: string;
+  phone_number?: string;
   bio: string;
   location_permission?: boolean;
   profile_complete?: boolean;
@@ -38,6 +39,7 @@ interface Campaign {
   title: string;
   description: string;
   created_by: string;
+  creator_verified_2fa?: boolean;
 }
 
 export default function ProfilePage() {
@@ -86,8 +88,9 @@ export default function ProfilePage() {
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setProfile((prev) => prev ? { ...prev, [name]: value } : null);
+    const { name, value, type, checked } = e.target;
+    const newValue = type === 'checkbox' ? checked : value;
+    setProfile((prev) => prev ? { ...prev, [name]: newValue } : null);
   };
 
   const saveProfile = async () => {
@@ -149,12 +152,12 @@ export default function ProfilePage() {
 
       {/* Profile Form */}
       <div className="grid gap-4">
-        {['name', 'street', 'postcode', 'city', 'country', 'age', 'gender', 'bio'].map((field) => (
+        {['name', 'street', 'postcode', 'city', 'country', 'age', 'gender', 'phone_number', 'bio'].map((field) => (
           <input
             key={field}
             type={field === 'age' ? 'number' : 'text'}
             name={field}
-            placeholder={field.charAt(0).toUpperCase() + field.slice(1)}
+            placeholder={field.charAt(0).toUpperCase() + field.replace('_', ' ').slice(1)}
             value={profile ? (profile as any)[field] || '' : ''}
             onChange={handleChange}
             className="border px-3 py-2 rounded"
@@ -167,6 +170,15 @@ export default function ProfilePage() {
           disabled
           className="bg-gray-100 border px-3 py-2 rounded"
         />
+        <label className="flex items-center space-x-2">
+          <input
+            type="checkbox"
+            name="two_factor_enabled"
+            checked={profile?.two_factor_enabled || false}
+            onChange={handleChange}
+          />
+          <span>Enable Two-Factor Authentication (2FA)</span>
+        </label>
         <div className="flex gap-4">
           <button
             onClick={saveProfile}
@@ -194,7 +206,7 @@ export default function ProfilePage() {
         <ul className="text-sm text-gray-700 list-disc pl-5 space-y-1">
           <li>🔒 Enable <strong>Two-Factor Authentication</strong> in your account settings.</li>
           <li>📍 Allow <strong>location access</strong> when voting or creating campaigns.</li>
-          <li>🧾 Fill in all <strong>required profile fields</strong>: name, age, street, postcode, city, country, gender.</li>
+          <li>🧾 Fill in all <strong>required profile fields</strong>: name, age, street, postcode, city, country, gender, phone number.</li>
           <li>🪪 Connect a <strong>blockchain ID</strong> (coming soon).</li>
           <li>🤝 Get <strong>community verified</strong> through trusted interactions (coming soon).</li>
         </ul>
@@ -254,10 +266,13 @@ export default function ProfilePage() {
             {createdCampaigns.map((campaign) => (
               <li key={campaign.id} className="border rounded p-4 bg-white shadow space-y-2">
                 <h4 className="font-medium">{campaign.title}</h4>
+                {campaign.creator_verified_2fa && (
+                  <span className="inline-block text-xs text-green-600 font-semibold bg-green-100 px-2 py-1 rounded">✅ 2FA Verified Creator</span>
+                )}
                 <p className="text-sm text-gray-600">{campaign.description}</p>
                 <button
                   onClick={async () => {
-                    const confirm = window.confirm(`Delete campaign "${campaign.title}"?`);
+                    const confirm = window.confirm(`Delete campaign \"${campaign.title}\"?`);
                     if (!confirm) return;
 
                     const { error } = await supabase

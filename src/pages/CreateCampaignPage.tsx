@@ -65,7 +65,7 @@ export default function CreateCampaignPage() {
       return;
     }
 
-    // Fetch profile to get integrity
+    // Fetch profile to get integrity and 2FA status
     const { data: profile } = await supabase
       .from('profiles')
       .select('*')
@@ -73,6 +73,7 @@ export default function CreateCampaignPage() {
       .single();
 
     const creator_integrity = profile ? calculateIntegrityScore(profile) : 0;
+    const creator_verified_2fa = profile?.two_factor_enabled || false;
 
     const { error } = await supabase.from('campaigns').insert([
       {
@@ -87,7 +88,8 @@ export default function CreateCampaignPage() {
         longitude,
         created_by: user.id,
         status: 'published',
-        creator_integrity, // 🔥 Store creator's score
+        creator_integrity,
+        creator_verified_2fa, // ✅ Store creator's 2FA status
       },
     ]);
 
