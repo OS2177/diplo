@@ -88,14 +88,20 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
       .eq('campaign_id', campaign.id);
 
     const voteIntegrities = votes?.map((v) => v.integrity) ?? [];
-    const avgVoteIntegrity =
-      voteIntegrities.length > 0 ? voteIntegrities.reduce((a, b) => a + b, 0) / voteIntegrities.length : 0;
-    const engagementScore = Math.min(voteIntegrities.length / 50, 1);
+    const voteCount = voteIntegrities.length;
+    const avgVoteIntegrity = voteCount > 0
+      ? voteIntegrities.reduce((a, b) => a + b, 0) / voteCount
+      : campaign.creator_integrity ?? 0;
 
-    const integrity =
-      (campaign.creator_integrity ?? 0) * 0.4 +
-      avgVoteIntegrity * 0.4 +
-      engagementScore * 0.2;
+    const engagementScore = Math.log10(voteCount + 1) / 2;
+
+    let integrity = 0.4 * (campaign.creator_integrity ?? 0) + 0.4 * avgVoteIntegrity + 0.2 * engagementScore;
+
+    if (voteCount === 0) {
+      integrity = 0.8 * (campaign.creator_integrity ?? 0) + 0.2;
+    }
+
+    integrity = Math.max(integrity, 0.2);
 
     setCampaignIntegrity(parseFloat(integrity.toFixed(4)));
   };
