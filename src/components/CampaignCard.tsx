@@ -45,10 +45,12 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
   const [voteError, setVoteError] = useState('');
   const [voteImpact, setVoteImpact] = useState<number | null>(null);
   const [voteCount, setVoteCount] = useState<number | null>(null);
+  const [campaignIntegrity, setCampaignIntegrity] = useState<number | null>(null);
 
   useEffect(() => {
     checkIfUserVoted();
     fetchVoteCount();
+    calculateCampaignIntegrity();
   }, []);
 
   const checkIfUserVoted = async () => {
@@ -77,6 +79,25 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
       .eq('campaign_id', campaign.id);
 
     if (count !== null) setVoteCount(count);
+  };
+
+  const calculateCampaignIntegrity = async () => {
+    const { data: votes } = await supabase
+      .from('votes')
+      .select('integrity')
+      .eq('campaign_id', campaign.id);
+
+    const voteIntegrities = votes?.map((v) => v.integrity) ?? [];
+    const avgVoteIntegrity =
+      voteIntegrities.length > 0 ? voteIntegrities.reduce((a, b) => a + b, 0) / voteIntegrities.length : 0;
+    const engagementScore = Math.min(voteIntegrities.length / 50, 1);
+
+    const integrity =
+      (campaign.creator_integrity ?? 0) * 0.4 +
+      avgVoteIntegrity * 0.4 +
+      engagementScore * 0.2;
+
+    setCampaignIntegrity(parseFloat(integrity.toFixed(4)));
   };
 
   const castVote = async (choice: string) => {
@@ -130,6 +151,7 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
           setVoted(true);
           setVoteSuccess(true);
           fetchVoteCount();
+          calculateCampaignIntegrity();
           setTimeout(() => setVoteSuccess(false), 3000);
         }
       },
@@ -152,8 +174,14 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
       <p className="text-gray-700 mb-2">{campaign.description}</p>
 
       {campaign.creator_integrity !== undefined && (
-        <p className="text-sm text-purple-600 mb-2">
+        <p className="text-sm text-purple-600 mb-1">
           🧬 Creator Integrity: <strong>{(campaign.creator_integrity * 100).toFixed(0)}%</strong>
+        </p>
+      )}
+
+      {campaignIntegrity !== null && (
+        <p className="text-sm text-indigo-700 mb-2">
+          🏛️ Campaign Integrity: <strong>{(campaignIntegrity * 100).toFixed(1)}%</strong>
         </p>
       )}
 
