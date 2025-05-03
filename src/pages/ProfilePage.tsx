@@ -35,6 +35,8 @@ interface Campaign {
   title: string;
   description: string;
   created_by: string;
+  latitude?: number;
+  longitude?: number;
   creator_integrity?: number;
 }
 
@@ -48,56 +50,76 @@ function calculateIntegrityScore(profile: any): number {
   return Math.min(score, 1.0);
 }
 
+function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) ** 2;
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
+function calculateCreatorIntegrityScore(
+  profile: Profile,
+  campaigns: Campaign[],
+  votes: Vote[],
+  userLatLng?: { latitude: number; longitude: number }
+): number {
+  const voteIntegrity = calculateIntegrityScore(profile);
+  const numCampaigns = campaigns.length;
+  const numVotes = votes.length;
+
+  let proximityBonus = 0;
+  if (userLatLng) {
+    const distances = campaigns
+      .filter((c) => c.latitude && c.longitude)
+      .map((c) => calculateDistance(userLatLng.latitude, userLatLng.longitude, c.latitude!, c.longitude!));
+    const closeProximities = distances.filter((d) => d < 50).length; // 50km range considered 'close'
+    proximityBonus = closeProximities > 0 ? Math.min(closeProximities / campaigns.length, 1.0) : 0;
+  }
+
+  const score =
+    voteIntegrity * 0.4 +
+    Math.min(numCampaigns / 5, 1) * 0.25 +
+    Math.min(numVotes / 10, 1) * 0.2 +
+    proximityBonus * 0.15;
+
+  return Math.min(score, 1.0);
+}
+
 export default function ProfilePage() {
   const { user, loading } = useUser();
   const navigate = useNavigate();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [votes, setVotes] = useState<Vote[]>([]);
   const [createdCampaigns, setCreatedCampaigns] = useState<Campaign[]>([]);
-  const [creatorIntegrityAverage, setCreatorIntegrityAverage] = useState<number | null>(null);
   const [loadingProfile, setLoadingProfile] = useState(true);
+  const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
 
   useEffect(() => {
-    if (loading) return;
-    if (!user) {
-      navigate('/login', { state: { message: 'login-to-view-profile' } });
-    } else {
+    if (!loading && user) {
       fetchUserData();
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            setUserLocation({ latitude: pos.coords.latitude, longitude: pos.coords.longitude });
+          },
+          (err) => console.warn('Geolocation error:', err.message)
+        );
+      }
+    } else if (!user && !loading) {
+      navigate('/login', { state: { message: 'login-to-view-profile' } });
     }
   }, [user, loading]);
 
   const fetchUserData = async () => {
     try {
-      const { data: profileData } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user?.id)
-        .single();
-
-      const { data: votesData } = await supabase
-        .from('votes')
-        .select('id, choice, created_at, campaign_id, campaigns(title)')
-        .eq('user_id', user?.id);
-
-      const { data: campaignsData } = await supabase
-        .from('campaigns')
-        .select('*')
-        .eq('created_by', user?.id);
-
+      const { data: profileData } = await supabase.from('profiles').select('*').eq('id', user?.id).single();
+      const { data: votesData } = await supabase.from('votes').select('id, choice, created_at, campaign_id, campaigns(title)').eq('user_id', user?.id);
+      const { data: campaignsData } = await supabase.from('campaigns').select('*').eq('created_by', user?.id);
       if (profileData) setProfile(profileData);
       if (votesData) setVotes(votesData);
-      if (campaignsData) {
-        setCreatedCampaigns(campaignsData);
-        const validScores = campaignsData
-          .filter((c) => typeof c.creator_integrity === 'number')
-          .map((c) => c.creator_integrity!);
-        if (validScores.length > 0) {
-          const average = validScores.reduce((sum, val) => sum + val, 0) / validScores.length;
-          setCreatorIntegrityAverage(parseFloat(average.toFixed(4)));
-        } else {
-          setCreatorIntegrityAverage(null);
-        }
-      }
+      if (campaignsData) setCreatedCampaigns(campaignsData);
     } catch (error) {
       console.error('Error fetching user data:', error);
     } finally {
@@ -112,35 +134,26 @@ export default function ProfilePage() {
 
   const saveProfile = async () => {
     if (!user || !profile) return;
-
     const { error } = await supabase.from('profiles').upsert({
       id: user.id,
       ...profile,
       updated_at: new Date().toISOString(),
     });
-
-    if (error) {
-      console.error('Error updating profile:', error);
-    } else {
-      alert('Profile updated successfully!');
-    }
+    if (error) console.error('Error updating profile:', error);
+    else alert('Profile updated successfully!');
   };
 
   const deleteProfile = async () => {
     if (!user) return;
     const confirmDelete = window.confirm('This will delete your account and all related data. Continue?');
     if (!confirmDelete) return;
-
     try {
       const { error: votesError } = await supabase.from('votes').delete().eq('user_id', user.id);
       if (votesError) throw new Error(votesError.message);
-
       const { error: campaignsError } = await supabase.from('campaigns').delete().eq('created_by', user.id);
       if (campaignsError) throw new Error(campaignsError.message);
-
       const { error: profileError } = await supabase.from('profiles').delete().eq('id', user.id);
       if (profileError) throw new Error(profileError.message);
-
       await supabase.auth.signOut();
       alert('Your account and all associated data have been deleted.');
       navigate('/');
@@ -149,7 +162,8 @@ export default function ProfilePage() {
     }
   };
 
-  const liveIntegrity = profile ? calculateIntegrityScore(profile) : 0;
+  const voteIntegrity = profile ? calculateIntegrityScore(profile) : 0;
+  const creatorIntegrity = profile ? calculateCreatorIntegrityScore(profile, createdCampaigns, votes, userLocation ?? undefined) : null;
 
   if (loading || loadingProfile) {
     return <div className="p-6">Loading profile...</div>;
@@ -160,37 +174,21 @@ export default function ProfilePage() {
       <h2 className="text-2xl font-bold mb-6">Your Profile</h2>
 
       <div className="grid gap-4">
-        {['name', 'city', 'country', 'age', 'gender', 'bio'].map((field) => (
+        {["name", "city", "country", "age", "gender", "bio"].map((field) => (
           <input
             key={field}
-            type={field === 'age' ? 'number' : 'text'}
+            type={field === "age" ? "number" : "text"}
             name={field}
-            placeholder={field === 'gender' ? 'Gender / Identifies as' : field.charAt(0).toUpperCase() + field.slice(1)}
-            value={profile ? (profile[field as keyof Profile] as string) : ''}
+            placeholder={field === "gender" ? "Gender / Identifies as" : field.charAt(0).toUpperCase() + field.slice(1)}
+            value={profile ? (profile[field as keyof Profile] as string) : ""}
             onChange={handleChange}
             className="border px-3 py-2 rounded"
           />
         ))}
-        <input
-          type="text"
-          name="email"
-          value={user?.email ?? ''}
-          disabled
-          className="bg-gray-100 border px-3 py-2 rounded"
-        />
+        <input type="text" name="email" value={user?.email ?? ''} disabled className="bg-gray-100 border px-3 py-2 rounded" />
         <div className="flex gap-4">
-          <button
-            onClick={saveProfile}
-            className="bg-black text-white px-4 py-2 rounded hover:bg-gray-700"
-          >
-            Save Profile
-          </button>
-          <button
-            onClick={deleteProfile}
-            className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
-          >
-            Delete Profile
-          </button>
+          <button onClick={saveProfile} className="bg-black text-white px-4 py-2 rounded hover:bg-gray-700">Save Profile</button>
+          <button onClick={deleteProfile} className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">Delete Profile</button>
         </div>
       </div>
 
@@ -198,14 +196,12 @@ export default function ProfilePage() {
 
       <div className="bg-blue-50 border border-blue-200 p-4 rounded">
         <h4 className="text-md font-semibold text-blue-700 mb-2">🔐 Vote Integrity Score (Live)</h4>
-        <p className="text-sm text-blue-800">{(liveIntegrity * 100).toFixed(1)}%</p>
+        <p className="text-sm text-blue-800">{(voteIntegrity * 100).toFixed(1)}%</p>
       </div>
 
       <div className="bg-green-50 border border-green-200 p-4 rounded">
-        <h4 className="text-md font-semibold text-green-700 mb-2">🧬 Creator Integrity (Average from Campaigns)</h4>
-        <p className="text-sm text-green-800">
-          {creatorIntegrityAverage !== null ? `${(creatorIntegrityAverage * 100).toFixed(1)}%` : 'N/A'}
-        </p>
+        <h4 className="text-md font-semibold text-green-700 mb-2">🧬 Creator Integrity (Live)</h4>
+        <p className="text-sm text-green-800">{creatorIntegrity !== null ? `${(creatorIntegrity * 100).toFixed(1)}%` : 'N/A'}</p>
       </div>
 
       <div className="bg-purple-50 border border-purple-200 p-4 rounded">
@@ -229,9 +225,7 @@ export default function ProfilePage() {
               <li key={vote.id} className="border rounded p-4 bg-white shadow space-y-2">
                 <p>
                   Voted <strong>{vote.choice.toUpperCase()}</strong> on{' '}
-                  <Link to={`/campaign/${vote.campaign_id}`} className="text-blue-600 hover:underline">
-                    {vote.campaigns?.title}
-                  </Link>
+                  <Link to={`/campaign/${vote.campaign_id}`} className="text-blue-600 hover:underline">{vote.campaigns?.title}</Link>
                 </p>
                 <p className="text-xs text-gray-600">
                   {new Date(vote.created_at).toLocaleString()}
