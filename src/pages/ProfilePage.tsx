@@ -128,21 +128,25 @@ export default function ProfilePage() {
 
   const deleteProfile = async () => {
     if (!user) return;
-    const confirmDelete = window.confirm('This will delete your account and data. Continue?');
+    const confirmDelete = window.confirm('This will delete your account and all related data. Continue?');
     if (!confirmDelete) return;
 
-    const { error: profileError } = await supabase
-      .from('profiles')
-      .delete()
-      .eq('id', user.id);
+    try {
+      const { error: votesError } = await supabase.from('votes').delete().eq('user_id', user.id);
+      if (votesError) throw new Error(votesError.message);
 
-    if (profileError) {
-      alert('Error deleting profile: ' + profileError.message);
-      return;
+      const { error: campaignsError } = await supabase.from('campaigns').delete().eq('created_by', user.id);
+      if (campaignsError) throw new Error(campaignsError.message);
+
+      const { error: profileError } = await supabase.from('profiles').delete().eq('id', user.id);
+      if (profileError) throw new Error(profileError.message);
+
+      await supabase.auth.signOut();
+      alert('Your account and all associated data have been deleted.');
+      navigate('/');
+    } catch (err: any) {
+      alert('Deletion failed: ' + err.message);
     }
-
-    alert('Your profile data has been deleted.');
-    navigate('/');
   };
 
   const liveIntegrity = profile ? calculateIntegrityScore(profile) : 0;
@@ -161,7 +165,7 @@ export default function ProfilePage() {
             key={field}
             type={field === 'age' ? 'number' : 'text'}
             name={field}
-            placeholder={field.charAt(0).toUpperCase() + field.slice(1)}
+            placeholder={field === 'gender' ? 'Gender / Identifies as' : field.charAt(0).toUpperCase() + field.slice(1)}
             value={profile ? (profile[field as keyof Profile] as string) : ''}
             onChange={handleChange}
             className="border px-3 py-2 rounded"
@@ -217,78 +221,6 @@ export default function ProfilePage() {
           <li>🪪 Connect a <strong>blockchain ID</strong> (coming soon).</li>
           <li>🤝 Get <strong>community verified</strong> through trusted interactions (coming soon).</li>
         </ul>
-      </div>
-
-      <div>
-        <h3 className="text-xl font-semibold mt-10 mb-3">Your Votes</h3>
-        {votes.length === 0 ? (
-          <p className="text-gray-500">No votes yet.</p>
-        ) : (
-          <ul className="space-y-3">
-            {votes.map((vote) => (
-              <li key={vote.id} className="border rounded p-4 bg-white shadow space-y-2">
-                <p>
-                  Voted <strong>{vote.choice.toUpperCase()}</strong> on{' '}
-                  <span className="font-medium">{vote.campaigns?.title}</span>
-                </p>
-                <p className="text-xs text-gray-600">
-                  {new Date(vote.created_at).toLocaleString()}
-                  {vote.locationName ? ` | ${vote.locationName}` : ''}
-                </p>
-                <button
-                  onClick={async () => {
-                    const confirm = window.confirm('Remove your vote?');
-                    if (!confirm) return;
-                    const { error } = await supabase.from('votes').delete().eq('id', vote.id);
-                    if (error) {
-                      alert('Error removing vote: ' + error.message);
-                    } else {
-                      setVotes((prev) => prev.filter((v) => v.id !== vote.id));
-                      await fetchUserData();
-                    }
-                  }}
-                  className="text-sm text-red-600 hover:underline"
-                >
-                  Unvote
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-
-      <div>
-        <h3 className="text-xl font-semibold mt-10 mb-3">Campaigns You Created</h3>
-        {createdCampaigns.length === 0 ? (
-          <p className="text-gray-500">No campaigns created yet.</p>
-        ) : (
-          <ul className="space-y-3">
-            {createdCampaigns.map((campaign) => (
-              <li key={campaign.id} className="border rounded p-4 bg-white shadow space-y-2">
-                <h4 className="font-medium">{campaign.title}</h4>
-                <p className="text-sm text-gray-600">{campaign.description}</p>
-                <button
-                  onClick={async () => {
-                    const confirm = window.confirm(`Delete campaign "${campaign.title}"?`);
-                    if (!confirm) return;
-                    const { error } = await supabase
-                      .from('campaigns')
-                      .delete()
-                      .eq('id', campaign.id);
-                    if (error) {
-                      alert('Error deleting campaign: ' + error.message);
-                    } else {
-                      setCreatedCampaigns((prev) => prev.filter((c) => c.id !== campaign.id));
-                    }
-                  }}
-                  className="text-sm text-red-600 hover:underline"
-                >
-                  Delete Campaign
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
       </div>
     </div>
   );
