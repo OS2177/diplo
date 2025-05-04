@@ -103,6 +103,7 @@ export default function ProfilePage() {
         navigator.geolocation.getCurrentPosition(
           (pos) => {
             setUserLocation({ latitude: pos.coords.latitude, longitude: pos.coords.longitude });
+            setProfile((prev) => prev ? { ...prev, location_permission: true } : prev);
           },
           (err) => console.warn('Geolocation error:', err.message)
         );
