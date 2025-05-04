@@ -127,39 +127,18 @@ export default function ProfilePage() {
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setProfile((prev) => (prev ? { ...prev, [name]: value } : null));
+  const unvote = async (voteId: string) => {
+    const { error } = await supabase.from('votes').delete().eq('id', voteId);
+    if (error) return alert('Failed to unvote');
+    setVotes(votes.filter((v) => v.id !== voteId));
   };
 
-  const saveProfile = async () => {
-    if (!user || !profile) return;
-    const { error } = await supabase.from('profiles').upsert({
-      id: user.id,
-      ...profile,
-      updated_at: new Date().toISOString(),
-    });
-    if (error) console.error('Error updating profile:', error);
-    else alert('Profile updated successfully!');
-  };
-
-  const deleteProfile = async () => {
-    if (!user) return;
-    const confirmDelete = window.confirm('This will delete your account and all related data. Continue?');
+  const deleteCampaign = async (campaignId: string) => {
+    const confirmDelete = window.confirm('Are you sure you want to delete this campaign?');
     if (!confirmDelete) return;
-    try {
-      const { error: votesError } = await supabase.from('votes').delete().eq('user_id', user.id);
-      if (votesError) throw new Error(votesError.message);
-      const { error: campaignsError } = await supabase.from('campaigns').delete().eq('created_by', user.id);
-      if (campaignsError) throw new Error(campaignsError.message);
-      const { error: profileError } = await supabase.from('profiles').delete().eq('id', user.id);
-      if (profileError) throw new Error(profileError.message);
-      await supabase.auth.signOut();
-      alert('Your account and all associated data have been deleted.');
-      navigate('/');
-    } catch (err: any) {
-      alert('Deletion failed: ' + err.message);
-    }
+    const { error } = await supabase.from('campaigns').delete().eq('id', campaignId);
+    if (error) return alert('Failed to delete campaign');
+    setCreatedCampaigns(createdCampaigns.filter((c) => c.id !== campaignId));
   };
 
   const voteIntegrity = profile ? calculateIntegrityScore(profile) : 0;
@@ -181,18 +160,12 @@ export default function ProfilePage() {
             name={field}
             placeholder={field === "gender" ? "Gender / Identifies as" : field.charAt(0).toUpperCase() + field.slice(1)}
             value={profile ? (profile[field as keyof Profile] as string) : ""}
-            onChange={handleChange}
+            onChange={(e) => setProfile((prev) => (prev ? { ...prev, [e.target.name]: e.target.value } : null))}
             className="border px-3 py-2 rounded"
           />
         ))}
         <input type="text" name="email" value={user?.email ?? ''} disabled className="bg-gray-100 border px-3 py-2 rounded" />
-        <div className="flex gap-4">
-          <button onClick={saveProfile} className="bg-black text-white px-4 py-2 rounded hover:bg-gray-700">Save Profile</button>
-          <button onClick={deleteProfile} className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">Delete Profile</button>
-        </div>
       </div>
-
-      {profile && <ProfileIntegrity profile={profile} />}
 
       <div className="bg-blue-50 border border-blue-200 p-4 rounded">
         <h4 className="text-md font-semibold text-blue-700 mb-2">🔐 Vote Integrity Score (Live)</h4>
@@ -231,6 +204,12 @@ export default function ProfilePage() {
                   {new Date(vote.created_at).toLocaleString()}
                   {vote.locationName ? ` | ${vote.locationName}` : ''}
                 </p>
+                <button
+                  onClick={() => unvote(vote.id)}
+                  className="text-red-500 text-xs hover:underline"
+                >
+                  Unvote
+                </button>
               </li>
             ))}
           </ul>
@@ -249,6 +228,12 @@ export default function ProfilePage() {
                   {campaign.title}
                 </Link>
                 <p className="text-sm text-gray-600">{campaign.description}</p>
+                <button
+                  onClick={() => deleteCampaign(campaign.id)}
+                  className="text-red-500 text-xs hover:underline"
+                >
+                  Delete
+                </button>
               </li>
             ))}
           </ul>
