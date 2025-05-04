@@ -101,11 +101,25 @@ export default function ProfilePage() {
       fetchUserData();
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
-          (pos) => {
-            setUserLocation({ latitude: pos.coords.latitude, longitude: pos.coords.longitude });
-            setProfile((prev) => prev ? { ...prev, location_permission: true } : prev);
+          async (pos) => {
+            const lat = pos.coords.latitude;
+            const lon = pos.coords.longitude;
+            setUserLocation({ latitude: lat, longitude: lon });
+
+            const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}`);
+            const data = await response.json();
+            const city = data.address.city || data.address.town || data.address.village || '';
+            const country = data.address.country || '';
+
+            setProfile((prev) => prev ? {
+              ...prev,
+              city,
+              country,
+              location_permission: true,
+            } : prev);
           },
-          (err) => console.warn('Geolocation error:', err.message)
+          (err) => console.warn('Geolocation error:', err.message),
+          { enableHighAccuracy: true }
         );
       }
     } else if (!user && !loading) {
@@ -127,6 +141,9 @@ export default function ProfilePage() {
       setLoadingProfile(false);
     }
   };
+
+  // ... rest of the component unchanged
+
 
   const saveProfile = async () => {
     if (!user || !profile) return;
