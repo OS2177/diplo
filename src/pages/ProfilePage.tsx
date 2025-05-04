@@ -74,7 +74,7 @@ function calculateCreatorIntegrityScore(
     const distances = campaigns
       .filter((c) => c.latitude && c.longitude)
       .map((c) => calculateDistance(userLatLng.latitude, userLatLng.longitude, c.latitude!, c.longitude!));
-    const closeProximities = distances.filter((d) => d < 50).length; // 50km range considered 'close'
+    const closeProximities = distances.filter((d) => d < 50).length;
     proximityBonus = closeProximities > 0 ? Math.min(closeProximities / campaigns.length, 1.0) : 0;
   }
 
@@ -127,6 +127,36 @@ export default function ProfilePage() {
     }
   };
 
+  const saveProfile = async () => {
+    if (!user || !profile) return;
+    const { error } = await supabase.from('profiles').upsert({
+      id: user.id,
+      ...profile,
+      updated_at: new Date().toISOString(),
+    });
+    if (error) console.error('Error updating profile:', error);
+    else alert('Profile updated successfully!');
+  };
+
+  const deleteProfile = async () => {
+    if (!user) return;
+    const confirmDelete = window.confirm('This will delete your account and all related data. Continue?');
+    if (!confirmDelete) return;
+    try {
+      const { error: votesError } = await supabase.from('votes').delete().eq('user_id', user.id);
+      if (votesError) throw new Error(votesError.message);
+      const { error: campaignsError } = await supabase.from('campaigns').delete().eq('created_by', user.id);
+      if (campaignsError) throw new Error(campaignsError.message);
+      const { error: profileError } = await supabase.from('profiles').delete().eq('id', user.id);
+      if (profileError) throw new Error(profileError.message);
+      await supabase.auth.signOut();
+      alert('Your account and all associated data have been deleted.');
+      navigate('/');
+    } catch (err: any) {
+      alert('Deletion failed: ' + err.message);
+    }
+  };
+
   const unvote = async (voteId: string) => {
     const { error } = await supabase.from('votes').delete().eq('id', voteId);
     if (error) return alert('Failed to unvote');
@@ -165,7 +195,13 @@ export default function ProfilePage() {
           />
         ))}
         <input type="text" name="email" value={user?.email ?? ''} disabled className="bg-gray-100 border px-3 py-2 rounded" />
+        <div className="flex gap-4">
+          <button onClick={saveProfile} className="bg-black text-white px-4 py-2 rounded hover:bg-gray-700">Save Profile</button>
+          <button onClick={deleteProfile} className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">Delete Profile</button>
+        </div>
       </div>
+
+      <ProfileIntegrity profile={profile} />
 
       <div className="bg-blue-50 border border-blue-200 p-4 rounded">
         <h4 className="text-md font-semibold text-blue-700 mb-2">🔐 Vote Integrity Score (Live)</h4>
