@@ -68,6 +68,7 @@ export default function CreateCampaignPage() {
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(async (position) => {
           const { latitude, longitude } = position.coords;
+          console.log('📍 Captured coordinates:', latitude, longitude); // Debug log
           setLatitude(latitude);
           setLongitude(longitude);
 
@@ -88,12 +89,6 @@ export default function CreateCampaignPage() {
     if (!city || !country || latitude === null || longitude === null) {
       alert('City, country, and location required.');
       return;
-      console.log('👤 Profile:', profile);
-      console.log('🧮 Vote Integrity:', vote_integrity);
-      console.log('📍 Location Accuracy Score:', location_score);
-      console.log('📊 Campaign Activity Score:', experience_score);
-      console.log('🧬 Final Creator Integrity:', creator_integrity);
-
     }
 
     const { data: profile, error: profileError } = await supabase
@@ -108,7 +103,7 @@ export default function CreateCampaignPage() {
     }
 
     const vote_integrity = calculateVoteIntegrity(profile);
-    const location_score = calculateLocationAccuracy(latitude, longitude, latitude, longitude); // User = Campaign creator location
+    const location_score = calculateLocationAccuracy(latitude, longitude, latitude, longitude);
 
     const { count: campaignCount } = await supabase
       .from('campaigns')
