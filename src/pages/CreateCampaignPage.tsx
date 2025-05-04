@@ -68,7 +68,6 @@ export default function CreateCampaignPage() {
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(async (position) => {
           const { latitude, longitude } = position.coords;
-          console.log('📍 Captured coordinates:', latitude, longitude); // Debug log
           setLatitude(latitude);
           setLongitude(longitude);
 
@@ -77,7 +76,11 @@ export default function CreateCampaignPage() {
           const rawCity = data.address.city || data.address.town || data.address.village || '';
           setCity(typeof rawCity === 'string' ? rawCity : '');
           setCountry(data.address.country || '');
+        }, (err) => {
+          alert('⚠️ Please allow location access to geotag your campaign.');
         });
+      } else {
+        alert('Geolocation not supported by your browser.');
       }
     };
     fetchLocation();
@@ -87,7 +90,7 @@ export default function CreateCampaignPage() {
     e.preventDefault();
     if (!user) return;
     if (!city || !country || latitude === null || longitude === null) {
-      alert('City, country, and location required.');
+      alert('⚠️ City, country, and a valid location are required to submit. Please enable location access.');
       return;
     }
 
@@ -165,6 +168,12 @@ export default function CreateCampaignPage() {
         <input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="Reference URL (optional)" className="w-full border p-2" />
         <input value={city} onChange={(e) => setCity(e.target.value)} placeholder="City" required className="w-full border p-2" />
         <input value={country} onChange={(e) => setCountry(e.target.value)} placeholder="Country" required className="w-full border p-2" />
+
+        {latitude && longitude && (
+          <p className="text-sm text-gray-600">
+            📍 Detected Location: {city}, {country} ({latitude.toFixed(4)}, {longitude.toFixed(4)})
+          </p>
+        )}
 
         <div className="bg-yellow-50 border border-yellow-300 text-yellow-800 text-sm rounded p-3">
           ⚠️ <strong>Once submitted, this campaign cannot be edited.</strong> Please review all information carefully before publishing.
