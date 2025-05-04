@@ -170,6 +170,11 @@ export default function CreateCampaignPage() {
         <input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="Reference URL (optional)" className="w-full border p-2" />
         <input value={city} onChange={(e) => setCity(e.target.value)} placeholder="City" required className="w-full border p-2" />
         <input value={country} onChange={(e) => setCountry(e.target.value)} placeholder="Country" required className="w-full border p-2" />
+
+        <div className="bg-yellow-50 border border-yellow-300 text-yellow-800 text-sm rounded p-3">
+          ⚠️ <strong>Once submitted, this campaign cannot be edited.</strong> Please review all information carefully before publishing.
+        </div>
+
         <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded">Create Campaign</button>
       </form>
     </div>
