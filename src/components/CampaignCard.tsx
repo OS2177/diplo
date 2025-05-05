@@ -115,7 +115,9 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
         const userLat = pos.coords.latitude;
         const userLon = pos.coords.longitude;
 
+        console.log('🧬 Profile at vote time', profile);
         const integrity = calculateIntegrityScore(profile);
+        console.log('✅ Calculated Integrity:', integrity);
 
         const hasCoords = campaign.latitude !== undefined && campaign.longitude !== undefined;
 
