@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useNavigate } from 'react-router-dom';
+import { calculateDistance } from '../utils/calculateDistance';
 
 function calculateVoteIntegrity(profile: any): number {
   let score = 0;
@@ -13,21 +14,13 @@ function calculateVoteIntegrity(profile: any): number {
 }
 
 function calculateLocationAccuracy(userLat: number, userLon: number, campLat: number, campLon: number): number {
-  const toRad = (deg: number) => (deg * Math.PI) / 180;
-  const R = 6371;
-  const dLat = toRad(campLat - userLat);
-  const dLon = toRad(campLon - userLon);
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos(toRad(userLat)) * Math.cos(toRad(campLat)) * Math.sin(dLon / 2) ** 2;
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  const distance = R * c;
-
+  const distance = calculateDistance(userLat, userLon, campLat, campLon);
   if (distance <= 10) return 1.0;
   if (distance <= 50) return 0.7;
   if (distance <= 200) return 0.4;
   return 0.0;
 }
+
 
 function calculateCampaignActivityScore(totalCampaigns: number): number {
   if (totalCampaigns >= 7) return 0.2;

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
+import { calculateDistance } from '../utils/calculateDistance';
 
 type Campaign = {
   id: string;
@@ -95,10 +96,13 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
 
     const engagementScore = Math.log10(voteCount + 1) / 2;
 
-    let integrity = 0.6 * avgVoteIntegrity + 0.3 * (campaign.creator_integrity ?? 0);
-    if (campaign.image || campaign.url) integrity += 0.1;
+    let integrity = 0.4 * (campaign.creator_integrity ?? 0) + 0.4 * avgVoteIntegrity + 0.2 * engagementScore;
 
-    integrity = Math.min(Math.max(integrity, 0.2), 1.0);
+    if (voteCount === 0) {
+      integrity = 0.8 * (campaign.creator_integrity ?? 0) + 0.2;
+    }
+
+    integrity = Math.max(integrity, 0.2);
 
     setCampaignIntegrity(parseFloat(integrity.toFixed(4)));
   };

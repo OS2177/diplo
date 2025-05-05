@@ -11,27 +11,24 @@ interface Props {
 }
 
 export default function ProfileIntegrity({ profile }: Props) {
-  let score = 0;
+  let rawScore = 0;
 
-  if (profile.email) score += 20;
-  if (profile.name) score += 10;
-  if (profile.city && profile.country) score += 10;
-  if (profile.age) score += 10;
-  if (profile.bio) score += 10;
-  if (profile.pronouns) score += 10;
+  if (profile.email) rawScore += 0.2;
+  if (profile.name) rawScore += 0.1;
+  if (profile.city && profile.country) rawScore += 0.1;
+  if (profile.age) rawScore += 0.1;
+  if (profile.bio) rawScore += 0.1;
+  if (profile.pronouns) rawScore += 0.1;
 
-  // 👇 Optional placeholder for future vote tracking
-  const voteCount = 0;
-  if (voteCount > 5) score += 20;
-  else if (voteCount > 0) score += 10;
+  const normalizedScore = Math.min(rawScore, 1.0);
 
   return (
     <div className="bg-gray-100 p-4 mt-6 rounded shadow">
       <h3 className="text-lg font-semibold mb-2">Integrity Score</h3>
-      <p className="text-xl font-bold">{score}%</p>
+      <p className="text-xl font-bold">{(normalizedScore * 100).toFixed(0)}%</p>
       <ul className="mt-2 list-disc list-inside text-sm text-gray-600">
-        {score < 100 && <li>Complete your profile to increase your vote influence.</li>}
-        {voteCount === 0 && <li>Vote on campaigns to boost integrity score.</li>}
+        {normalizedScore < 1 && <li>Complete your profile to increase your vote influence.</li>}
+        <li>Vote on campaigns to build public integrity.</li>
       </ul>
     </div>
   );
