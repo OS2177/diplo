@@ -144,6 +144,7 @@ export default function ProfilePage() {
     const { error } = await supabase.from('profiles').upsert({
       id: user.id,
       ...profile,
+      email: user.email, // ✅ ensure email is saved to profile
       updated_at: new Date().toISOString(),
     });
     if (error) console.error('Error updating profile:', error);
