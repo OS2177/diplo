@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { useUser } from '../hooks/useUser';
 import ProfileIntegrity from '../components/ProfileIntegrity';
+import { calculateDistance } from '../utils/calculateDistance';
 
 interface Profile {
   id: string;
@@ -49,9 +50,6 @@ function calculateIntegrityScore(profile: any): number {
   if (profile?.community_verified) score += 0.1;
   return Math.min(score, 1.0);
 }
-
-import { calculateDistance } from '../utils/calculateDistance';
-
 
 function calculateCreatorIntegrityScore(
   profile: Profile,
@@ -136,15 +134,12 @@ export default function ProfilePage() {
     }
   };
 
-  // ... rest of the component unchanged
-
-
   const saveProfile = async () => {
     if (!user || !profile) return;
     const { error } = await supabase.from('profiles').upsert({
       id: user.id,
       ...profile,
-      email: user.email, // ✅ ensure email is saved to profile
+      email: profile.email ?? user.email ?? null,
       updated_at: new Date().toISOString(),
     });
     if (error) console.error('Error updating profile:', error);
@@ -156,12 +151,9 @@ export default function ProfilePage() {
     const confirmDelete = window.confirm('This will delete your account and all related data. Continue?');
     if (!confirmDelete) return;
     try {
-      const { error: votesError } = await supabase.from('votes').delete().eq('user_id', user.id);
-      if (votesError) throw new Error(votesError.message);
-      const { error: campaignsError } = await supabase.from('campaigns').delete().eq('created_by', user.id);
-      if (campaignsError) throw new Error(campaignsError.message);
-      const { error: profileError } = await supabase.from('profiles').delete().eq('id', user.id);
-      if (profileError) throw new Error(profileError.message);
+      await supabase.from('votes').delete().eq('user_id', user.id);
+      await supabase.from('campaigns').delete().eq('created_by', user.id);
+      await supabase.from('profiles').delete().eq('id', user.id);
       await supabase.auth.signOut();
       alert('Your account and all associated data have been deleted.');
       navigate('/');
@@ -171,16 +163,14 @@ export default function ProfilePage() {
   };
 
   const unvote = async (voteId: string) => {
-    const { error } = await supabase.from('votes').delete().eq('id', voteId);
-    if (error) return alert('Failed to unvote');
+    await supabase.from('votes').delete().eq('id', voteId);
     setVotes(votes.filter((v) => v.id !== voteId));
   };
 
   const deleteCampaign = async (campaignId: string) => {
     const confirmDelete = window.confirm('Are you sure you want to delete this campaign?');
     if (!confirmDelete) return;
-    const { error } = await supabase.from('campaigns').delete().eq('id', campaignId);
-    if (error) return alert('Failed to delete campaign');
+    await supabase.from('campaigns').delete().eq('id', campaignId);
     setCreatedCampaigns(createdCampaigns.filter((c) => c.id !== campaignId));
   };
 
@@ -196,7 +186,8 @@ export default function ProfilePage() {
       <h2 className="text-2xl font-bold mb-6">Your Profile</h2>
 
       <div className="grid gap-4">
-        {["name", "city", "country", "age", "gender", "bio"].map((field) => (
+        <h4 className="text-md font-semibold">Update Profile Info</h4>
+        {["name", "city", "country", "age", "gender", "bio", "email"].map((field) => (
           <input
             key={field}
             type={field === "age" ? "number" : "text"}
@@ -207,10 +198,26 @@ export default function ProfilePage() {
             className="border px-3 py-2 rounded"
           />
         ))}
-        <input type="text" name="email" value={user?.email ?? ''} disabled className="bg-gray-100 border px-3 py-2 rounded" />
+
+        <input
+          disabled
+          value="2FA Setup — Coming Soon"
+          className="bg-gray-100 border text-gray-500 px-3 py-2 rounded italic"
+        />
+
+        <input
+          disabled
+          value="Blockchain ID — Coming Soon"
+          className="bg-gray-100 border text-gray-500 px-3 py-2 rounded italic"
+        />
+
         <div className="flex gap-4">
-          <button onClick={saveProfile} className="bg-black text-white px-4 py-2 rounded hover:bg-gray-700">Save Profile</button>
-          <button onClick={deleteProfile} className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">Delete Profile</button>
+          <button onClick={saveProfile} className="bg-blue-700 text-white px-4 py-2 rounded hover:bg-blue-800">
+            Update Profile
+          </button>
+          <button onClick={deleteProfile} className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
+            Delete Profile
+          </button>
         </div>
       </div>
 
