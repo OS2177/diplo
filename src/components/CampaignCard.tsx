@@ -20,23 +20,11 @@ type Campaign = {
 function calculateIntegrityScore(profile: any): number {
   let score = 0;
   if (profile?.location_permission) score += 0.2;
-  if (profile?.profile_complete) score += 0.2;
+  if (profile?.profile_complete || (profile.name && profile.age && profile.city && profile.country && profile.gender)) score += 0.2;
   if (profile?.two_factor_enabled) score += 0.2;
   if (profile?.blockchain_id) score += 0.3;
   if (profile?.community_verified) score += 0.1;
   return Math.min(score, 1.0);
-}
-
-function calculateProximity(lat1: number, lon1: number, lat2: number, lon2: number): number {
-  const toRad = (deg: number) => (deg * Math.PI) / 180;
-  const R = 6371;
-  const dLat = toRad(lat2 - lat1);
-  const dLon = toRad(lon2 - lon1);
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return R * c;
 }
 
 export default function CampaignCard({ campaign }: { campaign: Campaign }) {
@@ -96,13 +84,10 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
 
     const engagementScore = Math.log10(voteCount + 1) / 2;
 
-    let integrity = 0.4 * (campaign.creator_integrity ?? 0) + 0.4 * avgVoteIntegrity + 0.2 * engagementScore;
+    let integrity = 0.6 * avgVoteIntegrity + 0.3 * (campaign.creator_integrity ?? 0);
+    if (campaign.image || campaign.url) integrity += 0.1;
 
-    if (voteCount === 0) {
-      integrity = 0.8 * (campaign.creator_integrity ?? 0) + 0.2;
-    }
-
-    integrity = Math.max(integrity, 0.2);
+    integrity = Math.min(Math.max(integrity, 0.2), 1.0);
 
     setCampaignIntegrity(parseFloat(integrity.toFixed(4)));
   };
@@ -132,12 +117,24 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
 
         const integrity = calculateIntegrityScore(profile);
 
-        const proximity = campaign.latitude && campaign.longitude
-          ? calculateProximity(userLat, userLon, campaign.latitude, campaign.longitude)
+        const hasCoords = campaign.latitude !== undefined && campaign.longitude !== undefined;
+
+        const proximity = hasCoords
+          ? calculateDistance(userLat, userLon, campaign.latitude!, campaign.longitude!)
           : 1000;
 
         const globalModifier = 1.0;
-        const impact = integrity * (1 / (proximity + 1)) * globalModifier;
+        const impact = +(integrity * (1 / (proximity + 1)) * globalModifier).toFixed(4);
+
+        console.log('🧠 Vote Debug', {
+          integrity,
+          proximity,
+          impact,
+          userLat,
+          userLon,
+          campaignLat: campaign.latitude,
+          campaignLon: campaign.longitude,
+        });
 
         const { error } = await supabase.from('votes').insert({
           campaign_id: campaign.id,
