@@ -1,0 +1,81 @@
+type Vote = {
+  user_id: string;
+  choice: string;
+  integrity: number;
+  latitude: number;
+  longitude: number;
+  impact: number;
+};
+
+type ImpactInput = {
+  userLat: number;
+  userLon: number;
+  userIntegrity: number; // 0–1
+  userChoice: string;
+  campaignLat: number;
+  campaignLon: number;
+  previousVotes: Vote[]; // Existing votes on the campaign
+};
+
+export function calculateVoteImpactWithEcho({
+  userLat,
+  userLon,
+  userIntegrity,
+  userChoice,
+  campaignLat,
+  campaignLon,
+  previousVotes,
+}: ImpactInput): {
+  proximity: number;
+  impact: number;
+} {
+  const toRad = (deg: number) => (deg * Math.PI) / 180;
+  const R = 6371;
+  const dLat = toRad(campaignLat - userLat);
+  const dLon = toRad(campaignLon - userLon);
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(userLat)) * Math.cos(toRad(campaignLat)) * Math.sin(dLon / 2) ** 2;
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  const distance = R * c;
+
+  // Proximity base multiplier
+  let proximityMultiplier = 1;
+  if (distance <= 5) proximityMultiplier = 2.0;
+  else proximityMultiplier = Math.max(1.0, 2.0 - Math.floor(distance / 10) * 0.1);
+
+  // Detect local consensus
+  const localVotes = previousVotes.filter((v) => {
+    const dLat = toRad(campaignLat - v.latitude);
+    const dLon = toRad(campaignLon - v.longitude);
+    const dA =
+      Math.sin(dLat / 2) ** 2 +
+      Math.cos(toRad(v.latitude)) * Math.cos(toRad(campaignLat)) * Math.sin(dLon / 2) ** 2;
+    const dC = 2 * Math.atan2(Math.sqrt(dA), Math.sqrt(1 - dA));
+    const d = R * dC;
+    return d <= 10;
+  });
+
+  const matchingLocalVotes = localVotes.filter((v) => v.choice === userChoice).length;
+  const matchRatio =
+    localVotes.length > 0 ? matchingLocalVotes / localVotes.length : 0;
+
+  let echoBoost = 1;
+
+  if (distance > 10) {
+    if (matchRatio > 0.6) {
+      echoBoost = 1 + matchRatio; // e.g. 0.8 → echoBoost = 1.8
+    } else if (matchRatio < 0.4) {
+      echoBoost = 0.5; // muted if contradicting local sentiment
+    }
+  }
+
+  const impact = parseFloat(
+    (userIntegrity * proximityMultiplier * echoBoost).toFixed(4)
+  );
+
+  return {
+    proximity: parseFloat(distance.toFixed(4)),
+    impact,
+  };
+}

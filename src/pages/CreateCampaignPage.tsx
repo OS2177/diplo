@@ -21,7 +21,6 @@ function calculateLocationAccuracy(userLat: number, userLon: number, campLat: nu
   return 0.0;
 }
 
-
 function calculateCampaignActivityScore(totalCampaigns: number): number {
   if (totalCampaigns >= 7) return 0.2;
   if (totalCampaigns >= 4) return 0.15;
@@ -40,6 +39,8 @@ export default function CreateCampaignPage() {
   const [country, setCountry] = useState('');
   const [latitude, setLatitude] = useState<number | null>(null);
   const [longitude, setLongitude] = useState<number | null>(null);
+  const [campaignCity, setCampaignCity] = useState('');  // New field for campaign city
+  const [campaignCountry, setCampaignCountry] = useState('');  // New field for campaign country
   const [user, setUser] = useState(null);
 
   const navigate = useNavigate();
@@ -82,8 +83,8 @@ export default function CreateCampaignPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
-    if (!city || !country || latitude === null || longitude === null) {
-      alert('⚠️ City, country, and a valid location are required to submit. Please enable location access.');
+    if (!campaignCity || !campaignCountry || latitude === null || longitude === null) {
+      alert('⚠️ Campaign city, country, and a valid location are required to submit. Please enable location access.');
       return;
     }
 
@@ -123,8 +124,8 @@ export default function CreateCampaignPage() {
         scope,
         image,
         url,
-        city,
-        country,
+        city: campaignCity,  // Store the campaign city
+        country: campaignCountry,  // Store the campaign country
         latitude,
         longitude,
         created_by: user.id,
@@ -159,8 +160,8 @@ export default function CreateCampaignPage() {
         </select>
         <input value={image} onChange={(e) => setImage(e.target.value)} placeholder="Image URL (optional)" className="w-full border p-2" />
         <input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="Reference URL (optional)" className="w-full border p-2" />
-        <input value={city} onChange={(e) => setCity(e.target.value)} placeholder="City" required className="w-full border p-2" />
-        <input value={country} onChange={(e) => setCountry(e.target.value)} placeholder="Country" required className="w-full border p-2" />
+        <input value={campaignCity} onChange={(e) => setCampaignCity(e.target.value)} placeholder="Campaign City" required className="w-full border p-2" />
+        <input value={campaignCountry} onChange={(e) => setCampaignCountry(e.target.value)} placeholder="Campaign Country" required className="w-full border p-2" />
 
         {latitude && longitude && (
           <p className="text-sm text-gray-600">
