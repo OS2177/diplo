@@ -11,8 +11,8 @@ type Campaign = {
   created_at?: string;
   city?: string;
   country?: string;
-  latitude?: number;
-  longitude?: number;
+  campaign_latitude?: number;
+  campaign_longitude?: number;
   creator_integrity?: number;
 };
 
@@ -104,8 +104,8 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
 
         const integrity = calculateIntegrityScore(profile);
 
-        const proximity = campaign.latitude && campaign.longitude
-          ? calculateProximity(userLat, userLon, campaign.latitude, campaign.longitude)
+        const proximity = campaign.campaign_latitude && campaign.campaign_longitude
+          ? calculateProximity(userLat, userLon, campaign.campaign_latitude, campaign.campaign_longitude)
           : 1000;
 
         const globalModifier = 1.0;
@@ -151,38 +151,47 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
       <p className="text-sm text-gray-600 mb-2">{campaign.scope}</p>
       <p className="text-gray-700 mb-2">{campaign.description}</p>
 
+      {/* Displaying Creator Integrity */}
       {campaign.creator_integrity !== undefined && (
         <p className="text-sm text-purple-600 mb-2">
           🧬 Creator Integrity: <strong>{(campaign.creator_integrity * 100).toFixed(0)}%</strong>
         </p>
       )}
 
+      {/* Location Info */}
       {(campaign.city || campaign.country) && (
         <p className="text-sm text-gray-500 mb-4">
-          📍 {Array.isArray(campaign.city) ? campaign.city[0] : campaign.city}
-          {campaign.city && campaign.country ? ', ' : ''}
-          {campaign.country}
+          📍 {campaign.city} {campaign.city && campaign.country ? ', ' : ''} {campaign.country}
         </p>
       )}
 
-      {campaign.url && (
-        <div className="mt-4">
-          <img
-            src={`https://api.microlink.io/?url=${encodeURIComponent(campaign.url)}&meta=true&embed=image.url`}
-            alt="Website preview"
-            className="w-full rounded mb-2 border"
-          />
-          <a
-            href={campaign.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-blue-600 underline"
-          >
-            Learn more
-          </a>
+      {/* Display the Map */}
+      {campaign.campaign_latitude && campaign.campaign_longitude && (
+        <div className="mt-6 mb-4">
+          <iframe
+            width="100%"
+            height="250"
+            className="rounded border"
+            frameBorder="0"
+            scrolling="no"
+            marginHeight={0}
+            marginWidth={0}
+            src={`https://www.openstreetmap.org/export/embed.html?bbox=${campaign.campaign_longitude - 0.01}%2C${campaign.campaign_latitude - 0.01}%2C${campaign.campaign_longitude + 0.01}%2C${campaign.campaign_latitude + 0.01}&layer=mapnik&marker=${campaign.campaign_latitude}%2C${campaign.campaign_longitude}`}
+          ></iframe>
+          <p className="text-xs text-gray-500 mt-2">
+            <a
+              href={`https://www.openstreetmap.org/?mlat=${campaign.campaign_latitude}&mlon=${campaign.campaign_longitude}#map=15/${campaign.campaign_latitude}/${campaign.campaign_longitude}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline"
+            >
+              View full map
+            </a>
+          </p>
         </div>
       )}
 
+      {/* Voting Section */}
       <div className="mt-4">
         {voteCount !== null && (
           <p className="text-sm text-gray-700 mb-2">Total Votes: {voteCount}</p>
@@ -228,31 +237,6 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
           </div>
         )}
       </div>
-
-      {campaign.latitude && campaign.longitude && (
-        <div className="mt-6 mb-4">
-          <iframe
-            width="100%"
-            height="250"
-            className="rounded border"
-            frameBorder="0"
-            scrolling="no"
-            marginHeight={0}
-            marginWidth={0}
-            src={`https://www.openstreetmap.org/export/embed.html?bbox=${campaign.longitude - 0.01}%2C${campaign.latitude - 0.01}%2C${campaign.longitude + 0.01}%2C${campaign.latitude + 0.01}&layer=mapnik&marker=${campaign.latitude}%2C${campaign.longitude}`}
-          ></iframe>
-          <p className="text-xs text-gray-500 mt-2">
-            <a
-              href={`https://www.openstreetmap.org/?mlat=${campaign.latitude}&mlon=${campaign.longitude}#map=15/${campaign.latitude}/${campaign.longitude}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="underline"
-            >
-              View full map
-            </a>
-          </p>
-        </div>
-      )}
     </div>
   );
 }
