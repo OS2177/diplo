@@ -42,7 +42,27 @@ export default function CreateCampaignPage() {
     checkAuth();
   }, [navigate]);
 
-  // Fetching latitude and longitude when the city and country are inputted (for the campaign city/country)
+  // Fetching latitude and longitude based on the user's location (city, country)
+  useEffect(() => {
+    const fetchLocation = async () => {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(async (position) => {
+          const { latitude, longitude } = position.coords;
+          setLatitude(latitude);
+          setLongitude(longitude);
+
+          const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}`);
+          const data = await response.json();
+          const rawCity = data.address.city || data.address.town || data.address.village || '';
+          setCity(typeof rawCity === 'string' ? rawCity : '');
+          setCountry(data.address.country || '');
+        });
+      }
+    };
+    fetchLocation();
+  }, []);
+
+  // Fetching coordinates when the campaign town/city and country are inputted
   useEffect(() => {
     const fetchCampaignCoordinates = async () => {
       if (campaignCity && campaignCountry) {
@@ -132,9 +152,11 @@ export default function CreateCampaignPage() {
         <input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="Reference URL (optional)" className="w-full border p-2" />
         <input value={city} onChange={(e) => setCity(e.target.value)} placeholder="City" required className="w-full border p-2" />
         <input value={country} onChange={(e) => setCountry(e.target.value)} placeholder="Country" required className="w-full border p-2" />
+
         {/* New fields for Campaign City and Country */}
         <input value={campaignCity} onChange={(e) => setCampaignCity(e.target.value)} placeholder="Campaign Town/City" required className="w-full border p-2" />
         <input value={campaignCountry} onChange={(e) => setCampaignCountry(e.target.value)} placeholder="Campaign Country" required className="w-full border p-2" />
+
         <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded">Create Campaign</button>
       </form>
     </div>
