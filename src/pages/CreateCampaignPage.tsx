@@ -38,30 +38,38 @@ export default function CreateCampaignPage() {
     checkAuth();
   }, [navigate]);
 
+  // Fetching latitude and longitude when the city and country are inputted
   useEffect(() => {
-    const fetchLocation = async () => {
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(async (position) => {
-          const { latitude, longitude } = position.coords;
-          setLatitude(latitude);
-          setLongitude(longitude);
-
-          const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}`);
-          const data = await response.json();
-          const rawCity = data.address.city || data.address.town || data.address.village || '';
-          setCity(typeof rawCity === 'string' ? rawCity : '');
-          setCountry(data.address.country || '');
-        });
+    const fetchCoordinates = async () => {
+      if (city && country) {
+        const response = await fetch(
+          https://nominatim.openstreetmap.org/search?format=json&q=${city},${country}
+        );
+        const data = await response.json();
+        if (data && data.length > 0) {
+          const { lat, lon } = data[0];
+          setLatitude(parseFloat(lat));
+          setLongitude(parseFloat(lon));
+        } else {
+          alert('Location not found. Please check your city and country.');
+        }
       }
     };
-    fetchLocation();
-  }, []);
+
+    if (city && country) {
+      fetchCoordinates();
+    }
+  }, [city, country]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
     if (!city || !country) {
       alert('City and country are required.');
+      return;
+    }
+    if (latitude === null || longitude === null) {
+      alert('Unable to fetch coordinates for the location.');
       return;
     }
 
