@@ -37,13 +37,11 @@ export default function CreateCampaignPage() {
   const [url, setUrl] = useState('');
   const [city, setCity] = useState('');
   const [country, setCountry] = useState('');
+  const [campaignCity, setCampaignCity] = useState('');
+  const [campaignCountry, setCampaignCountry] = useState('');
   const [latitude, setLatitude] = useState<number | null>(null);
   const [longitude, setLongitude] = useState<number | null>(null);
   const [user, setUser] = useState(null);
-
-  // Added for manual campaign location inputs
-  const [campaignCity, setCampaignCity] = useState('');
-  const [campaignCountry, setCampaignCountry] = useState('');
 
   const navigate = useNavigate();
 
@@ -85,8 +83,8 @@ export default function CreateCampaignPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
-    if (!city || !country || latitude === null || longitude === null) {
-      alert('⚠️ City, country, and a valid location are required to submit. Please enable location access.');
+    if (!campaignCity || !campaignCountry || latitude === null || longitude === null) {
+      alert('⚠️ Campaign City, Country, and a valid location are required to submit.');
       return;
     }
 
@@ -119,10 +117,6 @@ export default function CreateCampaignPage() {
       ).toFixed(4)
     );
 
-    // Save campaign location (manual or auto-filled)
-    const campaignLatitude = campaignCity ? latitude : userLatitude;
-    const campaignLongitude = campaignCountry ? longitude : userLongitude;
-
     const { error } = await supabase.from('campaigns').insert([
       {
         title,
@@ -130,10 +124,12 @@ export default function CreateCampaignPage() {
         scope,
         image,
         url,
-        city: campaignCity,        // New field for campaign city
-        country: campaignCountry,  // New field for campaign country
-        latitude: campaignLatitude,
-        longitude: campaignLongitude,
+        city,
+        country,
+        campaign_city: campaignCity,
+        campaign_country: campaignCountry,
+        latitude,
+        longitude,
         created_by: user.id,
         status: 'published',
         creator_integrity,
@@ -166,10 +162,8 @@ export default function CreateCampaignPage() {
         </select>
         <input value={image} onChange={(e) => setImage(e.target.value)} placeholder="Image URL (optional)" className="w-full border p-2" />
         <input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="Reference URL (optional)" className="w-full border p-2" />
-
-        {/* New fields for campaign location */}
-        <input value={campaignCity} onChange={(e) => setCampaignCity(e.target.value)} placeholder="Campaign City/Town" className="w-full border p-2" />
-        <input value={campaignCountry} onChange={(e) => setCampaignCountry(e.target.value)} placeholder="Campaign Country" className="w-full border p-2" />
+        <input value={campaignCity} onChange={(e) => setCampaignCity(e.target.value)} placeholder="Campaign City" required className="w-full border p-2" />
+        <input value={campaignCountry} onChange={(e) => setCampaignCountry(e.target.value)} placeholder="Campaign Country" required className="w-full border p-2" />
 
         {latitude && longitude && (
           <p className="text-sm text-gray-600">
