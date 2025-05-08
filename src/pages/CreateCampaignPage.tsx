@@ -41,6 +41,8 @@ export default function CreateCampaignPage() {
   const [longitude, setLongitude] = useState<number | null>(null);
   const [campaignCity, setCampaignCity] = useState(''); // Manual campaign location
   const [campaignCountry, setCampaignCountry] = useState(''); // Manual campaign location
+  const [campaignLatitude, setCampaignLatitude] = useState<number | null>(null); // Coordinates for campaign location
+  const [campaignLongitude, setCampaignLongitude] = useState<number | null>(null); // Coordinates for campaign location
   const [user, setUser] = useState(null);
 
   const navigate = useNavigate();
@@ -58,6 +60,7 @@ export default function CreateCampaignPage() {
   }, [navigate]);
 
   useEffect(() => {
+    // Handle geolocation if the user allows it
     const fetchLocation = async () => {
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(async (position) => {
@@ -80,14 +83,28 @@ export default function CreateCampaignPage() {
     fetchLocation();
   }, []);
 
+  // Handle manual campaign location conversion to coordinates
+  const getCampaignCoordinates = async () => {
+    if (!campaignCity || !campaignCountry) return;
+    const response = await fetch(`https://nominatim.openstreetmap.org/search?format=jsonv2&q=${campaignCity},${campaignCountry}`);
+    const data = await response.json();
+    if (data.length > 0) {
+      setCampaignLatitude(parseFloat(data[0].lat));
+      setCampaignLongitude(parseFloat(data[0].lon));
+    } else {
+      alert('Unable to find location for the campaign.');
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
-    if (!campaignCity || !campaignCountry || latitude === null || longitude === null) {
+    if (!campaignCity || !campaignCountry || campaignLatitude === null || campaignLongitude === null) {
       alert('⚠️ Campaign city/town, country, and a valid location are required to submit.');
       return;
     }
 
+    // Get profile and calculate integrity scores
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('*')
@@ -100,15 +117,13 @@ export default function CreateCampaignPage() {
     }
 
     const vote_integrity = calculateVoteIntegrity(profile);
-    const location_score = calculateLocationAccuracy(latitude, longitude, latitude, longitude);
-
+    const location_score = calculateLocationAccuracy(latitude, longitude, campaignLatitude, campaignLongitude);
     const { count: campaignCount } = await supabase
       .from('campaigns')
       .select('*', { count: 'exact', head: true })
       .eq('created_by', user.id);
 
     const experience_score = calculateCampaignActivityScore(campaignCount || 0);
-
     const creator_integrity = parseFloat(
       (
         0.5 * vote_integrity +
@@ -117,6 +132,7 @@ export default function CreateCampaignPage() {
       ).toFixed(4)
     );
 
+    // Insert campaign into the database
     const { error } = await supabase.from('campaigns').insert([
       {
         title,
@@ -128,8 +144,10 @@ export default function CreateCampaignPage() {
         country,
         latitude,
         longitude,
-        campaign_city: campaignCity, // Manual campaign city
-        campaign_country: campaignCountry, // Manual campaign country
+        campaign_city: campaignCity,  // Manual campaign city
+        campaign_country: campaignCountry,  // Manual campaign country
+        campaign_latitude: campaignLatitude,  // Store coordinates for campaign location
+        campaign_longitude: campaignLongitude,  // Store coordinates for campaign location
         created_by: user.id,
         status: 'published',
         creator_integrity,
@@ -151,6 +169,7 @@ export default function CreateCampaignPage() {
     <div className="p-6 max-w-xl mx-auto">
       <h1 className="text-2xl font-bold mb-4">Create Campaign</h1>
       <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Existing form fields */}
         <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Title" required className="w-full border p-2" />
         <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Description" required className="w-full border p-2" />
         <select value={scope} onChange={(e) => setScope(e.target.value)} className="w-full border p-2">
@@ -171,7 +190,7 @@ export default function CreateCampaignPage() {
 
         {latitude && longitude && (
           <p className="text-sm text-gray-600">
-            📍 Detected Location: {city}, {country} ({latitude.toFixed(4)}, {longitude.toFixed(4)})
+            📍 Location Campaign was Created: {city}, {country} ({latitude.toFixed(4)}, {longitude.toFixed(4)})
           </p>
         )}
 
