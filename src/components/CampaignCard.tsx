@@ -228,30 +228,35 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
         )}
       </div>
 
-      {campaign.latitude && campaign.longitude && (
-        <div className="mt-6 mb-4">
-          <iframe
-            width="100%"
-            height="250"
-            className="rounded border"
-            frameBorder="0"
-            scrolling="no"
-            marginHeight={0}
-            marginWidth={0}
-            src={`https://www.openstreetmap.org/export/embed.html?bbox=${campaign.longitude - 0.01}%2C${campaign.latitude - 0.01}%2C${campaign.longitude + 0.01}%2C${campaign.latitude + 0.01}&layer=mapnik&marker=${campaign.latitude}%2C${campaign.longitude}`}
-          ></iframe>
-          <p className="text-xs text-gray-500 mt-2">
-            <a
-              href={`https://www.openstreetmap.org/?mlat=${campaign.latitude}&mlon=${campaign.longitude}#map=15/${campaign.latitude}/${campaign.longitude}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="underline"
-            >
-              View full map
-            </a>
-          </p>
-        </div>
-      )}
+      {campaign.campaign_latitude && campaign.campaign_longitude && (
+  <div className="mt-6 mb-4">
+    <iframe
+      width="100%"
+      height="250"
+      className="rounded border"
+      frameBorder="0"
+      scrolling="no"
+      marginHeight={0}
+      marginWidth={0}
+      src={`https://www.openstreetmap.org/export/embed.html?bbox=${campaign.campaign_longitude - 0.01}%2C${campaign.campaign_latitude - 0.01}%2C${campaign.campaign_longitude + 0.01}%2C${campaign.campaign_latitude + 0.01}&layer=mapnik&marker=${campaign.campaign_latitude}%2C${campaign.campaign_longitude}`}
+    ></iframe>
+    <p className="text-xs text-gray-500 mt-2">
+      <a
+        href={`https://www.openstreetmap.org/?mlat=${campaign.campaign_latitude}&mlon=${campaign.campaign_longitude}#map=15/${campaign.campaign_latitude}/${campaign.campaign_longitude}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="underline"
+      >
+        View full map
+      </a>
+    </p>
+  </div>
+)}
+
+
+
+
+
     </div>
   );
 }
