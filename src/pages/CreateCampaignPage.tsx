@@ -27,7 +27,7 @@ export default function CreateCampaignPage() {
   const [campaignLatitude, setCampaignLatitude] = useState<number | null>(null);
   const [campaignLongitude, setCampaignLongitude] = useState<number | null>(null);
   const [user, setUser] = useState(null);
-
+  const [locationError, setLocationError] = useState<string | null>(null); // State for location error message
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -59,7 +59,11 @@ export default function CreateCampaignPage() {
           const rawCity = data.address.city || data.address.town || data.address.village || '';
           setCity(rawCity);
           setCountry(data.address.country || '');
+        }, (error) => {
+          setLocationError('Failed to get location: ' + error.message);
         });
+      } else {
+        setLocationError('Geolocation is not supported by this browser.');
       }
     };
 
@@ -142,6 +146,13 @@ export default function CreateCampaignPage() {
   return (
     <div className="p-6 max-w-xl mx-auto">
       <h1 className="text-2xl font-bold mb-4">Create Campaign</h1>
+
+      {locationError && (
+        <div className="bg-red-200 text-red-800 p-2 mb-4 rounded">
+          {locationError}
+        </div>
+      )}
+
       <form onSubmit={handleSubmit} className="space-y-4">
         <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Title" required className="w-full border p-2" />
         <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Description" required className="w-full border p-2" />
@@ -155,7 +166,7 @@ export default function CreateCampaignPage() {
         <input value={image} onChange={(e) => setImage(e.target.value)} placeholder="Image URL (optional)" className="w-full border p-2" />
         <input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="Reference URL (optional)" className="w-full border p-2" />
 
-        {/* City and Country fields */}
+        {/* City and Country fields (populated by geolocation) */}
         <input value={city} onChange={(e) => setCity(e.target.value)} placeholder="City" required className="w-full border p-2" />
         <input value={country} onChange={(e) => setCountry(e.target.value)} placeholder="Country" required className="w-full border p-2" />
 
