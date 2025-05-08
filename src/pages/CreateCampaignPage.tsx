@@ -96,6 +96,11 @@ export default function CreateCampaignPage() {
     }
   };
 
+  // Trigger geocoding when campaign city/country changes
+  useEffect(() => {
+    getCampaignCoordinates();
+  }, [campaignCity, campaignCountry]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
@@ -188,9 +193,9 @@ export default function CreateCampaignPage() {
         <input value={campaignCity} onChange={(e) => setCampaignCity(e.target.value)} placeholder="Campaign City/Town" required className="w-full border p-2" />
         <input value={campaignCountry} onChange={(e) => setCampaignCountry(e.target.value)} placeholder="Campaign Country" required className="w-full border p-2" />
 
-        {latitude && longitude && (
+        {campaignLatitude && campaignLongitude && (
           <p className="text-sm text-gray-600">
-            📍 Location Campaign was Created: {city}, {country} ({latitude.toFixed(4)}, {longitude.toFixed(4)})
+            📍 Location Campaign was Created: {city}, {country} ({latitude?.toFixed(4)}, {longitude?.toFixed(4)})
           </p>
         )}
 
