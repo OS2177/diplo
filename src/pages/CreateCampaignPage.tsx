@@ -39,14 +39,11 @@ export default function CreateCampaignPage() {
   const [country, setCountry] = useState('');
   const [latitude, setLatitude] = useState<number | null>(null);
   const [longitude, setLongitude] = useState<number | null>(null);
-  const [campaignCity, setCampaignCity] = useState(''); // Manual campaign location
-  const [campaignCountry, setCampaignCountry] = useState(''); // Manual campaign location
+  const [campaignLocation, setCampaignLocation] = useState(''); // Manual campaign location
   const [campaignLatitude, setCampaignLatitude] = useState<number | null>(null); // Coordinates for campaign location
   const [campaignLongitude, setCampaignLongitude] = useState<number | null>(null); // Coordinates for campaign location
   const [citySuggestions, setCitySuggestions] = useState([]);
-  const [countrySuggestions, setCountrySuggestions] = useState([]);
   const [showCitySuggestions, setShowCitySuggestions] = useState(false);
-  const [showCountrySuggestions, setShowCountrySuggestions] = useState(false);
   const [user, setUser] = useState(null);
 
   const navigate = useNavigate();
@@ -89,8 +86,8 @@ export default function CreateCampaignPage() {
 
   // Handle manual campaign location conversion to coordinates
   const getCampaignCoordinates = async () => {
-    if (!campaignCity || !campaignCountry) return;
-    const response = await fetch(`https://nominatim.openstreetmap.org/search?format=jsonv2&q=${campaignCity},${campaignCountry}`);
+    if (!campaignLocation) return;
+    const response = await fetch(`https://nominatim.openstreetmap.org/search?format=jsonv2&q=${campaignLocation}`);
     const data = await response.json();
     if (data.length > 0) {
       setCampaignLatitude(parseFloat(data[0].lat));
@@ -100,46 +97,31 @@ export default function CreateCampaignPage() {
     }
   };
 
-  // Trigger geocoding when campaign city/country changes
+  // Trigger geocoding when campaign location changes
   useEffect(() => {
     getCampaignCoordinates();
-  }, [campaignCity, campaignCountry]);
+  }, [campaignLocation]);
 
   // Fetch city suggestions based on user input
   useEffect(() => {
-    if (campaignCity.length > 2) { // Trigger search after at least 3 characters
-      fetch(`https://nominatim.openstreetmap.org/search?format=jsonv2&q=${campaignCity}&addressdetails=1`)
+    if (campaignLocation.length > 2) { // Trigger search after at least 3 characters
+      fetch(`https://nominatim.openstreetmap.org/search?format=jsonv2&q=${campaignLocation}&addressdetails=1`)
         .then((response) => response.json())
         .then((data) => {
-          const cities = data.map((item) => item.display_name);
-          setCitySuggestions(cities);
-          setShowCitySuggestions(true); // Show city suggestions
+          const locations = data.map((item) => item.display_name);
+          setCitySuggestions(locations);
+          setShowCitySuggestions(true); // Show location suggestions
         });
     } else {
-      setShowCitySuggestions(false); // Hide city suggestions if input is less than 3 characters
+      setShowCitySuggestions(false); // Hide location suggestions if input is less than 3 characters
     }
-  }, [campaignCity]);
-
-  // Fetch country suggestions based on user input
-  useEffect(() => {
-    if (campaignCountry.length > 2) { // Trigger search after at least 3 characters
-      fetch(`https://nominatim.openstreetmap.org/search?format=jsonv2&q=${campaignCountry}&addressdetails=1`)
-        .then((response) => response.json())
-        .then((data) => {
-          const countries = data.map((item) => item.address.country);
-          setCountrySuggestions(countries);
-          setShowCountrySuggestions(true); // Show country suggestions
-        });
-    } else {
-      setShowCountrySuggestions(false); // Hide country suggestions if input is less than 3 characters
-    }
-  }, [campaignCountry]);
+  }, [campaignLocation]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
-    if (!campaignCity || !campaignCountry || campaignLatitude === null || campaignLongitude === null) {
-      alert('⚠️ Campaign city/town, country, and a valid location are required to submit.');
+    if (!campaignLocation || campaignLatitude === null || campaignLongitude === null) {
+      alert('⚠️ Campaign location and valid coordinates are required to submit.');
       return;
     }
 
@@ -183,8 +165,7 @@ export default function CreateCampaignPage() {
         country,
         latitude,
         longitude,
-        campaign_city: campaignCity,  // Manual campaign city
-        campaign_country: campaignCountry,  // Manual campaign country
+        campaign_location: campaignLocation,  // Use the single field for location
         campaign_latitude: campaignLatitude,  // Store coordinates for campaign location
         campaign_longitude: campaignLongitude,  // Store coordinates for campaign location
         created_by: user.id,
@@ -204,14 +185,9 @@ export default function CreateCampaignPage() {
     }
   };
 
-  const handleCitySelect = (city: string) => {
-    setCampaignCity(city);
-    setShowCitySuggestions(false); // Close city suggestions after selecting
-  };
-
-  const handleCountrySelect = (country: string) => {
-    setCampaignCountry(country);
-    setShowCountrySuggestions(false); // Close country suggestions after selecting
+  const handleLocationSelect = (location: string) => {
+    setCampaignLocation(location);
+    setShowCitySuggestions(false); // Close location suggestions after selecting
   };
 
   return (
@@ -233,21 +209,12 @@ export default function CreateCampaignPage() {
         <input value={city} onChange={(e) => setCity(e.target.value)} placeholder="City" required className="w-full border p-2" />
         <input value={country} onChange={(e) => setCountry(e.target.value)} placeholder="Country" required className="w-full border p-2" />
 
-        {/* New fields for manual campaign location */}
-        <input value={campaignCity} onChange={(e) => setCampaignCity(e.target.value)} placeholder="Campaign City/Town" required className="w-full border p-2" />
+        {/* New field for Campaign Location */}
+        <input value={campaignLocation} onChange={(e) => setCampaignLocation(e.target.value)} placeholder="Campaign Location" required className="w-full border p-2" />
         {showCitySuggestions && (
           <ul>
-            {citySuggestions.map((city, index) => (
-              <li key={index} onClick={() => handleCitySelect(city)} className="p-2 cursor-pointer hover:bg-gray-200">{city}</li>
-            ))}
-          </ul>
-        )}
-
-        <input value={campaignCountry} onChange={(e) => setCampaignCountry(e.target.value)} placeholder="Campaign Country" required className="w-full border p-2" />
-        {showCountrySuggestions && (
-          <ul>
-            {countrySuggestions.map((country, index) => (
-              <li key={index} onClick={() => handleCountrySelect(country)} className="p-2 cursor-pointer hover:bg-gray-200">{country}</li>
+            {citySuggestions.map((location, index) => (
+              <li key={index} onClick={() => handleLocationSelect(location)} className="p-2 cursor-pointer hover:bg-gray-200">{location}</li>
             ))}
           </ul>
         )}
