@@ -45,6 +45,9 @@ export default function CreateCampaignPage() {
   const [campaignLongitude, setCampaignLongitude] = useState<number | null>(null); // Coordinates for campaign location
   const [user, setUser] = useState(null);
 
+  const [citySuggestions, setCitySuggestions] = useState([]);
+  const [countrySuggestions, setCountrySuggestions] = useState([]);
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -100,6 +103,30 @@ export default function CreateCampaignPage() {
   useEffect(() => {
     getCampaignCoordinates();
   }, [campaignCity, campaignCountry]);
+
+  // Fetch city suggestions based on user input
+  useEffect(() => {
+    if (campaignCity.length > 2) { // Trigger search after at least 3 characters
+      fetch(`https://nominatim.openstreetmap.org/search?format=jsonv2&q=${campaignCity}&addressdetails=1`)
+        .then((response) => response.json())
+        .then((data) => {
+          const cities = data.map((item) => item.display_name);
+          setCitySuggestions(cities);
+        });
+    }
+  }, [campaignCity]);
+
+  // Fetch country suggestions based on user input
+  useEffect(() => {
+    if (campaignCountry.length > 2) { // Trigger search after at least 3 characters
+      fetch(`https://nominatim.openstreetmap.org/search?format=jsonv2&q=${campaignCountry}&addressdetails=1`)
+        .then((response) => response.json())
+        .then((data) => {
+          const countries = data.map((item) => item.address.country);
+          setCountrySuggestions(countries);
+        });
+    }
+  }, [campaignCountry]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -191,7 +218,17 @@ export default function CreateCampaignPage() {
 
         {/* New fields for manual campaign location */}
         <input value={campaignCity} onChange={(e) => setCampaignCity(e.target.value)} placeholder="Campaign City/Town" required className="w-full border p-2" />
+        <ul>
+          {citySuggestions.map((city, index) => (
+            <li key={index} className="p-2 cursor-pointer">{city}</li>
+          ))}
+        </ul>
         <input value={campaignCountry} onChange={(e) => setCampaignCountry(e.target.value)} placeholder="Campaign Country" required className="w-full border p-2" />
+        <ul>
+          {countrySuggestions.map((country, index) => (
+            <li key={index} className="p-2 cursor-pointer">{country}</li>
+          ))}
+        </ul>
 
         {campaignLatitude && campaignLongitude && (
           <p className="text-sm text-gray-600">
