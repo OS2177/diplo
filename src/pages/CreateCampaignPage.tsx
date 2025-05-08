@@ -1,8 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useNavigate } from 'react-router-dom';
-import { MapContainer, TileLayer, Marker } from 'react-leaflet';
-import 'leaflet/dist/leaflet.css'; // If you're using Leaflet for maps
 
 function calculateIntegrityScore(profile: any): number {
   let score = 0;
@@ -22,12 +20,8 @@ export default function CreateCampaignPage() {
   const [url, setUrl] = useState('');
   const [city, setCity] = useState('');
   const [country, setCountry] = useState('');
-  const [campaignCity, setCampaignCity] = useState('');
-  const [campaignCountry, setCampaignCountry] = useState('');
   const [latitude, setLatitude] = useState<number | null>(null);
   const [longitude, setLongitude] = useState<number | null>(null);
-  const [campaignLatitude, setCampaignLatitude] = useState<number | null>(null);
-  const [campaignLongitude, setCampaignLongitude] = useState<number | null>(null);
   const [user, setUser] = useState(null);
 
   const navigate = useNavigate();
@@ -51,7 +45,8 @@ export default function CreateCampaignPage() {
           const { latitude, longitude } = position.coords;
           setLatitude(latitude);
           setLongitude(longitude);
-          const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}`);
+
+          const response = await fetch(https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude});
           const data = await response.json();
           const rawCity = data.address.city || data.address.town || data.address.village || '';
           setCity(typeof rawCity === 'string' ? rawCity : '');
@@ -62,40 +57,15 @@ export default function CreateCampaignPage() {
     fetchLocation();
   }, []);
 
-  useEffect(() => {
-    const fetchCampaignCoordinates = async () => {
-      if (campaignCity && campaignCountry) {
-        const response = await fetch(
-          `https://nominatim.openstreetmap.org/search?format=json&q=${campaignCity},${campaignCountry}`
-        );
-        const data = await response.json();
-        if (data && data.length > 0) {
-          const { lat, lon } = data[0];
-          setCampaignLatitude(parseFloat(lat));
-          setCampaignLongitude(parseFloat(lon));
-        } else {
-          alert('Location not found for Campaign City and Country.');
-        }
-      }
-    };
-
-    if (campaignCity && campaignCountry) {
-      fetchCampaignCoordinates();
-    }
-  }, [campaignCity, campaignCountry]);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
-    if (!campaignCity || !campaignCountry) {
-      alert('Campaign City and Country are required.');
-      return;
-    }
-    if (campaignLatitude === null || campaignLongitude === null) {
-      alert('Unable to fetch coordinates for the Campaign location.');
+    if (!city || !country) {
+      alert('City and country are required.');
       return;
     }
 
+    // Fetch profile to get integrity and 2FA status
     const { data: profile } = await supabase
       .from('profiles')
       .select('*')
@@ -114,12 +84,12 @@ export default function CreateCampaignPage() {
         url,
         city,
         country,
-        campaign_latitude: campaignLatitude,
-        campaign_longitude: campaignLongitude,
+        latitude,
+        longitude,
         created_by: user.id,
         status: 'published',
         creator_integrity,
-        creator_verified_2fa,
+        creator_verified_2fa, // ✅ Store creator's 2FA status
       },
     ]);
 
@@ -149,8 +119,6 @@ export default function CreateCampaignPage() {
         <input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="Reference URL (optional)" className="w-full border p-2" />
         <input value={city} onChange={(e) => setCity(e.target.value)} placeholder="City" required className="w-full border p-2" />
         <input value={country} onChange={(e) => setCountry(e.target.value)} placeholder="Country" required className="w-full border p-2" />
-        <input value={campaignCity} onChange={(e) => setCampaignCity(e.target.value)} placeholder="Campaign Town/City" required className="w-full border p-2" />
-        <input value={campaignCountry} onChange={(e) => setCampaignCountry(e.target.value)} placeholder="Campaign Country" required className="w-full border p-2" />
         <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded">Create Campaign</button>
       </form>
     </div>
