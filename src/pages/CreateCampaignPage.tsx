@@ -20,12 +20,12 @@ export default function CreateCampaignPage() {
   const [url, setUrl] = useState('');
   const [city, setCity] = useState('');
   const [country, setCountry] = useState('');
-  const [campaignCity, setCampaignCity] = useState(''); // New state for Campaign Town/City
-  const [campaignCountry, setCampaignCountry] = useState(''); // New state for Campaign Country
+  const [campaignCity, setCampaignCity] = useState('');
+  const [campaignCountry, setCampaignCountry] = useState('');
   const [latitude, setLatitude] = useState<number | null>(null);
   const [longitude, setLongitude] = useState<number | null>(null);
-  const [campaignLatitude, setCampaignLatitude] = useState<number | null>(null); // New state for Campaign Latitude
-  const [campaignLongitude, setCampaignLongitude] = useState<number | null>(null); // New state for Campaign Longitude
+  const [campaignLatitude, setCampaignLatitude] = useState<number | null>(null);
+  const [campaignLongitude, setCampaignLongitude] = useState<number | null>(null);
   const [user, setUser] = useState(null);
 
   const navigate = useNavigate();
@@ -50,14 +50,19 @@ export default function CreateCampaignPage() {
           const { latitude, longitude } = position.coords;
           setLatitude(latitude);
           setLongitude(longitude);
+
+          // Fetch city and country from Nominatim API using lat/lon
           const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}`);
           const data = await response.json();
+
+          // Populate city and country fields with the fetched data
           const rawCity = data.address.city || data.address.town || data.address.village || '';
-          setCity(typeof rawCity === 'string' ? rawCity : '');
+          setCity(rawCity);
           setCountry(data.address.country || '');
         });
       }
     };
+
     fetchLocation();
   }, []);
 
@@ -149,6 +154,8 @@ export default function CreateCampaignPage() {
         </select>
         <input value={image} onChange={(e) => setImage(e.target.value)} placeholder="Image URL (optional)" className="w-full border p-2" />
         <input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="Reference URL (optional)" className="w-full border p-2" />
+
+        {/* City and Country fields */}
         <input value={city} onChange={(e) => setCity(e.target.value)} placeholder="City" required className="w-full border p-2" />
         <input value={country} onChange={(e) => setCountry(e.target.value)} placeholder="Country" required className="w-full border p-2" />
 
