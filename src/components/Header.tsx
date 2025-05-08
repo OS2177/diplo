@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { useUser } from '../hooks/useUser';
+import logo from './public-images-diplo_logo.png';  // Path to the logo
 
 const linkClasses =
   'text-gray-600 hover:text-black px-3 py-2 rounded-md text-sm font-medium';
@@ -18,17 +19,28 @@ export default function Header() {
   };
 
   return (
-    <nav className="flex items-center justify-between px-6 py-4 bg-white shadow relative">
-      {/* Left Nav */}
-      <div className="flex space-x-4">
-        <NavLink
-          to="/"
-          className={({ isActive }) =>
-            `${linkClasses} ${isActive ? activeClasses : ''}`
-          }
+    <nav className="flex items-center justify-between px-8 py-6 bg-[#EEEDE5] shadow-md relative">
+      {/* Left Side: Logo */}
+      <div className="flex items-center space-x-4">
+        <img 
+          src="/images/diplo_logo.png" 
+          alt="Diplo Logo" 
+          className="h-14" 
+        />
+        <h1 className="text-4xl font-extrabold text-black">diplo</h1>
+      </div>
+
+      {/* Right Side: Nav and Profile or Login */}
+      <div className="flex items-center space-x-6">
+        {/* Update Home to link to external URL */}
+        <a
+          href="https://diplo.cargo.site/"
+          className={linkClasses}
+          target="_blank"
+          rel="noopener noreferrer"
         >
           Home
-        </NavLink>
+        </a>
         <NavLink
           to="/global-pulse"
           className={({ isActive }) =>
@@ -45,11 +57,6 @@ export default function Header() {
         >
           Create Campaign
         </NavLink>
-        
-      </div>
-
-      {/* Right: Profile or Login */}
-      <div className="relative">
         {user ? (
           <div className="relative">
             <button

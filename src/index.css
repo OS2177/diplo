@@ -1,10 +1,27 @@
-
+/* Tailwind base, components, and utilities */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* Define the MDNichrome Ultra font (used for the logo) */
+@font-face {
+  font-family: 'MDNichrome-Ultra';
+  src: url('/fonts/MDNichrome-Ultra.woff2') format('woff2');
+  font-weight: normal;
+  font-style: normal;
+}
+
+/* Define the MDNichrome Light font (used for other text) */
+@font-face {
+  font-family: 'MDNichrome-Light';
+  src: url('/fonts/MDNichrome-Light.woff2') format('woff2');
+  font-weight: normal;
+  font-style: normal;
+}
+
+/* Set global font and apply custom background color */
 :root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: 'MDNichrome-Light', system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
 }
@@ -13,9 +30,15 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
-  @apply bg-gray-100;
+  @apply bg-[#EEEDE5]; /* Set the background color to #EEEDE5 */
+  font-family: 'MDNichrome-Light', sans-serif; /* Default font for the body */
 }
 
 #root {
   min-height: 100vh;
+}
+
+/* Specifically apply 'MDNichrome-Ultra' to the logo */
+h1 {
+  font-family: 'MDNichrome-Ultra', sans-serif;
 }
