@@ -43,10 +43,11 @@ export default function CreateCampaignPage() {
   const [campaignCountry, setCampaignCountry] = useState(''); // Manual campaign location
   const [campaignLatitude, setCampaignLatitude] = useState<number | null>(null); // Coordinates for campaign location
   const [campaignLongitude, setCampaignLongitude] = useState<number | null>(null); // Coordinates for campaign location
-  const [user, setUser] = useState(null);
-
   const [citySuggestions, setCitySuggestions] = useState([]);
   const [countrySuggestions, setCountrySuggestions] = useState([]);
+  const [showCitySuggestions, setShowCitySuggestions] = useState(false);
+  const [showCountrySuggestions, setShowCountrySuggestions] = useState(false);
+  const [user, setUser] = useState(null);
 
   const navigate = useNavigate();
 
@@ -112,7 +113,10 @@ export default function CreateCampaignPage() {
         .then((data) => {
           const cities = data.map((item) => item.display_name);
           setCitySuggestions(cities);
+          setShowCitySuggestions(true); // Show city suggestions
         });
+    } else {
+      setShowCitySuggestions(false); // Hide city suggestions if input is less than 3 characters
     }
   }, [campaignCity]);
 
@@ -124,7 +128,10 @@ export default function CreateCampaignPage() {
         .then((data) => {
           const countries = data.map((item) => item.address.country);
           setCountrySuggestions(countries);
+          setShowCountrySuggestions(true); // Show country suggestions
         });
+    } else {
+      setShowCountrySuggestions(false); // Hide country suggestions if input is less than 3 characters
     }
   }, [campaignCountry]);
 
@@ -197,6 +204,16 @@ export default function CreateCampaignPage() {
     }
   };
 
+  const handleCitySelect = (city: string) => {
+    setCampaignCity(city);
+    setShowCitySuggestions(false); // Close city suggestions after selecting
+  };
+
+  const handleCountrySelect = (country: string) => {
+    setCampaignCountry(country);
+    setShowCountrySuggestions(false); // Close country suggestions after selecting
+  };
+
   return (
     <div className="p-6 max-w-xl mx-auto">
       <h1 className="text-2xl font-bold mb-4">Create Campaign</h1>
@@ -218,17 +235,22 @@ export default function CreateCampaignPage() {
 
         {/* New fields for manual campaign location */}
         <input value={campaignCity} onChange={(e) => setCampaignCity(e.target.value)} placeholder="Campaign City/Town" required className="w-full border p-2" />
-        <ul>
-          {citySuggestions.map((city, index) => (
-            <li key={index} className="p-2 cursor-pointer">{city}</li>
-          ))}
-        </ul>
+        {showCitySuggestions && (
+          <ul>
+            {citySuggestions.map((city, index) => (
+              <li key={index} onClick={() => handleCitySelect(city)} className="p-2 cursor-pointer hover:bg-gray-200">{city}</li>
+            ))}
+          </ul>
+        )}
+
         <input value={campaignCountry} onChange={(e) => setCampaignCountry(e.target.value)} placeholder="Campaign Country" required className="w-full border p-2" />
-        <ul>
-          {countrySuggestions.map((country, index) => (
-            <li key={index} className="p-2 cursor-pointer">{country}</li>
-          ))}
-        </ul>
+        {showCountrySuggestions && (
+          <ul>
+            {countrySuggestions.map((country, index) => (
+              <li key={index} onClick={() => handleCountrySelect(country)} className="p-2 cursor-pointer hover:bg-gray-200">{country}</li>
+            ))}
+          </ul>
+        )}
 
         {campaignLatitude && campaignLongitude && (
           <p className="text-sm text-gray-600">
