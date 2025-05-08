@@ -1,44 +1,25 @@
-import { useEffect, useState } from 'react';
-import { supabase } from '../lib/supabaseClient';
+import React, { useEffect, useState } from 'react';
+import { supabase } from '../lib/supabaseClient'; // Import supabase
 
-type Campaign = {
-  id: string;
-  title: string;
-  description: string;
-  scope?: string;
-  image?: string;
-  url?: string;
-  created_at?: string;
-  city?: string;
-  country?: string;
-  latitude?: number;
-  longitude?: number;
-  creator_integrity?: number;
-};
-
-function calculateIntegrityScore(profile: any): number {
-  let score = 0;
-  if (profile?.location_permission) score += 0.2;
-  if (profile?.profile_complete) score += 0.2;
-  if (profile?.two_factor_enabled) score += 0.2;
-  if (profile?.blockchain_id) score += 0.3;
-  if (profile?.community_verified) score += 0.1;
-  return Math.min(score, 1.0);
+interface CampaignCardProps {
+  campaign: {
+    id: string;
+    title: string;
+    description: string;
+    scope?: string;
+    image?: string;
+    url?: string;
+    created_at?: string;
+    campaign_location?: string; // Now using campaign_location
+    campaign_latitude?: number;
+    campaign_longitude?: number;
+    creator_integrity?: number;
+  };
 }
 
-function calculateProximity(lat1: number, lon1: number, lat2: number, lon2: number): number {
-  const toRad = (deg: number) => (deg * Math.PI) / 180;
-  const R = 6371;
-  const dLat = toRad(lat2 - lat1);
-  const dLon = toRad(lon2 - lon1);
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return R * c;
-}
-
-export default function CampaignCard({ campaign }: { campaign: Campaign }) {
+const CampaignCard: React.FC<CampaignCardProps> = ({
+  campaign
+}) => {
   const [voted, setVoted] = useState(false);
   const [voteChoice, setVoteChoice] = useState('');
   const [voteSuccess, setVoteSuccess] = useState(false);
@@ -104,8 +85,8 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
 
         const integrity = calculateIntegrityScore(profile);
 
-        const proximity = campaign.latitude && campaign.longitude
-          ? calculateProximity(userLat, userLon, campaign.latitude, campaign.longitude)
+        const proximity = campaign.campaign_latitude && campaign.campaign_longitude
+          ? calculateProximity(userLat, userLon, campaign.campaign_latitude, campaign.campaign_longitude)
           : 1000;
 
         const globalModifier = 1.0;
@@ -157,11 +138,10 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
         </p>
       )}
 
-      {(campaign.city || campaign.country) && (
+      {/* Display the Location using campaign_location */}
+      {campaign.campaign_location && (
         <p className="text-sm text-gray-500 mb-4">
-          📍 {Array.isArray(campaign.city) ? campaign.city[0] : campaign.city}
-          {campaign.city && campaign.country ? ', ' : ''}
-          {campaign.country}
+          📍 Location Campaign was Created: {campaign.campaign_location}
         </p>
       )}
 
@@ -183,53 +163,7 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
         </div>
       )}
 
-      <div className="mt-4">
-        {voteCount !== null && (
-          <p className="text-sm text-gray-700 mb-2">Total Votes: {voteCount}</p>
-        )}
-
-        {!voted ? (
-          <div className="flex gap-4 mt-2">
-            <button
-              onClick={() => castVote('yes')}
-              className="bg-green-600 text-white px-4 py-2 rounded"
-            >
-              Vote Yes
-            </button>
-            <button
-              onClick={() => castVote('no')}
-              className="bg-red-600 text-white px-4 py-2 rounded"
-            >
-              Vote No
-            </button>
-          </div>
-        ) : (
-          <>
-            <p className="mt-4 text-sm text-green-700">
-              ✅ You voted <strong>{voteChoice.toUpperCase()}</strong> on this campaign.
-            </p>
-            {voteImpact !== null && (
-              <p className="text-sm text-blue-700">
-                🧠 Your vote impact: <strong>{voteImpact.toFixed(4)}</strong>
-              </p>
-            )}
-          </>
-        )}
-
-        {voteSuccess && (
-          <div className="mt-4 text-green-700 text-sm">
-            ✅ Your vote was submitted successfully.
-          </div>
-        )}
-
-        {voteError && (
-          <div className="mt-4 text-red-600 text-sm">
-            ❌ {voteError}
-          </div>
-        )}
-      </div>
-
-      {campaign.latitude && campaign.longitude && (
+      {campaign.campaign_latitude && campaign.campaign_longitude && (
         <div className="mt-6 mb-4">
           <iframe
             width="100%"
@@ -239,11 +173,11 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
             scrolling="no"
             marginHeight={0}
             marginWidth={0}
-            src={`https://www.openstreetmap.org/export/embed.html?bbox=${campaign.longitude - 0.01}%2C${campaign.latitude - 0.01}%2C${campaign.longitude + 0.01}%2C${campaign.latitude + 0.01}&layer=mapnik&marker=${campaign.latitude}%2C${campaign.longitude}`}
+            src={`https://www.openstreetmap.org/export/embed.html?bbox=${campaign.campaign_longitude - 0.01}%2C${campaign.campaign_latitude - 0.01}%2C${campaign.campaign_longitude + 0.01}%2C${campaign.campaign_latitude + 0.01}&layer=mapnik&marker=${campaign.campaign_latitude}%2C${campaign.campaign_longitude}`}
           ></iframe>
           <p className="text-xs text-gray-500 mt-2">
             <a
-              href={`https://www.openstreetmap.org/?mlat=${campaign.latitude}&mlon=${campaign.longitude}#map=15/${campaign.latitude}/${campaign.longitude}`}
+              href={`https://www.openstreetmap.org/?mlat=${campaign.campaign_latitude}&mlon=${campaign.campaign_longitude}#map=15/${campaign.campaign_latitude}/${campaign.campaign_longitude}`}
               target="_blank"
               rel="noopener noreferrer"
               className="underline"
@@ -255,4 +189,6 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
       )}
     </div>
   );
-}
+};
+
+export default CampaignCard;
