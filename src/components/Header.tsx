@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { useUser } from '../hooks/useUser';
-import logo from './public-images-diplo_logo.png';  // Path to the logo
+import logo from './public-images/diplo_logo.png';  // Path to the logo
 
 const linkClasses =
   'text-gray-600 hover:text-black px-3 py-2 rounded-md text-sm font-medium';
@@ -57,15 +57,15 @@ export default function Header() {
 
       {/* Right Side: Nav and Profile or Login */}
       <div className="flex items-center space-x-6 lg:flex">
-        {/* Regular Nav Links (Desktop) */}
-        <NavLink
-          to="/"
-          className={({ isActive }) =>
-            `${linkClasses} ${isActive ? activeClasses : ''}`
-          }
+        {/* Update Home to link to external URL */}
+        <a
+          href="https://diplo.cargo.site/"
+          className={linkClasses}
+          target="_blank"
+          rel="noopener noreferrer"
         >
           Home
-        </NavLink>
+        </a>
         <NavLink
           to="/global-pulse"
           className={({ isActive }) =>
@@ -137,11 +137,8 @@ export default function Header() {
       {/* Mobile Menu (Pop-up menu when Hamburger is clicked) */}
       {menuOpen && (
         <div className="lg:hidden absolute left-0 top-20 w-full bg-[#EEEDE5] shadow-lg z-50">
-          {/* Home Link (External link) */}
           <a
             href="https://diplo.cargo.site/"
-            target="_blank"
-            rel="noopener noreferrer"
             className={`${linkClasses} block px-4 py-2`}
             onClick={() => setMenuOpen(false)}
           >
