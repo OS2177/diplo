@@ -1,22 +1,11 @@
 import { useState } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
-import { supabase } from '../lib/supabaseClient';
-import { useUser } from '../hooks/useUser';
-import logo from './public-images/diplo_logo.png';  // Path to the logo
+import { useNavigate } from 'react-router-dom';
 
 const linkClasses =
   'text-gray-600 hover:text-black px-3 py-2 rounded-md text-sm font-medium';
-const activeClasses = 'bg-gray-200 text-black';
 
 export default function Header() {
-  const { user } = useUser();
-  const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigate('/login', { state: { message: 'logout-success' } });
-  };
 
   return (
     <nav className="flex items-center justify-between px-8 py-6 bg-[#EEEDE5] shadow-md relative">
@@ -32,148 +21,27 @@ export default function Header() {
         </a>
       </div>
 
-      {/* Hamburger Menu Icon (Visible only on mobile) */}
-      <div className="lg:hidden">
-        <button
-          onClick={() => setMenuOpen(!menuOpen)}
-          className="text-gray-700 hover:text-black"
-        >
-          <svg
-            className="w-6 h-6"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M4 6h16M4 12h16M4 18h16"
-            />
-          </svg>
-        </button>
-      </div>
-
-      {/* Right Side: Nav and Profile or Login */}
+      {/* Right Side: Index Link */}
       <div className="flex items-center space-x-6 lg:flex">
-        {/* Update Home to link to external URL */}
+        {/* Only the Index Link */}
         <a
-          href="https://diplo.cargo.site/"
-          className={linkClasses}
-          target="_blank"
-          rel="noopener noreferrer"
+          href="https://diplo.cargo.site/nav"
+          className={`${linkClasses} text-white bg-[#F69BE4] hover:bg-[#F69BE4] px-4 py-2 rounded-md text-sm font-medium`}
         >
-          Home
+          index
         </a>
-        <NavLink
-          to="/global-pulse"
-          className={({ isActive }) =>
-            `${linkClasses} ${isActive ? activeClasses : ''}`
-          }
-        >
-          Global Pulse
-        </NavLink>
-        <NavLink
-          to="/create"
-          className={({ isActive }) =>
-            `${linkClasses} ${isActive ? activeClasses : ''}`
-          }
-        >
-          Create Campaign
-        </NavLink>
-        {user ? (
-          <div className="relative">
-            <button
-              onClick={() => setMenuOpen(!menuOpen)}
-              className="flex items-center space-x-2 text-gray-700 hover:text-black"
-            >
-              <span>Profile</span>
-              <svg
-                className="w-4 h-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M19 9l-7 7-7-7"
-                />
-              </svg>
-            </button>
-
-            {menuOpen && (
-              <div className="absolute right-0 mt-2 w-32 bg-white border rounded shadow-lg z-50">
-                <NavLink
-                  to="/profile"
-                  className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                  onClick={() => setMenuOpen(false)}
-                >
-                  Profile
-                </NavLink>
-                <button
-                  onClick={handleLogout}
-                  className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
-                >
-                  Logout
-                </button>
-              </div>
-            )}
-          </div>
-        ) : (
-          <NavLink
-            to="/login"
-            className={({ isActive }) =>
-              `${linkClasses} ${isActive ? activeClasses : ''}`
-            }
-          >
-            Login
-          </NavLink>
-        )}
       </div>
 
       {/* Mobile Menu (Pop-up menu when Hamburger is clicked) */}
       {menuOpen && (
         <div className="lg:hidden absolute left-0 top-20 w-full bg-[#EEEDE5] shadow-lg z-50">
           <a
-            href="https://diplo.cargo.site/"
+            href="https://diplo.cargo.site/nav"
             className={`${linkClasses} block px-4 py-2`}
             onClick={() => setMenuOpen(false)}
           >
-            Home
+            Index
           </a>
-          <NavLink
-            to="/global-pulse"
-            className={`${linkClasses} block px-4 py-2`}
-            onClick={() => setMenuOpen(false)}
-          >
-            Global Pulse
-          </NavLink>
-          <NavLink
-            to="/create"
-            className={`${linkClasses} block px-4 py-2`}
-            onClick={() => setMenuOpen(false)}
-          >
-            Create Campaign
-          </NavLink>
-          {user ? (
-            <button
-              onClick={handleLogout}
-              className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
-            >
-              Logout
-            </button>
-          ) : (
-            <NavLink
-              to="/login"
-              className={`${linkClasses} block px-4 py-2`}
-              onClick={() => setMenuOpen(false)}
-            >
-              Login
-            </NavLink>
-          )}
         </div>
       )}
     </nav>
