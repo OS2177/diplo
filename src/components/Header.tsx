@@ -31,8 +31,8 @@ export default function Header() {
         </a>
       </div>
 
-      {/* Hamburger Menu Icon (Visible on both mobile and desktop) */}
-      <div>
+      {/* Hamburger Menu Icon (Visible on all screens) */}
+      <div className="lg:hidden">
         <button
           onClick={() => setMenuOpen(!menuOpen)}  // Toggle menu on click
           className="text-gray-700 hover:text-black"
@@ -54,16 +54,68 @@ export default function Header() {
         </button>
       </div>
 
+      {/* Desktop Navigation Links (Visible only on desktop) */}
+      <div className="hidden lg:flex items-center space-x-6">
+        <a
+          href="https://diplo.cargo.site/"
+          className={`${linkClasses} `}  // Applied same link classes with hover effect
+        >
+          Home
+        </a>
+
+        <NavLink
+          to="/global-pulse"
+          className={({ isActive }) =>
+            `${linkClasses} ${isActive ? activeClasses : ''}`
+          }
+        >
+          Global Pulse
+        </NavLink>
+        <NavLink
+          to="/create"
+          className={({ isActive }) =>
+            `${linkClasses} ${isActive ? activeClasses : ''}`
+          }
+        >
+          Create Campaign
+        </NavLink>
+        {user ? (
+          <>
+            <NavLink
+              to="/profile"
+              className={`${linkClasses} ${activeClasses} px-4 py-2`}
+            >
+              Profile
+            </NavLink>
+            <button
+              onClick={handleLogout}
+              className="text-sm text-red-600 hover:bg-gray-100 px-4 py-2"
+            >
+              Logout
+            </button>
+          </>
+        ) : (
+          <NavLink
+            to="/login"
+            className={({ isActive }) =>
+              `${linkClasses} ${isActive ? activeClasses : ''}`
+            }
+          >
+            Login
+          </NavLink>
+        )}
+      </div>
+
       {/* Mobile Menu (Pop-up menu when Hamburger is clicked) */}
       {menuOpen && (
-        <div className="absolute left-0 top-20 w-full bg-[#EEEDE5] shadow-lg z-50">
-          <NavLink
-            to="/"
+        <div className="absolute left-0 top-20 w-full bg-[#EEEDE5] shadow-lg z-50 lg:hidden">
+          <a
+            href="https://diplo.cargo.site/"
             className={`${linkClasses} block px-4 py-2`}
             onClick={() => setMenuOpen(false)}
           >
             Home
-          </NavLink>
+          </a>
           <NavLink
             to="/global-pulse"
             className={`${linkClasses} block px-4 py-2`}
@@ -89,7 +141,7 @@ export default function Header() {
               </NavLink>
               <button
                 onClick={handleLogout}
-                className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
               >
                 Logout
               </button>
