@@ -1,24 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
-import { useUser } from '../hooks/useUser';
+import { useUserWithProfile } from '../hooks/useUserWithProfile';
 import ProfileIntegrity from '../components/ProfileIntegrity';
 import { calculateDistance } from '../utils/calculateDistance';
-
-interface Profile {
-  id: string;
-  name: string;
-  email: string;
-  city: string;
-  country: string;
-  age: string;
-  gender: string;
-  bio: string;
-  location_permission?: boolean;
-  two_factor_enabled?: boolean;
-  blockchain_id?: string;
-  community_verified?: boolean;
-}
 
 interface Vote {
   id: string;
@@ -26,9 +11,7 @@ interface Vote {
   created_at: string;
   locationName?: string;
   campaign_id?: string;
-  campaigns?: {
-    title: string;
-  };
+  campaigns?: { title: string };
 }
 
 interface Campaign {
@@ -51,12 +34,7 @@ function calculateIntegrityScore(profile: any): number {
   return Math.min(score, 1.0);
 }
 
-function calculateCreatorIntegrityScore(
-  profile: Profile,
-  campaigns: Campaign[],
-  votes: Vote[],
-  userLatLng?: { latitude: number; longitude: number }
-): number {
+function calculateCreatorIntegrityScore(profile: any, campaigns: Campaign[], votes: Vote[], userLatLng?: { latitude: number; longitude: number }): number {
   const voteIntegrity = calculateIntegrityScore(profile);
   const numCampaigns = campaigns.length;
   const numVotes = votes.length;
@@ -70,27 +48,28 @@ function calculateCreatorIntegrityScore(
     proximityBonus = closeProximities > 0 ? Math.min(closeProximities / campaigns.length, 1.0) : 0;
   }
 
-  const score =
+  return Math.min(
     voteIntegrity * 0.4 +
     Math.min(numCampaigns / 5, 1) * 0.25 +
     Math.min(numVotes / 10, 1) * 0.2 +
-    proximityBonus * 0.15;
-
-  return Math.min(score, 1.0);
+    proximityBonus * 0.15,
+    1.0
+  );
 }
 
 export default function ProfilePage() {
-  const { user, loading } = useUser();
+  const { user, profile, loading } = useUserWithProfile();
   const navigate = useNavigate();
-  const [profile, setProfile] = useState<Profile | null>(null);
   const [votes, setVotes] = useState<Vote[]>([]);
   const [createdCampaigns, setCreatedCampaigns] = useState<Campaign[]>([]);
-  const [loadingProfile, setLoadingProfile] = useState(true);
+  const [loadingData, setLoadingData] = useState(true);
   const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [editableProfile, setEditableProfile] = useState<any>(null);
 
   useEffect(() => {
-    if (!loading && user) {
-      ensureProfileExists();
+    if (!loading && user && profile) {
+      setEditableProfile(profile);
+      fetchVotesAndCampaigns();
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
           async (pos) => {
@@ -103,56 +82,43 @@ export default function ProfilePage() {
             const city = data.address.city || data.address.town || data.address.village || '';
             const country = data.address.country || '';
 
-            setProfile((prev) => prev ? {
+            setEditableProfile((prev: any) => ({
               ...prev,
               city,
               country,
               location_permission: true,
-            } : prev);
+            }));
           },
           (err) => console.warn('Geolocation error:', err.message),
           { enableHighAccuracy: true }
         );
       }
-    } else if (!user && !loading) {
+    } else if (!loading && !user) {
       navigate('/login', { state: { message: 'login-to-view-profile' } });
     }
-  }, [user, loading]);
+  }, [loading, user, profile]);
 
-  const ensureProfileExists = async () => {
-    try {
-      const { data, error } = await supabase.from('profiles').select('*').eq('id', user?.id).single();
-      if (error && error.code === 'PGRST116') {
-        await supabase.from('profiles').insert([{ id: user?.id, email: user?.email }]);
-      }
-    } catch (err) {
-      console.error('Error ensuring profile:', err);
-    } finally {
-      fetchUserData();
-    }
-  };
+  const fetchVotesAndCampaigns = async () => {
+    const { data: votesData } = await supabase
+      .from('votes')
+      .select('id, choice, created_at, campaign_id, campaigns(title)')
+      .eq('user_id', user?.id);
+    const { data: campaignsData } = await supabase
+      .from('campaigns')
+      .select('*')
+      .eq('created_by', user?.id);
 
-  const fetchUserData = async () => {
-    try {
-      const { data: profileData } = await supabase.from('profiles').select('*').eq('id', user?.id).single();
-      const { data: votesData } = await supabase.from('votes').select('id, choice, created_at, campaign_id, campaigns(title)').eq('user_id', user?.id);
-      const { data: campaignsData } = await supabase.from('campaigns').select('*').eq('created_by', user?.id);
-      if (profileData) setProfile(profileData);
-      if (votesData) setVotes(votesData);
-      if (campaignsData) setCreatedCampaigns(campaignsData);
-    } catch (error) {
-      console.error('Error fetching user data:', error);
-    } finally {
-      setLoadingProfile(false);
-    }
+    if (votesData) setVotes(votesData);
+    if (campaignsData) setCreatedCampaigns(campaignsData);
+    setLoadingData(false);
   };
 
   const saveProfile = async () => {
-    if (!user || !profile) return;
+    if (!user || !editableProfile) return;
     const { error } = await supabase.from('profiles').upsert({
       id: user.id,
-      ...profile,
-      email: profile.email ?? user.email ?? null,
+      ...editableProfile,
+      email: editableProfile.email ?? user.email ?? null,
       updated_at: new Date().toISOString(),
     });
     if (error) console.error('Error updating profile:', error);
@@ -175,24 +141,12 @@ export default function ProfilePage() {
     }
   };
 
-  const unvote = async (voteId: string) => {
-    await supabase.from('votes').delete().eq('id', voteId);
-    setVotes(votes.filter((v) => v.id !== voteId));
-  };
+  const voteIntegrity = editableProfile ? calculateIntegrityScore(editableProfile) : 0;
+  const creatorIntegrity = editableProfile ? calculateCreatorIntegrityScore(editableProfile, createdCampaigns, votes, userLocation ?? undefined) : null;
 
-  const deleteCampaign = async (campaignId: string) => {
-    const confirmDelete = window.confirm('Are you sure you want to delete this campaign?');
-    if (!confirmDelete) return;
-    await supabase.from('campaigns').delete().eq('id', campaignId);
-    setCreatedCampaigns(createdCampaigns.filter((c) => c.id !== campaignId));
-  };
-
-  const voteIntegrity = profile ? calculateIntegrityScore(profile) : 0;
-  const creatorIntegrity = profile ? calculateCreatorIntegrityScore(profile, createdCampaigns, votes, userLocation ?? undefined) : null;
-
-  if (loading || loadingProfile) return <div className="p-6">Loading profile...</div>;
-
-  if (!profile) return <div className="p-6 text-center">No profile found. Please complete your profile.</div>;
+  if (loading || loadingData || !editableProfile) {
+    return <div className="p-6">Loading profile...</div>;
+  }
 
   return (
     <div className="max-w-xl mx-auto p-6 space-y-8">
@@ -206,8 +160,8 @@ export default function ProfilePage() {
             type={field === "age" ? "number" : "text"}
             name={field}
             placeholder={field === "gender" ? "Gender / Identifies as" : field.charAt(0).toUpperCase() + field.slice(1)}
-            value={profile ? (profile[field as keyof Profile] as string) : ""}
-            onChange={(e) => setProfile((prev) => (prev ? { ...prev, [e.target.name]: e.target.value } : null))}
+            value={editableProfile[field] || ''}
+            onChange={(e) => setEditableProfile((prev: any) => ({ ...prev, [e.target.name]: e.target.value }))}
             className="border px-3 py-2 rounded"
           />
         ))}
@@ -221,7 +175,7 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      <ProfileIntegrity profile={profile} />
+      <ProfileIntegrity profile={editableProfile} />
 
       <div className="bg-blue-50 border border-blue-200 p-4 rounded">
         <h4 className="text-md font-semibold text-blue-700 mb-2">🔐 Vote Integrity Score (Live)</h4>
@@ -256,11 +210,11 @@ export default function ProfilePage() {
                   Voted <strong>{vote.choice.toUpperCase()}</strong> on{' '}
                   <Link to={`/campaign/${vote.campaign_id}`} className="text-blue-600 hover:underline">{vote.campaigns?.title}</Link>
                 </p>
-                <p className="text-xs text-gray-600">
-                  {new Date(vote.created_at).toLocaleString()}
-                  {vote.locationName ? ` | ${vote.locationName}` : ''}
-                </p>
-                <button onClick={() => unvote(vote.id)} className="text-red-500 text-xs hover:underline">Unvote</button>
+                <p className="text-xs text-gray-600">{new Date(vote.created_at).toLocaleString()}</p>
+                <button onClick={() => {
+                  supabase.from('votes').delete().eq('id', vote.id);
+                  setVotes(votes.filter((v) => v.id !== vote.id));
+                }} className="text-red-500 text-xs hover:underline">Unvote</button>
               </li>
             ))}
           </ul>
@@ -279,7 +233,10 @@ export default function ProfilePage() {
                   {campaign.title}
                 </Link>
                 <p className="text-sm text-gray-600">{campaign.description}</p>
-                <button onClick={() => deleteCampaign(campaign.id)} className="text-red-500 text-xs hover:underline">Delete</button>
+                <button onClick={() => {
+                  supabase.from('campaigns').delete().eq('id', campaign.id);
+                  setCreatedCampaigns(createdCampaigns.filter((c) => c.id !== campaign.id));
+                }} className="text-red-500 text-xs hover:underline">Delete</button>
               </li>
             ))}
           </ul>

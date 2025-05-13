@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
-import { supabase } from '../lib/supabaseClient';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '../lib/supabaseClient';
+import { useUserWithProfile } from '../hooks/useUserWithProfile';
 import { calculateDistance } from '../utils/calculateDistance';
 
 function calculateVoteIntegrity(profile: any): number {
@@ -30,6 +31,7 @@ function calculateCampaignActivityScore(totalCampaigns: number): number {
 }
 
 export default function CreateCampaignPage() {
+  const { user, profile, loading } = useUserWithProfile();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [scope, setScope] = useState('personal');
@@ -39,52 +41,38 @@ export default function CreateCampaignPage() {
   const [country, setCountry] = useState('');
   const [latitude, setLatitude] = useState<number | null>(null);
   const [longitude, setLongitude] = useState<number | null>(null);
-  const [campaignLocation, setCampaignLocation] = useState(''); // Manual campaign location
-  const [campaignLatitude, setCampaignLatitude] = useState<number | null>(null); // Coordinates for campaign location
-  const [campaignLongitude, setCampaignLongitude] = useState<number | null>(null); // Coordinates for campaign location
+  const [campaignLocation, setCampaignLocation] = useState('');
+  const [campaignLatitude, setCampaignLatitude] = useState<number | null>(null);
+  const [campaignLongitude, setCampaignLongitude] = useState<number | null>(null);
   const [citySuggestions, setCitySuggestions] = useState([]);
   const [showCitySuggestions, setShowCitySuggestions] = useState(false);
-  const [user, setUser] = useState(null);
 
   const navigate = useNavigate();
 
   useEffect(() => {
-    const checkAuth = async () => {
-      const { data } = await supabase.auth.getUser();
-      if (!data?.user) {
-        navigate('/login', { state: { message: 'login-to-create-campaign' } });
-      } else {
-        setUser(data.user);
-      }
-    };
-    checkAuth();
-  }, [navigate]);
+    if (!loading && !user) {
+      navigate('/login', { state: { message: 'login-to-create-campaign' } });
+    }
+  }, [loading, user, navigate]);
 
   useEffect(() => {
-    // Handle geolocation if the user allows it
-    const fetchLocation = async () => {
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(async (position) => {
-          const { latitude, longitude } = position.coords;
-          setLatitude(latitude);
-          setLongitude(longitude);
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(async (position) => {
+        const { latitude, longitude } = position.coords;
+        setLatitude(latitude);
+        setLongitude(longitude);
 
-          const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}`);
-          const data = await response.json();
-          const rawCity = data.address.city || data.address.town || data.address.village || '';
-          setCity(typeof rawCity === 'string' ? rawCity : '');
-          setCountry(data.address.country || '');
-        }, (err) => {
-          alert('⚠️ Please allow location access to geotag your campaign.');
-        });
-      } else {
-        alert('Geolocation not supported by your browser.');
-      }
-    };
-    fetchLocation();
+        const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}`);
+        const data = await response.json();
+        const rawCity = data.address.city || data.address.town || data.address.village || '';
+        setCity(typeof rawCity === 'string' ? rawCity : '');
+        setCountry(data.address.country || '');
+      }, () => {
+        alert('⚠️ Please allow location access to geotag your campaign.');
+      });
+    }
   }, []);
 
-  // Handle manual campaign location conversion to coordinates
   const getCampaignCoordinates = async () => {
     if (!campaignLocation) return;
     const response = await fetch(`https://nominatim.openstreetmap.org/search?format=jsonv2&q=${campaignLocation}`);
@@ -97,48 +85,35 @@ export default function CreateCampaignPage() {
     }
   };
 
-  // Trigger geocoding when campaign location changes
   useEffect(() => {
     getCampaignCoordinates();
   }, [campaignLocation]);
 
-  // Fetch city suggestions based on user input
   useEffect(() => {
-    if (campaignLocation.length > 2) { // Trigger search after at least 3 characters
+    if (campaignLocation.length > 2) {
       fetch(`https://nominatim.openstreetmap.org/search?format=jsonv2&q=${campaignLocation}&addressdetails=1`)
         .then((response) => response.json())
         .then((data) => {
           const locations = data.map((item) => item.display_name);
           setCitySuggestions(locations);
-          setShowCitySuggestions(true); // Show location suggestions
+          setShowCitySuggestions(true);
         });
     } else {
-      setShowCitySuggestions(false); // Hide location suggestions if input is less than 3 characters
+      setShowCitySuggestions(false);
     }
   }, [campaignLocation]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) return;
+    if (!user || !profile) return;
     if (!campaignLocation || campaignLatitude === null || campaignLongitude === null) {
       alert('⚠️ Campaign location and valid coordinates are required to submit.');
       return;
     }
 
-    // Get profile and calculate integrity scores
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', user.id)
-      .single();
-
-    if (profileError || !profile) {
-      alert('Unable to fetch your profile.');
-      return;
-    }
-
     const vote_integrity = calculateVoteIntegrity(profile);
-    const location_score = calculateLocationAccuracy(latitude, longitude, campaignLatitude, campaignLongitude);
+    const location_score = calculateLocationAccuracy(latitude ?? 0, longitude ?? 0, campaignLatitude, campaignLongitude);
+
     const { count: campaignCount } = await supabase
       .from('campaigns')
       .select('*', { count: 'exact', head: true })
@@ -153,7 +128,6 @@ export default function CreateCampaignPage() {
       ).toFixed(4)
     );
 
-    // Insert campaign into the database
     const { error } = await supabase.from('campaigns').insert([
       {
         title,
@@ -165,9 +139,9 @@ export default function CreateCampaignPage() {
         country,
         latitude,
         longitude,
-        campaign_location: campaignLocation,  // Use the single field for location
-        campaign_latitude: campaignLatitude,  // Store coordinates for campaign location
-        campaign_longitude: campaignLongitude,  // Store coordinates for campaign location
+        campaign_location: campaignLocation,
+        campaign_latitude: campaignLatitude,
+        campaign_longitude: campaignLongitude,
         created_by: user.id,
         status: 'published',
         creator_integrity,
@@ -187,14 +161,15 @@ export default function CreateCampaignPage() {
 
   const handleLocationSelect = (location: string) => {
     setCampaignLocation(location);
-    setShowCitySuggestions(false); // Close location suggestions after selecting
+    setShowCitySuggestions(false);
   };
+
+  if (loading || !user || !profile) return <div className="p-6">Loading...</div>;
 
   return (
     <div className="p-6 max-w-xl mx-auto">
       <h1 className="text-2xl font-bold mb-4">Create Campaign</h1>
       <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Existing form fields */}
         <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Title" required className="w-full border p-2" />
         <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Description" required className="w-full border p-2" />
         <select value={scope} onChange={(e) => setScope(e.target.value)} className="w-full border p-2">
@@ -208,8 +183,6 @@ export default function CreateCampaignPage() {
         <input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="Reference URL (optional)" className="w-full border p-2" />
         <input value={city} onChange={(e) => setCity(e.target.value)} placeholder="City" required className="w-full border p-2" />
         <input value={country} onChange={(e) => setCountry(e.target.value)} placeholder="Country" required className="w-full border p-2" />
-
-        {/* New field for Campaign Location */}
         <input value={campaignLocation} onChange={(e) => setCampaignLocation(e.target.value)} placeholder="Campaign Location" required className="w-full border p-2" />
         {showCitySuggestions && (
           <ul>
@@ -218,17 +191,14 @@ export default function CreateCampaignPage() {
             ))}
           </ul>
         )}
-
         {campaignLatitude && campaignLongitude && (
           <p className="text-sm text-gray-600">
-            📍 Location Campaign was Created: {city}, {country} ({latitude?.toFixed(4)}, {longitude?.toFixed(4)})
+            📍 Campaign Coordinates: ({latitude?.toFixed(4)}, {longitude?.toFixed(4)})
           </p>
         )}
-
         <div className="bg-yellow-50 border border-yellow-300 text-yellow-800 text-sm rounded p-3">
           ⚠️ <strong>Once submitted, this campaign cannot be edited.</strong> Please review all information carefully before publishing.
         </div>
-
         <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded">Create Campaign</button>
       </form>
     </div>

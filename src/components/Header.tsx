@@ -1,16 +1,16 @@
 import { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
-import { useUser } from '../hooks/useUser';
+import { useUserWithProfile } from '../hooks/useUserWithProfile';
 
 const linkClasses =
   'text-gray-600 hover:text-black px-3 py-2 rounded-md text-sm font-medium';
 const activeClasses = 'bg-gray-200 text-black';
 
 export default function Header() {
-  const { user } = useUser();
+  const { user } = useUserWithProfile();
   const navigate = useNavigate();
-  const [menuOpen, setMenuOpen] = useState(false); // State to toggle menu visibility
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -19,7 +19,6 @@ export default function Header() {
 
   return (
     <nav className="flex items-center justify-between px-8 py-6 bg-[#EEEDE5] shadow-md relative">
-      {/* Left Side: Logo */}
       <div className="flex items-center space-x-4">
         <img 
           src="/images/diplo_logo.png" 
@@ -31,10 +30,9 @@ export default function Header() {
         </a>
       </div>
 
-      {/* Hamburger Menu Icon (Visible on all screens) */}
       <div className="lg:hidden">
         <button
-          onClick={() => setMenuOpen(!menuOpen)}  // Toggle menu on click
+          onClick={() => setMenuOpen(!menuOpen)}
           className="text-gray-700 hover:text-black"
         >
           <svg
@@ -54,11 +52,10 @@ export default function Header() {
         </button>
       </div>
 
-      {/* Desktop Navigation Links (Visible only on desktop) */}
       <div className="hidden lg:flex items-center space-x-6">
         <a
           href="https://diplo.cargo.site/"
-          className={`${linkClasses} `}  // Applied same link classes with hover effect
+          className={`${linkClasses}`}
         >
           Home
         </a>
@@ -106,7 +103,6 @@ export default function Header() {
         )}
       </div>
 
-      {/* Mobile Menu (Pop-up menu when Hamburger is clicked) */}
       {menuOpen && (
         <div className="absolute left-0 top-20 w-full bg-[#EEEDE5] shadow-lg z-50 lg:hidden">
           <a

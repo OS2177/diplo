@@ -1,20 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
-
-type Campaign = {
-  id: string;
-  title: string;
-  description: string;
-  scope?: string;
-  image?: string;
-  url?: string;
-  created_at?: string;
-  city?: string;
-  country?: string;
-  latitude?: number;
-  longitude?: number;
-  creator_integrity?: number;
-};
+import { useUserWithProfile } from '../hooks/useUserWithProfile';
 
 function calculateIntegrityScore(profile: any): number {
   let score = 0;
@@ -38,7 +24,8 @@ function calculateProximity(lat1: number, lon1: number, lat2: number, lon2: numb
   return R * c;
 }
 
-export default function CampaignCard({ campaign }: { campaign: Campaign }) {
+export default function CampaignCard({ campaign }: { campaign: any }) {
+  const { user, profile, loading } = useUserWithProfile();
   const [voted, setVoted] = useState(false);
   const [voteChoice, setVoteChoice] = useState('');
   const [voteSuccess, setVoteSuccess] = useState(false);
@@ -49,13 +36,10 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
   useEffect(() => {
     checkIfUserVoted();
     fetchVoteCount();
-  }, []);
+  }, [user]);
 
   const checkIfUserVoted = async () => {
-    const { data: auth } = await supabase.auth.getUser();
-    const user = auth?.user;
     if (!user) return;
-
     const { data: vote } = await supabase
       .from('votes')
       .select('choice, impact')
@@ -80,16 +64,7 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
   };
 
   const castVote = async (choice: string) => {
-    const { data: userData } = await supabase.auth.getUser();
-    const user = userData?.user;
     if (!user) return alert('Please log in to vote.');
-
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', user.id)
-      .single();
-
     if (!profile) return alert('Profile not found.');
 
     if (!navigator.geolocation) {
@@ -229,34 +204,29 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
       </div>
 
       {campaign.campaign_latitude && campaign.campaign_longitude && (
-  <div className="mt-6 mb-4">
-    <iframe
-      width="100%"
-      height="250"
-      className="rounded border"
-      frameBorder="0"
-      scrolling="no"
-      marginHeight={0}
-      marginWidth={0}
-      src={`https://www.openstreetmap.org/export/embed.html?bbox=${campaign.campaign_longitude - 0.01}%2C${campaign.campaign_latitude - 0.01}%2C${campaign.campaign_longitude + 0.01}%2C${campaign.campaign_latitude + 0.01}&layer=mapnik&marker=${campaign.campaign_latitude}%2C${campaign.campaign_longitude}`}
-    ></iframe>
-    <p className="text-xs text-gray-500 mt-2">
-      <a
-        href={`https://www.openstreetmap.org/?mlat=${campaign.campaign_latitude}&mlon=${campaign.campaign_longitude}#map=15/${campaign.campaign_latitude}/${campaign.campaign_longitude}`}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="underline"
-      >
-        View full map
-      </a>
-    </p>
-  </div>
-)}
-
-
-
-
-
+        <div className="mt-6 mb-4">
+          <iframe
+            width="100%"
+            height="250"
+            className="rounded border"
+            frameBorder="0"
+            scrolling="no"
+            marginHeight={0}
+            marginWidth={0}
+            src={`https://www.openstreetmap.org/export/embed.html?bbox=${campaign.campaign_longitude - 0.01}%2C${campaign.campaign_latitude - 0.01}%2C${campaign.campaign_longitude + 0.01}%2C${campaign.campaign_latitude + 0.01}&layer=mapnik&marker=${campaign.campaign_latitude}%2C${campaign.campaign_longitude}`}
+          ></iframe>
+          <p className="text-xs text-gray-500 mt-2">
+            <a
+              href={`https://www.openstreetmap.org/?mlat=${campaign.campaign_latitude}&mlon=${campaign.campaign_longitude}#map=15/${campaign.campaign_latitude}/${campaign.campaign_longitude}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline"
+            >
+              View full map
+            </a>
+          </p>
+        </div>
+      )}
     </div>
   );
 }
