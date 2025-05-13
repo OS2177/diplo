@@ -124,7 +124,7 @@ export default function ProfilePage() {
             const lon = pos.coords.longitude;
             setUserLocation({ latitude: lat, longitude: lon });
 
-            const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}`);
+            const res = await fetch(https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon});
             const data = await res.json();
             const city = data.address.city || data.address.town || data.address.village || '';
             const country = data.address.country || '';
@@ -230,7 +230,7 @@ export default function ProfilePage() {
 
       <div className="bg-green-50 border border-green-200 p-4 rounded">
         <h4 className="text-md font-semibold text-green-700 mb-2">🧬 Creator Integrity</h4>
-        <p className="text-sm text-green-800">{creatorIntegrity !== null ? `${(creatorIntegrity * 100).toFixed(1)}%` : 'N/A'}</p>
+        <p className="text-sm text-green-800">{creatorIntegrity !== null ? ${(creatorIntegrity * 100).toFixed(1)}% : 'N/A'}</p>
       </div>
 
       <div className="bg-purple-50 border border-purple-200 p-4 rounded">
@@ -254,7 +254,7 @@ export default function ProfilePage() {
               <li key={vote.id} className="border rounded p-4 bg-white shadow space-y-2">
                 <p>
                   Voted <strong>{vote.choice.toUpperCase()}</strong> on{' '}
-                  <Link to={`/campaign/${vote.campaign_id}`} className="text-blue-600 hover:underline">
+                  <Link to={/campaign/${vote.campaign_id}} className="text-blue-600 hover:underline">
                     {vote.campaigns?.title}
                   </Link>
                 </p>
@@ -276,7 +276,7 @@ export default function ProfilePage() {
           <ul className="space-y-3">
             {createdCampaigns.map((campaign) => (
               <li key={campaign.id} className="border rounded p-4 bg-white shadow space-y-2">
-                <Link to={`/campaign/${campaign.id}`} className="text-lg font-medium text-blue-700 hover:underline">
+                <Link to={/campaign/${campaign.id}} className="text-lg font-medium text-blue-700 hover:underline">
                   {campaign.title}
                 </Link>
                 <p className="text-sm text-gray-600">{campaign.description}</p>
