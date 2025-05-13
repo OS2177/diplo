@@ -124,7 +124,7 @@ export default function ProfilePage() {
             const lon = pos.coords.longitude;
             setUserLocation({ latitude: lat, longitude: lon });
 
-            const res = await fetch(https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon});
+            const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}`);
             const data = await res.json();
             const city = data.address.city || data.address.town || data.address.village || '';
             const country = data.address.country || '';
