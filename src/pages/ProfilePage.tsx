@@ -90,7 +90,7 @@ export default function ProfilePage() {
 
   useEffect(() => {
     if (!loading && user) {
-      fetchUserData();
+      ensureProfileExists();
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
           async (pos) => {
@@ -118,6 +118,19 @@ export default function ProfilePage() {
       navigate('/login', { state: { message: 'login-to-view-profile' } });
     }
   }, [user, loading]);
+
+  const ensureProfileExists = async () => {
+    try {
+      const { data, error } = await supabase.from('profiles').select('*').eq('id', user?.id).single();
+      if (error && error.code === 'PGRST116') {
+        await supabase.from('profiles').insert([{ id: user?.id, email: user?.email }]);
+      }
+    } catch (err) {
+      console.error('Error ensuring profile:', err);
+    } finally {
+      fetchUserData();
+    }
+  };
 
   const fetchUserData = async () => {
     try {
@@ -177,9 +190,9 @@ export default function ProfilePage() {
   const voteIntegrity = profile ? calculateIntegrityScore(profile) : 0;
   const creatorIntegrity = profile ? calculateCreatorIntegrityScore(profile, createdCampaigns, votes, userLocation ?? undefined) : null;
 
-  if (loading || loadingProfile) {
-    return <div className="p-6">Loading profile...</div>;
-  }
+  if (loading || loadingProfile) return <div className="p-6">Loading profile...</div>;
+
+  if (!profile) return <div className="p-6 text-center">No profile found. Please complete your profile.</div>;
 
   return (
     <div className="max-w-xl mx-auto p-6 space-y-8">
@@ -199,25 +212,12 @@ export default function ProfilePage() {
           />
         ))}
 
-        <input
-          disabled
-          value="2FA Setup — Coming Soon"
-          className="bg-gray-100 border text-gray-500 px-3 py-2 rounded italic"
-        />
-
-        <input
-          disabled
-          value="Blockchain ID — Coming Soon"
-          className="bg-gray-100 border text-gray-500 px-3 py-2 rounded italic"
-        />
+        <input disabled value="2FA Setup — Coming Soon" className="bg-gray-100 border text-gray-500 px-3 py-2 rounded italic" />
+        <input disabled value="Blockchain ID — Coming Soon" className="bg-gray-100 border text-gray-500 px-3 py-2 rounded italic" />
 
         <div className="flex gap-4">
-          <button onClick={saveProfile} className="bg-blue-700 text-white px-4 py-2 rounded hover:bg-blue-800">
-            Update Profile
-          </button>
-          <button onClick={deleteProfile} className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
-            Delete Profile
-          </button>
+          <button onClick={saveProfile} className="bg-blue-700 text-white px-4 py-2 rounded hover:bg-blue-800">Update Profile</button>
+          <button onClick={deleteProfile} className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">Delete Profile</button>
         </div>
       </div>
 
@@ -260,12 +260,7 @@ export default function ProfilePage() {
                   {new Date(vote.created_at).toLocaleString()}
                   {vote.locationName ? ` | ${vote.locationName}` : ''}
                 </p>
-                <button
-                  onClick={() => unvote(vote.id)}
-                  className="text-red-500 text-xs hover:underline"
-                >
-                  Unvote
-                </button>
+                <button onClick={() => unvote(vote.id)} className="text-red-500 text-xs hover:underline">Unvote</button>
               </li>
             ))}
           </ul>
@@ -284,12 +279,7 @@ export default function ProfilePage() {
                   {campaign.title}
                 </Link>
                 <p className="text-sm text-gray-600">{campaign.description}</p>
-                <button
-                  onClick={() => deleteCampaign(campaign.id)}
-                  className="text-red-500 text-xs hover:underline"
-                >
-                  Delete
-                </button>
+                <button onClick={() => deleteCampaign(campaign.id)} className="text-red-500 text-xs hover:underline">Delete</button>
               </li>
             ))}
           </ul>
