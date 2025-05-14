@@ -30,7 +30,19 @@ export default function LoginPage() {
     : null;
 
   const loginWithGoogle = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({ provider: 'google' });
+    await supabase.auth.signOut(); // Clear Supabase session
+
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: 'https://diplo-jackvintage77.replit.app/profile',
+        queryParams: {
+          prompt: 'select_account',
+          access_type: 'offline',
+        },
+      },
+    });
+
     if (error) console.error('Login error:', error.message);
   };
 
