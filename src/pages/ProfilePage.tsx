@@ -133,7 +133,6 @@ export default function ProfilePage() {
       if (profileData) {
         setProfile(profileData);
       } else if (user) {
-        // Initialize profile state but do not save it
         setProfile({
           id: user.id,
           email: user.email || '',
@@ -246,7 +245,25 @@ export default function ProfilePage() {
       <h2 className="text-2xl font-bold mb-6">Your Profile</h2>
 
       <div className="grid gap-4">
-        {['name', 'country', 'age', 'gender', 'bio', 'email'].map((field) => (
+        <input
+          type="text"
+          name="name"
+          placeholder="name"
+          value={profile?.name || ''}
+          onChange={(e) => setProfile((prev) => (prev ? { ...prev, name: e.target.value } : null))}
+          className="border px-3 py-2 rounded"
+        />
+
+        <input
+          type="text"
+          name="city"
+          placeholder="city"
+          value={profile?.city || ''}
+          onChange={handleCityChange}
+          className="border px-3 py-2 rounded"
+        />
+
+        {['country', 'age', 'gender', 'bio', 'email'].map((field) => (
           <input
             key={field}
             type={field === 'age' ? 'number' : 'text'}
@@ -257,15 +274,6 @@ export default function ProfilePage() {
             className="border px-3 py-2 rounded"
           />
         ))}
-
-        <input
-          type="text"
-          name="city"
-          placeholder="city"
-          value={profile?.city || ''}
-          onChange={handleCityChange}
-          className="border px-3 py-2 rounded"
-        />
 
         <input disabled value="2FA Setup — Coming Soon" className="bg-gray-100 border text-gray-500 px-3 py-2 rounded italic" />
         <input disabled value="Blockchain ID — Coming Soon" className="bg-gray-100 border text-gray-500 px-3 py-2 rounded italic" />
