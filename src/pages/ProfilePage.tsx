@@ -123,6 +123,34 @@ export default function ProfilePage() {
     }
   }, [user, loading]);
 
+  const requestLocationWithPrompt = () => {
+    const confirmed = window.confirm(
+      'Allowing browser location access improves your Integrity Score.\n\nWould you like to enable location access now?'
+    );
+    if (confirmed && navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        async (pos) => {
+          const lat = pos.coords.latitude;
+          const lon = pos.coords.longitude;
+          setUserLocation({ latitude: lat, longitude: lon });
+
+          const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}`);
+          const data = await response.json();
+          const city = data.address.city || data.address.town || data.address.village || '';
+          const country = data.address.country || '';
+
+          setProfile((prev) =>
+            prev ? { ...prev, city, country, location_permission: true } : prev
+          );
+        },
+        (err) => {
+          alert('Location access still denied.');
+        },
+        { enableHighAccuracy: true }
+      );
+    }
+  };
+
   const fetchUserData = async () => {
     try {
       const { data: profileData } = await supabase.from('profiles').select('*').eq('id', user?.id).single();
@@ -132,7 +160,6 @@ export default function ProfilePage() {
       if (profileData) {
         setProfile(profileData);
       } else if (user) {
-        // Initialize profile state but do not save it
         setProfile({
           id: user.id,
           email: user.email || '',
@@ -160,12 +187,20 @@ export default function ProfilePage() {
 
   const saveProfile = async () => {
     if (!user || !profile) return;
+
+    const { name, city, country, age, email } = profile;
+    if (!name || !city || !country || !age || !email) {
+      alert('Please fill in name, city, country, age, and email before saving your profile.');
+      return;
+    }
+
     const { error } = await supabase.from('profiles').upsert({
       id: user.id,
       ...profile,
-      email: profile.email ?? user.email ?? null,
+      email: email ?? user.email ?? null,
       updated_at: new Date().toISOString(),
     });
+
     if (error) console.error('Error updating profile:', error);
     else alert('Profile updated successfully!');
   };
@@ -210,7 +245,7 @@ export default function ProfilePage() {
       <h2 className="text-2xl font-bold mb-6">Your Profile</h2>
 
       <div className="grid gap-4">
-        {['name', 'city', 'country', 'age', 'gender', 'bio', 'email'].map((field) => (
+        {['name', 'country', 'age', 'gender', 'bio', 'email'].map((field) => (
           <input
             key={field}
             type={field === 'age' ? 'number' : 'text'}
@@ -221,6 +256,23 @@ export default function ProfilePage() {
             className="border px-3 py-2 rounded"
           />
         ))}
+
+        <input
+          key="city"
+          type="text"
+          name="city"
+          placeholder="city"
+          value={profile ? profile.city : ''}
+          onChange={(e) => {
+            requestLocationWithPrompt();
+            setProfile((prev) => (prev ? { ...prev, city: e.target.value } : null));
+          }}
+          className="border px-3 py-2 rounded"
+        />
+
+        <p className="text-xs text-gray-500 italic">
+          Granting browser location access improves your Integrity Score.
+        </p>
 
         <input disabled value="2FA Setup — Coming Soon" className="bg-gray-100 border text-gray-500 px-3 py-2 rounded italic" />
         <input disabled value="Blockchain ID — Coming Soon" className="bg-gray-100 border text-gray-500 px-3 py-2 rounded italic" />
