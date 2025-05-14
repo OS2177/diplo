@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
+import { useUser } from '../hooks/useUser';
 import ProfileIntegrity from '../components/ProfileIntegrity';
 import { calculateDistance } from '../utils/calculateDistance';
 
@@ -25,7 +26,9 @@ interface Vote {
   created_at: string;
   locationName?: string;
   campaign_id?: string;
-  campaigns?: { title: string };
+  campaigns?: {
+    title: string;
+  };
 }
 
 interface Campaign {
@@ -62,61 +65,32 @@ function calculateCreatorIntegrityScore(
   if (userLatLng) {
     const distances = campaigns
       .filter((c) => c.latitude && c.longitude)
-      .map((c) =>
-        calculateDistance(userLatLng.latitude, userLatLng.longitude, c.latitude!, c.longitude!)
-      );
+      .map((c) => calculateDistance(userLatLng.latitude, userLatLng.longitude, c.latitude!, c.longitude!));
     const closeProximities = distances.filter((d) => d < 50).length;
     proximityBonus = closeProximities > 0 ? Math.min(closeProximities / campaigns.length, 1.0) : 0;
   }
 
-  return Math.min(
+  const score =
     voteIntegrity * 0.4 +
-      Math.min(numCampaigns / 5, 1) * 0.25 +
-      Math.min(numVotes / 10, 1) * 0.2 +
-      proximityBonus * 0.15,
-    1.0
-  );
+    Math.min(numCampaigns / 5, 1) * 0.25 +
+    Math.min(numVotes / 10, 1) * 0.2 +
+    proximityBonus * 0.15;
+
+  return Math.min(score, 1.0);
 }
 
 export default function ProfilePage() {
-  const [user, setUser] = useState<any>(null);
+  const { user, loading } = useUser();
+  const navigate = useNavigate();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [votes, setVotes] = useState<Vote[]>([]);
   const [createdCampaigns, setCreatedCampaigns] = useState<Campaign[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loadingProfile, setLoadingProfile] = useState(true);
   const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
-  const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchUserAndProfile = async () => {
-      const { data } = await supabase.auth.getSession();
-      const currentUser = data?.session?.user;
-      if (!currentUser) {
-        navigate('/login', { state: { message: 'login-to-view-profile' } });
-        return;
-      }
-      setUser(currentUser);
-
-      const { data: profileData } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', currentUser.id)
-        .single();
-
-      const { data: votesData } = await supabase
-        .from('votes')
-        .select('id, choice, created_at, campaign_id, campaigns(title)')
-        .eq('user_id', currentUser.id);
-
-      const { data: campaignsData } = await supabase
-        .from('campaigns')
-        .select('*')
-        .eq('created_by', currentUser.id);
-
-      if (profileData) setProfile(profileData);
-      if (votesData) setVotes(votesData);
-      if (campaignsData) setCreatedCampaigns(campaignsData);
-
+    if (!loading && user) {
+      fetchUserData();
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
           async (pos) => {
@@ -124,8 +98,8 @@ export default function ProfilePage() {
             const lon = pos.coords.longitude;
             setUserLocation({ latitude: lat, longitude: lon });
 
-            const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}`);
-            const data = await res.json();
+            const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}`);
+            const data = await response.json();
             const city = data.address.city || data.address.town || data.address.village || '';
             const country = data.address.country || '';
 
@@ -136,15 +110,29 @@ export default function ProfilePage() {
               location_permission: true,
             } : prev);
           },
-          (err) => console.warn('Geolocation error:', err.message)
+          (err) => console.warn('Geolocation error:', err.message),
+          { enableHighAccuracy: true }
         );
       }
+    } else if (!user && !loading) {
+      navigate('/login', { state: { message: 'login-to-view-profile' } });
+    }
+  }, [user, loading]);
 
-      setLoading(false);
-    };
-
-    fetchUserAndProfile();
-  }, [navigate]);
+  const fetchUserData = async () => {
+    try {
+      const { data: profileData } = await supabase.from('profiles').select('*').eq('id', user?.id).single();
+      const { data: votesData } = await supabase.from('votes').select('id, choice, created_at, campaign_id, campaigns(title)').eq('user_id', user?.id);
+      const { data: campaignsData } = await supabase.from('campaigns').select('*').eq('created_by', user?.id);
+      if (profileData) setProfile(profileData);
+      if (votesData) setVotes(votesData);
+      if (campaignsData) setCreatedCampaigns(campaignsData);
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+    } finally {
+      setLoadingProfile(false);
+    }
+  };
 
   const saveProfile = async () => {
     if (!user || !profile) return;
@@ -187,11 +175,11 @@ export default function ProfilePage() {
   };
 
   const voteIntegrity = profile ? calculateIntegrityScore(profile) : 0;
-  const creatorIntegrity = profile
-    ? calculateCreatorIntegrityScore(profile, createdCampaigns, votes, userLocation ?? undefined)
-    : null;
+  const creatorIntegrity = profile ? calculateCreatorIntegrityScore(profile, createdCampaigns, votes, userLocation ?? undefined) : null;
 
-  if (loading || !profile) return <div className="p-6">Loading profile...</div>;
+  if (loading || loadingProfile) {
+    return <div className="p-6">Loading profile...</div>;
+  }
 
   return (
     <div className="max-w-xl mx-auto p-6 space-y-8">
@@ -204,10 +192,8 @@ export default function ProfilePage() {
             type={field === 'age' ? 'number' : 'text'}
             name={field}
             placeholder={field}
-            value={profile[field as keyof Profile] || ''}
-            onChange={(e) =>
-              setProfile((prev) => (prev ? { ...prev, [e.target.name]: e.target.value } : null))
-            }
+            value={profile ? (profile[field as keyof Profile] as string) : ''}
+            onChange={(e) => setProfile((prev) => (prev ? { ...prev, [e.target.name]: e.target.value } : null))}
             className="border px-3 py-2 rounded"
           />
         ))}
@@ -230,7 +216,7 @@ export default function ProfilePage() {
 
       <div className="bg-green-50 border border-green-200 p-4 rounded">
         <h4 className="text-md font-semibold text-green-700 mb-2">🧬 Creator Integrity</h4>
-        <p className="text-sm text-green-800">{creatorIntegrity !== null ? ${(creatorIntegrity * 100).toFixed(1)}% : 'N/A'}</p>
+        <p className="text-sm text-green-800">{creatorIntegrity !== null ? `{(creatorIntegrity * 100).toFixed(1)}%` : 'N/A'}</p>
       </div>
 
       <div className="bg-purple-50 border border-purple-200 p-4 rounded">
@@ -254,7 +240,7 @@ export default function ProfilePage() {
               <li key={vote.id} className="border rounded p-4 bg-white shadow space-y-2">
                 <p>
                   Voted <strong>{vote.choice.toUpperCase()}</strong> on{' '}
-                  <Link to={/campaign/${vote.campaign_id}} className="text-blue-600 hover:underline">
+                  <Link to={`/campaign/${vote.campaign_id}`} className="text-blue-600 hover:underline">
                     {vote.campaigns?.title}
                   </Link>
                 </p>
@@ -276,7 +262,7 @@ export default function ProfilePage() {
           <ul className="space-y-3">
             {createdCampaigns.map((campaign) => (
               <li key={campaign.id} className="border rounded p-4 bg-white shadow space-y-2">
-                <Link to={/campaign/${campaign.id}} className="text-lg font-medium text-blue-700 hover:underline">
+                <Link to={`/campaign/${campaign.id}`} className="text-lg font-medium text-blue-700 hover:underline">
                   {campaign.title}
                 </Link>
                 <p className="text-sm text-gray-600">{campaign.description}</p>
