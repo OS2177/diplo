@@ -306,6 +306,51 @@ export default function ProfilePage() {
           <li>Get community verified</li>
         </ul>
       </div>
+
+      <div>
+        <h3 className="text-xl font-semibold mt-10 mb-3">Your Votes</h3>
+        {votes.length === 0 ? (
+          <p className="text-gray-500">No votes yet.</p>
+        ) : (
+          <ul className="space-y-3">
+            {votes.map((vote) => (
+              <li key={vote.id} className="border rounded p-4 bg-white shadow space-y-2">
+                <p>
+                  Voted <strong>{vote.choice.toUpperCase()}</strong> on{' '}
+                  <Link to={`/campaign/${vote.campaign_id}`} className="text-blue-600 hover:underline">
+                    {vote.campaigns?.title}
+                  </Link>
+                </p>
+                <p className="text-xs text-gray-600">{new Date(vote.created_at).toLocaleString()}</p>
+                <button onClick={() => unvote(vote.id)} className="text-red-500 text-xs hover:underline">
+                  Unvote
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      <div>
+        <h3 className="text-xl font-semibold mt-10 mb-3">Your Campaigns</h3>
+        {createdCampaigns.length === 0 ? (
+          <p className="text-gray-500">No campaigns created yet.</p>
+        ) : (
+          <ul className="space-y-3">
+            {createdCampaigns.map((campaign) => (
+              <li key={campaign.id} className="border rounded p-4 bg-white shadow space-y-2">
+                <Link to={`/campaign/${campaign.id}`} className="text-lg font-medium text-blue-700 hover:underline">
+                  {campaign.title}
+                </Link>
+                <p className="text-sm text-gray-600">{campaign.description}</p>
+                <button onClick={() => deleteCampaign(campaign.id)} className="text-red-500 text-xs hover:underline">
+                  Delete
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
     </div>
   );
 }
