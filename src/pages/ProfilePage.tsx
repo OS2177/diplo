@@ -1,4 +1,3 @@
-// ... [imports remain unchanged]
 import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
@@ -6,7 +5,79 @@ import { useUser } from '../hooks/useUser';
 import ProfileIntegrity from '../components/ProfileIntegrity';
 import { calculateDistance } from '../utils/calculateDistance';
 
-// ... [interfaces remain unchanged]
+interface Profile {
+  id: string;
+  name: string;
+  email: string;
+  city: string;
+  country: string;
+  age: string;
+  gender: string;
+  bio: string;
+  location_permission?: boolean;
+  two_factor_enabled?: boolean;
+  blockchain_id?: string;
+  community_verified?: boolean;
+}
+
+interface Vote {
+  id: string;
+  choice: string;
+  created_at: string;
+  locationName?: string;
+  campaign_id?: string;
+  campaigns?: {
+    title: string;
+  };
+}
+
+interface Campaign {
+  id: string;
+  title: string;
+  description: string;
+  created_by: string;
+  latitude?: number;
+  longitude?: number;
+  creator_integrity?: number;
+}
+
+function calculateIntegrityScore(profile: any): number {
+  let score = 0;
+  if (profile?.location_permission) score += 0.2;
+  if (profile?.name && profile?.age && profile?.city && profile?.country && profile?.gender) score += 0.2;
+  if (profile?.two_factor_enabled) score += 0.2;
+  if (profile?.blockchain_id) score += 0.3;
+  if (profile?.community_verified) score += 0.1;
+  return Math.min(score, 1.0);
+}
+
+function calculateCreatorIntegrityScore(
+  profile: Profile,
+  campaigns: Campaign[],
+  votes: Vote[],
+  userLatLng?: { latitude: number; longitude: number }
+): number {
+  const voteIntegrity = calculateIntegrityScore(profile);
+  const numCampaigns = campaigns.length;
+  const numVotes = votes.length;
+
+  let proximityBonus = 0;
+  if (userLatLng) {
+    const distances = campaigns
+      .filter((c) => c.latitude && c.longitude)
+      .map((c) => calculateDistance(userLatLng.latitude, userLatLng.longitude, c.latitude!, c.longitude!));
+    const closeProximities = distances.filter((d) => d < 50).length;
+    proximityBonus = closeProximities > 0 ? Math.min(closeProximities / campaigns.length, 1.0) : 0;
+  }
+
+  const score =
+    voteIntegrity * 0.4 +
+    Math.min(numCampaigns / 5, 1) * 0.25 +
+    Math.min(numVotes / 10, 1) * 0.2 +
+    proximityBonus * 0.15;
+
+  return Math.min(score, 1.0);
+}
 
 export default function ProfilePage() {
   const { user, loading } = useUser();
@@ -16,12 +87,11 @@ export default function ProfilePage() {
   const [createdCampaigns, setCreatedCampaigns] = useState<Campaign[]>([]);
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
-  const [locationPromptedOnce, setLocationPromptedOnce] = useState(false);
+  const [locationPrompted, setLocationPrompted] = useState(false);
 
   useEffect(() => {
     if (!loading && user) {
       fetchUserData();
-
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
           async (pos) => {
@@ -35,12 +105,17 @@ export default function ProfilePage() {
             const country = data.address.country || '';
 
             setProfile((prev) =>
-              prev ? { ...prev, city, country, location_permission: true } : prev
+              prev
+                ? {
+                    ...prev,
+                    city,
+                    country,
+                    location_permission: true,
+                  }
+                : prev
             );
           },
-          () => {
-            // Location denied — don't do anything now
-          },
+          (err) => console.warn('Geolocation error:', err.message),
           { enableHighAccuracy: true }
         );
       }
@@ -48,36 +123,6 @@ export default function ProfilePage() {
       navigate('/login', { state: { message: 'login-to-view-profile' } });
     }
   }, [user, loading]);
-
-  const requestLocationWithPrompt = () => {
-    if (locationPromptedOnce || profile?.location_permission) return;
-
-    const confirm = window.confirm(
-      'Allowing browser location access improves your Integrity Score.\n\nWould you like to enable location access now?'
-    );
-
-    if (confirm && navigator.geolocation) {
-      setLocationPromptedOnce(true);
-      navigator.geolocation.getCurrentPosition(
-        async (pos) => {
-          const lat = pos.coords.latitude;
-          const lon = pos.coords.longitude;
-          setUserLocation({ latitude: lat, longitude: lon });
-
-          const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}`);
-          const data = await response.json();
-          const city = data.address.city || data.address.town || data.address.village || '';
-          const country = data.address.country || '';
-
-          setProfile((prev) =>
-            prev ? { ...prev, city, country, location_permission: true } : prev
-          );
-        },
-        () => alert('Location access still denied.'),
-        { enableHighAccuracy: true }
-      );
-    }
-  };
 
   const fetchUserData = async () => {
     try {
@@ -88,6 +133,7 @@ export default function ProfilePage() {
       if (profileData) {
         setProfile(profileData);
       } else if (user) {
+        // Initialize profile state but do not save it
         setProfile({
           id: user.id,
           email: user.email || '',
@@ -115,25 +161,78 @@ export default function ProfilePage() {
 
   const saveProfile = async () => {
     if (!user || !profile) return;
-
     const { name, city, country, age, email } = profile;
     if (!name || !city || !country || !age || !email) {
       alert('Please fill in name, city, country, age, and email before saving your profile.');
       return;
     }
-
     const { error } = await supabase.from('profiles').upsert({
       id: user.id,
       ...profile,
-      email: email ?? user.email ?? null,
+      email: profile.email ?? user.email ?? null,
       updated_at: new Date().toISOString(),
     });
-
     if (error) console.error('Error updating profile:', error);
     else alert('Profile updated successfully!');
   };
 
-  // ... [deleteProfile, unvote, deleteCampaign functions unchanged]
+  const handleCityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (profile && !profile.location_permission && !locationPrompted) {
+      const confirmed = window.confirm(
+        'Allowing browser location access improves your Integrity Score.\n\nWould you like to enable location access now?'
+      );
+      if (confirmed && navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          async (pos) => {
+            const lat = pos.coords.latitude;
+            const lon = pos.coords.longitude;
+            setUserLocation({ latitude: lat, longitude: lon });
+
+            const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}`);
+            const data = await response.json();
+            const city = data.address.city || data.address.town || data.address.village || '';
+            const country = data.address.country || '';
+
+            setProfile((prev) =>
+              prev ? { ...prev, city, country, location_permission: true } : prev
+            );
+          },
+          () => alert('Location access still denied.'),
+          { enableHighAccuracy: true }
+        );
+      }
+      setLocationPrompted(true);
+    }
+    setProfile((prev) => (prev ? { ...prev, city: e.target.value } : null));
+  };
+
+  const deleteProfile = async () => {
+    if (!user) return;
+    const confirmDelete = window.confirm('This will delete your account and all related data. Continue?');
+    if (!confirmDelete) return;
+    try {
+      await supabase.from('votes').delete().eq('user_id', user.id);
+      await supabase.from('campaigns').delete().eq('created_by', user.id);
+      await supabase.from('profiles').delete().eq('id', user.id);
+      await supabase.auth.signOut();
+      alert('Your account and all associated data have been deleted.');
+      navigate('/');
+    } catch (err: any) {
+      alert('Deletion failed: ' + err.message);
+    }
+  };
+
+  const unvote = async (voteId: string) => {
+    await supabase.from('votes').delete().eq('id', voteId);
+    setVotes(votes.filter((v) => v.id !== voteId));
+  };
+
+  const deleteCampaign = async (campaignId: string) => {
+    const confirmDelete = window.confirm('Are you sure you want to delete this campaign?');
+    if (!confirmDelete) return;
+    await supabase.from('campaigns').delete().eq('id', campaignId);
+    setCreatedCampaigns(createdCampaigns.filter((c) => c.id !== campaignId));
+  };
 
   const voteIntegrity = profile ? calculateIntegrityScore(profile) : 0;
   const creatorIntegrity = profile ? calculateCreatorIntegrityScore(profile, createdCampaigns, votes, userLocation ?? undefined) : null;
@@ -147,64 +246,25 @@ export default function ProfilePage() {
       <h2 className="text-2xl font-bold mb-6">Your Profile</h2>
 
       <div className="grid gap-4">
-        <input
-          type="text"
-          name="name"
-          placeholder="name"
-          value={profile?.name || ''}
-          onChange={(e) => setProfile((prev) => (prev ? { ...prev, name: e.target.value } : null))}
-          className="border px-3 py-2 rounded"
-        />
+        {['name', 'country', 'age', 'gender', 'bio', 'email'].map((field) => (
+          <input
+            key={field}
+            type={field === 'age' ? 'number' : 'text'}
+            name={field}
+            placeholder={field}
+            value={profile ? (profile[field as keyof Profile] as string) : ''}
+            onChange={(e) => setProfile((prev) => (prev ? { ...prev, [e.target.name]: e.target.value } : null))}
+            className="border px-3 py-2 rounded"
+          />
+        ))}
+
         <input
           type="text"
           name="city"
           placeholder="city"
           value={profile?.city || ''}
-          onChange={(e) => {
-            requestLocationWithPrompt();
-            setProfile((prev) => (prev ? { ...prev, city: e.target.value } : null));
-          }}
+          onChange={handleCityChange}
           className="border px-3 py-2 rounded"
-        />
-        <input
-          type="text"
-          name="country"
-          placeholder="country"
-          value={profile?.country || ''}
-          onChange={(e) => setProfile((prev) => (prev ? { ...prev, country: e.target.value } : null))}
-          className="border px-3 py-2 rounded"
-        />
-        <input
-          type="number"
-          name="age"
-          placeholder="age"
-          value={profile?.age || ''}
-          onChange={(e) => setProfile((prev) => (prev ? { ...prev, age: e.target.value } : null))}
-          className="border px-3 py-2 rounded"
-        />
-        <input
-          type="text"
-          name="gender"
-          placeholder="gender"
-          value={profile?.gender || ''}
-          onChange={(e) => setProfile((prev) => (prev ? { ...prev, gender: e.target.value } : null))}
-          className="border px-3 py-2 rounded"
-        />
-        <input
-          type="text"
-          name="bio"
-          placeholder="bio"
-          value={profile?.bio || ''}
-          onChange={(e) => setProfile((prev) => (prev ? { ...prev, bio: e.target.value } : null))}
-          className="border px-3 py-2 rounded"
-        />
-        <input
-          type="text"
-          name="email"
-          placeholder="email"
-          value={profile?.email || ''}
-          readOnly
-          className="border px-3 py-2 rounded bg-gray-100"
         />
 
         <input disabled value="2FA Setup — Coming Soon" className="bg-gray-100 border text-gray-500 px-3 py-2 rounded italic" />
