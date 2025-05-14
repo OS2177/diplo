@@ -30,15 +30,7 @@ export default function LoginPage() {
     : null;
 
   const loginWithGoogle = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: 'https://diplo-jackvintage77.replit.app/profile',
-        queryParams: {
-          prompt: 'select_account',
-        },
-      },
-    });
+    const { error } = await supabase.auth.signInWithOAuth({ provider: 'google' });
     if (error) console.error('Login error:', error.message);
   };
 
