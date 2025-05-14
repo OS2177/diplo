@@ -103,12 +103,16 @@ export default function ProfilePage() {
             const city = data.address.city || data.address.town || data.address.village || '';
             const country = data.address.country || '';
 
-            setProfile((prev) => prev ? {
-              ...prev,
-              city,
-              country,
-              location_permission: true,
-            } : prev);
+            setProfile((prev) =>
+              prev
+                ? {
+                    ...prev,
+                    city,
+                    country,
+                    location_permission: true,
+                  }
+                : prev
+            );
           },
           (err) => console.warn('Geolocation error:', err.message),
           { enableHighAccuracy: true }
@@ -124,7 +128,27 @@ export default function ProfilePage() {
       const { data: profileData } = await supabase.from('profiles').select('*').eq('id', user?.id).single();
       const { data: votesData } = await supabase.from('votes').select('id, choice, created_at, campaign_id, campaigns(title)').eq('user_id', user?.id);
       const { data: campaignsData } = await supabase.from('campaigns').select('*').eq('created_by', user?.id);
-      if (profileData) setProfile(profileData);
+
+      if (profileData) {
+        setProfile(profileData);
+      } else if (user) {
+        // Initialize profile state but do not save it
+        setProfile({
+          id: user.id,
+          email: user.email || '',
+          name: '',
+          city: '',
+          country: '',
+          age: '',
+          gender: '',
+          bio: '',
+          location_permission: false,
+          two_factor_enabled: false,
+          blockchain_id: '',
+          community_verified: false,
+        });
+      }
+
       if (votesData) setVotes(votesData);
       if (campaignsData) setCreatedCampaigns(campaignsData);
     } catch (error) {
@@ -216,7 +240,7 @@ export default function ProfilePage() {
 
       <div className="bg-green-50 border border-green-200 p-4 rounded">
         <h4 className="text-md font-semibold text-green-700 mb-2">🧬 Creator Integrity</h4>
-        <p className="text-sm text-green-800">{creatorIntegrity !== null ? `{(creatorIntegrity * 100).toFixed(1)}%` : 'N/A'}</p>
+        <p className="text-sm text-green-800">{creatorIntegrity !== null ? `${(creatorIntegrity * 100).toFixed(1)}%` : 'N/A'}</p>
       </div>
 
       <div className="bg-purple-50 border border-purple-200 p-4 rounded">
