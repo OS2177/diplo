@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { MapContainer, TileLayer, CircleMarker, Popup } from 'react-leaflet';
 import { supabase } from '../../lib/supabaseClient';
+import { DIPLO_COLORS } from '../../styles/chartStyles';
 
 type Props = {
   campaignId: string;
@@ -53,36 +54,30 @@ export default function VoteMapChart({ campaignId }: Props) {
   }, [campaignId]);
 
   return (
-    <div className="h-[400px] w-full rounded-xl overflow-hidden border border-gray-300">
-      <MapContainer center={center} zoom={3} scrollWheelZoom={true} style={{ height: '100%', width: '100%' }}>
+    <div className="h-[400px] w-full rounded-xl overflow-hidden" style={{ border: `2px solid ${DIPLO_COLORS.foreground}` }}>
+      <MapContainer
+        center={center}
+        zoom={3}
+        scrollWheelZoom={true}
+        style={{ height: '100%', width: '100%' }}
+      >
         <TileLayer
-          attribution='&copy; OpenStreetMap contributors'
+          attribution=""
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         {votes.map((vote, index) => (
           <CircleMarker
-            key={`${vote.created_at}-${index}`} // ensures uniqueness on live updates
+            key={index}
             center={[vote.latitude, vote.longitude]}
             radius={5}
             pathOptions={{
-              color: vote.choice === 'yes' ? '#34D399' : '#EF4444',
+              color: DIPLO_COLORS.foreground,
               fillOpacity: 0.7,
-            }}
-            eventHandlers={{
-              add: (e) => {
-                const el = e.target.getElement();
-                if (el) {
-                  el.style.opacity = '0';
-                  el.style.transition = 'opacity 0.6s ease';
-                  requestAnimationFrame(() => {
-                    el.style.opacity = '1';
-                  });
-                }
-              }
+              weight: 1,
             }}
           >
             <Popup>
-              <div className="text-xs">
+              <div style={{ fontSize: '10px', color: DIPLO_COLORS.foreground }}>
                 <strong>{vote.choice.toUpperCase()}</strong><br />
                 Integrity: {vote.integrity}<br />
                 Time: {new Date(vote.created_at).toLocaleString()}

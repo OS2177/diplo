@@ -9,6 +9,14 @@ import {
   CartesianGrid
 } from 'recharts';
 import { supabase } from '../../lib/supabaseClient';
+import {
+  DIPLO_COLORS,
+  defaultChartMargins,
+  tickStyle,
+  axisLineStyle,
+  gridStyle,
+  chartWrapperStyle
+} from '../../styles/chartStyles';
 
 type Props = {
   campaignId: string;
@@ -67,23 +75,26 @@ export default function ProximityReachChart({ campaignId }: Props) {
     };
   }, [campaignId]);
 
-  if (data.length === 0) return <p className="text-sm text-gray-500">Loading proximity chart...</p>;
+  if (data.length === 0) return <p className="text-sm" style={{ color: DIPLO_COLORS.foreground }}>Loading proximity chart...</p>;
 
   return (
-    <ResponsiveContainer width="100%" height={250}>
-      <BarChart data={data}>
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="label" />
-        <YAxis allowDecimals={false} />
-        <Tooltip />
-        <Bar
-          dataKey="count"
-          fill="#10B981"
-          isAnimationActive={true}
-          animationDuration={800}
-          animationEasing="ease-in-out"
-        />
-      </BarChart>
-    </ResponsiveContainer>
+    <div style={chartWrapperStyle}>
+      <ResponsiveContainer width="100%" height={250}>
+        <BarChart data={data} margin={defaultChartMargins}>
+          <CartesianGrid {...gridStyle} />
+          <XAxis dataKey="label" tick={tickStyle} axisLine={axisLineStyle} />
+          <YAxis allowDecimals={false} tick={tickStyle} axisLine={axisLineStyle} />
+          <Tooltip
+            contentStyle={{
+              backgroundColor: DIPLO_COLORS.background,
+              border: `1px solid ${DIPLO_COLORS.foreground}`,
+              fontSize: '10px',
+              color: DIPLO_COLORS.foreground,
+            }}
+          />
+          <Bar dataKey="count" fill={DIPLO_COLORS.foreground} />
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
   );
 }

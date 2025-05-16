@@ -1,27 +1,32 @@
 // src/styles/chartStyles.ts
 
 export const DIPLO_COLORS = {
-  background: '#ECFD00',       // luminous yellow
-  magenta: '#FF2E92',          // bold magenta/pink
-  grid: 'rgba(255, 46, 146, 0.2)', // soft grid lines
-  label: '#111111',            // dark text
+  background: '#ECFD00',
+  foreground: '#FF2E92',
 };
 
 export const defaultChartMargins = {
   top: 10,
-  right: 30,
-  left: 0,
+  right: 20,
+  left: 10,
   bottom: 10,
 };
 
 export const tickStyle = {
   fontSize: 10,
-  fill: DIPLO_COLORS.label,
+  fill: DIPLO_COLORS.foreground,
 };
 
-export const shadowStyle = {
-  filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))',
-  borderRadius: '12px',
+export const axisLineStyle = {
+  stroke: DIPLO_COLORS.foreground,
+};
+
+export const gridStyle = {
+  stroke: DIPLO_COLORS.foreground,
+  strokeDasharray: '3 3',
+};
+
+export const chartWrapperStyle = {
   backgroundColor: DIPLO_COLORS.background,
-  padding: '1rem',
+  borderRadius: '0.5rem',
 };

@@ -10,7 +10,14 @@ import {
 } from 'recharts';
 import { supabase } from '../../lib/supabaseClient';
 import { groupVotesByTime } from '../../utils/chartUtils';
-import { DIPLO_COLORS, defaultChartMargins, tickStyle } from '../../styles/chartStyles';
+import {
+  DIPLO_COLORS,
+  defaultChartMargins,
+  tickStyle,
+  axisLineStyle,
+  gridStyle,
+  chartWrapperStyle
+} from '../../styles/chartStyles';
 
 type Props = {
   campaignId: string;
@@ -52,21 +59,28 @@ export default function VoteMomentumChart({ campaignId }: Props) {
     };
   }, [campaignId]);
 
-  if (data.length === 0) return <p className="text-sm text-gray-500">Loading vote momentum...</p>;
+  if (data.length === 0) return <p className="text-sm" style={{ color: DIPLO_COLORS.foreground }}>Loading vote momentum...</p>;
 
   return (
-    <div className="rounded-2xl overflow-hidden shadow" style={{ backgroundColor: DIPLO_COLORS.background }}>
+    <div style={chartWrapperStyle}>
       <ResponsiveContainer width="100%" height={250}>
         <AreaChart data={data} margin={defaultChartMargins}>
-          <CartesianGrid stroke={DIPLO_COLORS.grid} strokeDasharray="3 3" />
-          <XAxis dataKey="time" tick={tickStyle} />
-          <YAxis allowDecimals={false} tick={tickStyle} />
-          <Tooltip />
+          <CartesianGrid {...gridStyle} />
+          <XAxis dataKey="time" tick={tickStyle} axisLine={axisLineStyle} />
+          <YAxis allowDecimals={false} tick={tickStyle} axisLine={axisLineStyle} />
+          <Tooltip
+            contentStyle={{
+              backgroundColor: DIPLO_COLORS.background,
+              border: `1px solid ${DIPLO_COLORS.foreground}`,
+              fontSize: '10px',
+              color: DIPLO_COLORS.foreground,
+            }}
+          />
           <Area
             type="monotone"
             dataKey="votes"
-            stroke={DIPLO_COLORS.magenta}
-            fill={DIPLO_COLORS.magenta}
+            stroke={DIPLO_COLORS.foreground}
+            fill={DIPLO_COLORS.foreground}
             strokeWidth={2}
           />
         </AreaChart>

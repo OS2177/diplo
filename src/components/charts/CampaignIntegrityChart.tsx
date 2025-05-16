@@ -10,6 +10,14 @@ import {
 } from 'recharts';
 import { supabase } from '../../lib/supabaseClient';
 import { formatTimestamp } from '../../utils/chartUtils';
+import {
+  DIPLO_COLORS,
+  defaultChartMargins,
+  tickStyle,
+  axisLineStyle,
+  gridStyle,
+  chartWrapperStyle
+} from '../../styles/chartStyles';
 
 type Props = {
   campaignId: string;
@@ -84,26 +92,32 @@ export default function CampaignIntegrityChart({ campaignId }: Props) {
     };
   }, [campaignId]);
 
-  if (data.length === 0) return <p className="text-sm text-gray-500">Loading integrity chart...</p>;
+  if (data.length === 0) return <p className="text-sm" style={{ color: DIPLO_COLORS.foreground }}>Loading integrity chart...</p>;
 
   return (
-    <ResponsiveContainer width="100%" height={250}>
-      <LineChart data={data}>
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="time" tick={{ fontSize: 10 }} />
-        <YAxis domain={[0, 1]} />
-        <Tooltip />
-        <Line
-          type="monotone"
-          dataKey="integrity"
-          stroke="#3B82F6"
-          strokeWidth={2}
-          dot={false}
-          isAnimationActive={true}
-          animationDuration={900}
-          animationEasing="ease-in-out"
-        />
-      </LineChart>
-    </ResponsiveContainer>
+    <div style={chartWrapperStyle}>
+      <ResponsiveContainer width="100%" height={250}>
+        <LineChart data={data} margin={defaultChartMargins}>
+          <CartesianGrid {...gridStyle} />
+          <XAxis dataKey="time" tick={tickStyle} axisLine={axisLineStyle} />
+          <YAxis domain={[0, 1]} tick={tickStyle} axisLine={axisLineStyle} />
+          <Tooltip
+            contentStyle={{
+              backgroundColor: DIPLO_COLORS.background,
+              border: `1px solid ${DIPLO_COLORS.foreground}`,
+              fontSize: '10px',
+              color: DIPLO_COLORS.foreground,
+            }}
+          />
+          <Line
+            type="monotone"
+            dataKey="integrity"
+            stroke={DIPLO_COLORS.foreground}
+            strokeWidth={2}
+            dot={false}
+          />
+        </LineChart>
+      </ResponsiveContainer>
+    </div>
   );
 }
