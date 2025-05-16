@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { calculateUserIntegrity, calculateProximity } from '../utils/integrity';
 
+let debounceTimer: NodeJS.Timeout;
+
 function calculateCampaignActivityScore(totalCampaigns: number): number {
   if (totalCampaigns >= 7) return 0.2;
   if (totalCampaigns >= 4) return 0.15;
@@ -27,6 +29,7 @@ export default function CreateCampaignPage() {
   const [citySuggestions, setCitySuggestions] = useState<string[]>([]);
   const [showCitySuggestions, setShowCitySuggestions] = useState(false);
   const [user, setUser] = useState<any>(null);
+  const [searching, setSearching] = useState(false);
 
   const navigate = useNavigate();
 
@@ -83,13 +86,18 @@ export default function CreateCampaignPage() {
 
   useEffect(() => {
     if (campaignLocation.length > 2) {
-      fetch(`https://nominatim.openstreetmap.org/search?format=jsonv2&q=${campaignLocation}&addressdetails=1`)
-        .then(res => res.json())
-        .then(data => {
-          const locations = data.map((item: any) => item.display_name);
-          setCitySuggestions(locations);
-          setShowCitySuggestions(true);
-        });
+      setSearching(true);
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        fetch(`https://nominatim.openstreetmap.org/search?format=jsonv2&q=${campaignLocation}&addressdetails=1`)
+          .then(res => res.json())
+          .then(data => {
+            const locations = data.slice(0, 5).map((item: any) => item.display_name);
+            setCitySuggestions(locations);
+            setShowCitySuggestions(true);
+          })
+          .finally(() => setSearching(false));
+      }, 500);
     } else {
       setShowCitySuggestions(false);
     }
@@ -185,6 +193,7 @@ export default function CreateCampaignPage() {
         <input value={country} onChange={(e) => setCountry(e.target.value)} placeholder="Country" required className="w-full border p-2" />
 
         <input value={campaignLocation} onChange={(e) => setCampaignLocation(e.target.value)} placeholder="Campaign Location" required className="w-full border p-2" />
+        {searching && <p className="text-xs text-gray-500 italic">Searching...</p>}
         {showCitySuggestions && (
           <ul className="bg-white border rounded">
             {citySuggestions.map((location, index) => (
