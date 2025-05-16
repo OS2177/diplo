@@ -1,25 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
-import { calculateDistance } from '../utils/calculateDistance';
-
-function calculateVoteIntegrity(profile: any): number {
-  let score = 0;
-  if (profile?.location_permission) score += 0.2;
-  if (profile?.name && profile?.age && profile?.city && profile?.country && profile?.gender) score += 0.2;
-  if (profile?.two_factor_enabled) score += 0.2;
-  if (profile?.blockchain_id) score += 0.3;
-  if (profile?.community_verified) score += 0.1;
-  return Math.min(score, 1.0);
-}
-
-function calculateLocationAccuracy(userLat: number, userLon: number, campLat: number, campLon: number): number {
-  const distance = calculateDistance(userLat, userLon, campLat, campLon);
-  if (distance <= 10) return 1.0;
-  if (distance <= 50) return 0.7;
-  if (distance <= 200) return 0.4;
-  return 0.0;
-}
+import { calculateUserIntegrity, calculateProximity } from '../utils/integrity';
 
 function calculateCampaignActivityScore(totalCampaigns: number): number {
   if (totalCampaigns >= 7) return 0.2;
@@ -132,8 +114,8 @@ export default function CreateCampaignPage() {
       return;
     }
 
-    const vote_integrity = calculateVoteIntegrity(profile);
-    const location_score = calculateLocationAccuracy(latitude!, longitude!, campaignLatitude, campaignLongitude);
+    const vote_integrity = calculateUserIntegrity(profile);
+    const proximity = calculateProximity(latitude!, longitude!, campaignLatitude, campaignLongitude);
     const { count: campaignCount } = await supabase
       .from('campaigns')
       .select('*', { count: 'exact', head: true })
@@ -143,7 +125,7 @@ export default function CreateCampaignPage() {
     const creator_integrity = parseFloat(
       (
         0.5 * vote_integrity +
-        0.3 * location_score +
+        0.3 * proximity +
         0.2 * experience_score
       ).toFixed(4)
     );
@@ -163,7 +145,7 @@ export default function CreateCampaignPage() {
         campaign_latitude: campaignLatitude,
         campaign_longitude: campaignLongitude,
         created_by: user.id,
-        status: 'pending', // ✅ status set to 'pending'
+        status: 'pending',
         creator_integrity,
         creator_verified_2fa: profile.two_factor_enabled || false,
         created_at: new Date().toISOString()

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
+import { calculateUserIntegrity, calculateProximity } from '../utils/integrity';
 
 type Campaign = {
   id: string;
@@ -16,29 +17,8 @@ type Campaign = {
   campaign_latitude?: number;
   campaign_longitude?: number;
   creator_integrity?: number;
+  campaign_integrity?: number;
 };
-
-function calculateIntegrityScore(profile: any): number {
-  let score = 0;
-  if (profile?.location_permission) score += 0.2;
-  if (profile?.profile_complete) score += 0.2;
-  if (profile?.two_factor_enabled) score += 0.2;
-  if (profile?.blockchain_id) score += 0.3;
-  if (profile?.community_verified) score += 0.1;
-  return Math.min(score, 1.0);
-}
-
-function calculateProximity(lat1: number, lon1: number, lat2: number, lon2: number): number {
-  const toRad = (deg: number) => (deg * Math.PI) / 180;
-  const R = 6371;
-  const dLat = toRad(lat2 - lat1);
-  const dLon = toRad(lon2 - lon1);
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return R * c;
-}
 
 export default function CampaignCard({ campaign }: { campaign: Campaign }) {
   const [voted, setVoted] = useState(false);
@@ -81,6 +61,32 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
     if (count !== null) setVoteCount(count);
   };
 
+  const updateCampaignIntegrity = async () => {
+    const { data: votes } = await supabase
+      .from('votes')
+      .select('integrity')
+      .eq('campaign_id', campaign.id);
+
+    if (!votes || votes.length === 0) return;
+
+    const avg_vote_integrity = votes.reduce((sum, v) => sum + (v.integrity || 0), 0) / votes.length;
+    const vote_count_score = Math.min(votes.length / 20, 1.0);
+    const creator_integrity = campaign.creator_integrity || 0;
+
+    const campaign_integrity = parseFloat(
+      (
+        0.5 * creator_integrity +
+        0.3 * avg_vote_integrity +
+        0.2 * vote_count_score
+      ).toFixed(4)
+    );
+
+    await supabase
+      .from('campaigns')
+      .update({ campaign_integrity })
+      .eq('id', campaign.id);
+  };
+
   const castVote = async (choice: string) => {
     const { data: userData } = await supabase.auth.getUser();
     const user = userData?.user;
@@ -104,14 +110,14 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
         const userLat = pos.coords.latitude;
         const userLon = pos.coords.longitude;
 
-        const integrity = calculateIntegrityScore(profile);
-
+        const integrity = calculateUserIntegrity(profile);
         const proximity = campaign.latitude && campaign.longitude
           ? calculateProximity(userLat, userLon, campaign.latitude, campaign.longitude)
-          : 1000;
+          : 0;
 
+        const proximityScore = proximity <= 10 ? 1 : proximity <= 50 ? 0.7 : proximity <= 200 ? 0.4 : 0;
         const globalModifier = 1.0;
-        const impact = integrity * (1 / (proximity + 1)) * globalModifier;
+        const impact = parseFloat((integrity * proximityScore * globalModifier).toFixed(4));
 
         const { error } = await supabase.from('votes').insert({
           campaign_id: campaign.id,
@@ -120,7 +126,7 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
           latitude: userLat,
           longitude: userLon,
           integrity,
-          proximity,
+          proximity: proximityScore,
           impact,
         });
 
@@ -132,6 +138,7 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
           setVoted(true);
           setVoteSuccess(true);
           fetchVoteCount();
+          await updateCampaignIntegrity();
           setTimeout(() => setVoteSuccess(false), 3000);
         }
       },
@@ -156,6 +163,12 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
       {campaign.creator_integrity !== undefined && (
         <p className="text-sm text-purple-600 mb-2">
           🧬 Creator Integrity: <strong>{(campaign.creator_integrity * 100).toFixed(0)}%</strong>
+        </p>
+      )}
+
+      {campaign.campaign_integrity !== undefined && (
+        <p className="text-sm text-indigo-600 mb-2">
+          📊 Campaign Integrity: <strong>{(campaign.campaign_integrity * 100).toFixed(1)}%</strong>
         </p>
       )}
 
@@ -210,7 +223,7 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
             </p>
             {voteImpact !== null && (
               <p className="text-sm text-blue-700">
-                🧠 Your vote impact: <strong>{voteImpact.toFixed(4)}</strong>
+                🧠 Your vote impact: <strong>{(voteImpact * 100).toFixed(1)}%</strong>
               </p>
             )}
           </>

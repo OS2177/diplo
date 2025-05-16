@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabaseClient';
 import { useUser } from '../hooks/useUser';
 import ProfileIntegrity from '../components/ProfileIntegrity';
 import { calculateDistance } from '../utils/calculateDistance';
+import { calculateUserIntegrity } from '../utils/integrity'; // ✅ New import
 
 interface Profile {
   id: string;
@@ -42,23 +43,15 @@ interface Campaign {
   creator_integrity?: number;
 }
 
-function calculateIntegrityScore(profile: any): number {
-  let score = 0;
-  if (profile?.location_permission) score += 0.2;
-  if (profile?.name && profile?.age && profile?.city && profile?.country && profile?.gender) score += 0.2;
-  if (profile?.two_factor_enabled) score += 0.2;
-  if (profile?.blockchain_id) score += 0.3;
-  if (profile?.community_verified) score += 0.1;
-  return Math.min(score, 1.0);
-}
-
+// ✅ Removed calculateIntegrityScore
+// ✅ Kept this logic as it's unique to creator scoring on profile
 function calculateCreatorIntegrityScore(
   profile: Profile,
   campaigns: Campaign[],
   votes: Vote[],
   userLatLng?: { latitude: number; longitude: number }
 ): number {
-  const voteIntegrity = calculateIntegrityScore(profile);
+  const voteIntegrity = calculateUserIntegrity(profile); // ✅ Replaced old function
   const numCampaigns = campaigns.length;
   const numVotes = votes.length;
 
@@ -79,6 +72,7 @@ function calculateCreatorIntegrityScore(
 
   return Math.min(score, 1.0);
 }
+
 
 export default function ProfilePage() {
   const { user, loading } = useUser();
