@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabaseClient';
 import { useUser } from '../hooks/useUser';
 
 import VoteSplitChart from '../components/charts/VoteSplitChart';
+import CampaignIntegrityChart from '../components/charts/CampaignIntegrityChart'; // ✅ New chart
 
 type Campaign = {
   id: string;
@@ -67,7 +68,7 @@ export default function AdminChartsPage() {
 
   return (
     <div className="min-h-screen bg-[#EEEDE5] p-6">
-      <h1 className="text-2xl font-bold mb-4">📊 Admin Charts (Phase 4)</h1>
+      <h1 className="text-2xl font-bold mb-4">📊 Admin Charts (Phase 5)</h1>
 
       <div className="mb-6">
         <label htmlFor="campaign" className="block mb-2 text-lg font-medium">
@@ -93,9 +94,16 @@ export default function AdminChartsPage() {
             Selected campaign ID: <code>{selectedCampaignId}</code>
           </div>
 
-          <div className="bg-white p-4 rounded-2xl shadow">
-            <h2 className="text-xl font-semibold mb-2">🗳 Vote Split</h2>
-            <VoteSplitChart campaignId={selectedCampaignId} />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="bg-white p-4 rounded-2xl shadow">
+              <h2 className="text-xl font-semibold mb-2">🗳 Vote Split</h2>
+              <VoteSplitChart campaignId={selectedCampaignId} />
+            </div>
+
+            <div className="bg-white p-4 rounded-2xl shadow">
+              <h2 className="text-xl font-semibold mb-2">📈 Campaign Integrity</h2>
+              <CampaignIntegrityChart campaignId={selectedCampaignId} />
+            </div>
           </div>
         </>
       )}
