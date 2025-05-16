@@ -232,7 +232,7 @@ export default function ProfilePage() {
     setCreatedCampaigns(createdCampaigns.filter((c) => c.id !== campaignId));
   };
 
-  const voteIntegrity = profile ? calculateIntegrityScore(profile) : 0;
+  const voteIntegrity = profile ? calculateUserIntegrity(profile) : 0;
   const creatorIntegrity = profile ? calculateCreatorIntegrityScore(profile, createdCampaigns, votes, userLocation ?? undefined) : null;
 
   if (loading || loadingProfile) {
