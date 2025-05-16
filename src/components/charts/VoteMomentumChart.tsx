@@ -10,15 +10,10 @@ import {
 } from 'recharts';
 import { supabase } from '../../lib/supabaseClient';
 import { groupVotesByTime } from '../../utils/chartUtils';
+import { DIPLO_COLORS, defaultChartMargins, tickStyle } from '../../styles/chartStyles';
 
 type Props = {
   campaignId: string;
-};
-
-type Vote = {
-  created_at: string;
-  choice: 'yes' | 'no';
-  campaign_id: string;
 };
 
 type ChartPoint = {
@@ -60,23 +55,22 @@ export default function VoteMomentumChart({ campaignId }: Props) {
   if (data.length === 0) return <p className="text-sm text-gray-500">Loading vote momentum...</p>;
 
   return (
-    <ResponsiveContainer width="100%" height={250}>
-      <AreaChart data={data}>
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="time" tick={{ fontSize: 10 }} />
-        <YAxis allowDecimals={false} />
-        <Tooltip />
-        <Area
-          type="monotone"
-          dataKey="votes"
-          stroke="#6366F1"
-          fill="#A5B4FC"
-          strokeWidth={2}
-          isAnimationActive={true}
-          animationDuration={800}
-          animationEasing="ease-in-out"
-        />
-      </AreaChart>
-    </ResponsiveContainer>
+    <div className="rounded-2xl overflow-hidden shadow" style={{ backgroundColor: DIPLO_COLORS.background }}>
+      <ResponsiveContainer width="100%" height={250}>
+        <AreaChart data={data} margin={defaultChartMargins}>
+          <CartesianGrid stroke={DIPLO_COLORS.grid} strokeDasharray="3 3" />
+          <XAxis dataKey="time" tick={tickStyle} />
+          <YAxis allowDecimals={false} tick={tickStyle} />
+          <Tooltip />
+          <Area
+            type="monotone"
+            dataKey="votes"
+            stroke={DIPLO_COLORS.magenta}
+            fill={DIPLO_COLORS.magenta}
+            strokeWidth={2}
+          />
+        </AreaChart>
+      </ResponsiveContainer>
+    </div>
   );
 }
