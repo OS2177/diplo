@@ -51,7 +51,7 @@ function calculateCreatorIntegrityScore(
   votes: Vote[],
   userLatLng?: { latitude: number; longitude: number }
 ): number {
-  const voteIntegrity = calculateUserIntegrity(profile); // ✅ Replaced old function
+  const voteIntegrity = profile ? calculateUserIntegrity(profile) : 0; // ✅ Replaced old function
   const numCampaigns = campaigns.length;
   const numVotes = votes.length;
 
