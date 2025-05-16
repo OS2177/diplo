@@ -6,7 +6,9 @@ import { useUser } from '../hooks/useUser';
 import VoteSplitChart from '../components/charts/VoteSplitChart';
 import CampaignIntegrityChart from '../components/charts/CampaignIntegrityChart';
 import ProximityReachChart from '../components/charts/ProximityReachChart';
-import VoteMomentumChart from '../components/charts/VoteMomentumChart'; // ✅ New chart
+import VoteMomentumChart from '../components/charts/VoteMomentumChart';
+import VoterIntegrityChart from '../components/charts/VoterIntegrityChart';
+import VoteMapChart from '../components/charts/VoteMapChart';
 
 type Campaign = {
   id: string;
@@ -70,7 +72,7 @@ export default function AdminChartsPage() {
 
   return (
     <div className="min-h-screen bg-[#EEEDE5] p-6">
-      <h1 className="text-2xl font-bold mb-4">📊 Admin Charts (Phase 7)</h1>
+      <h1 className="text-2xl font-bold mb-4">📊 Admin Charts (Full Suite)</h1>
 
       <div className="mb-6">
         <label htmlFor="campaign" className="block mb-2 text-lg font-medium">
@@ -115,6 +117,16 @@ export default function AdminChartsPage() {
             <div className="bg-white p-4 rounded-2xl shadow">
               <h2 className="text-xl font-semibold mb-2">🔄 Vote Momentum</h2>
               <VoteMomentumChart campaignId={selectedCampaignId} />
+            </div>
+
+            <div className="bg-white p-4 rounded-2xl shadow">
+              <h2 className="text-xl font-semibold mb-2">🧠 Voter Integrity Distribution</h2>
+              <VoterIntegrityChart campaignId={selectedCampaignId} />
+            </div>
+
+            <div className="col-span-1 md:col-span-2 bg-white p-4 rounded-2xl shadow">
+              <h2 className="text-xl font-semibold mb-2">🌐 Global Vote Map</h2>
+              <VoteMapChart campaignId={selectedCampaignId} />
             </div>
           </div>
         </>
