@@ -9,6 +9,8 @@ import ProfilePage from './pages/ProfilePage';
 import GlobalPulse from './pages/GlobalPulse';
 import LoginPage from './pages/LoginPage';
 import AdminCampaignsPage from './pages/AdminCampaignsPage'; // ✅ New import
+import 'leaflet/dist/leaflet.css';
+
 
 export default function App() {
   return (
