@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { useUser } from '../hooks/useUser';
 
+import VoteSplitChart from '../components/charts/VoteSplitChart';
+
 type Campaign = {
   id: string;
   title: string;
@@ -16,7 +18,6 @@ export default function AdminChartsPage() {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [selectedCampaignId, setSelectedCampaignId] = useState<string | null>(null);
 
-  // ✅ Check if user is admin
   useEffect(() => {
     const checkAdmin = async () => {
       if (!user?.id) return;
@@ -39,7 +40,6 @@ export default function AdminChartsPage() {
     checkAdmin();
   }, [user, navigate]);
 
-  // ✅ Load campaigns if admin
   useEffect(() => {
     const fetchCampaigns = async () => {
       const { data, error } = await supabase
@@ -67,7 +67,7 @@ export default function AdminChartsPage() {
 
   return (
     <div className="min-h-screen bg-[#EEEDE5] p-6">
-      <h1 className="text-2xl font-bold mb-4">🔐 Admin Charts (Phase 3)</h1>
+      <h1 className="text-2xl font-bold mb-4">📊 Admin Charts (Phase 4)</h1>
 
       <div className="mb-6">
         <label htmlFor="campaign" className="block mb-2 text-lg font-medium">
@@ -88,9 +88,16 @@ export default function AdminChartsPage() {
       </div>
 
       {selectedCampaignId && (
-        <div className="text-green-700 text-sm">
-          Selected campaign ID: <code>{selectedCampaignId}</code>
-        </div>
+        <>
+          <div className="text-green-700 text-sm mb-4">
+            Selected campaign ID: <code>{selectedCampaignId}</code>
+          </div>
+
+          <div className="bg-white p-4 rounded-2xl shadow">
+            <h2 className="text-xl font-semibold mb-2">🗳 Vote Split</h2>
+            <VoteSplitChart campaignId={selectedCampaignId} />
+          </div>
+        </>
       )}
     </div>
   );
