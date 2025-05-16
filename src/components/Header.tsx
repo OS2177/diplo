@@ -75,9 +75,14 @@ export default function Header() {
         </NavLink>
 
         {isAdmin && (
-          <NavLink to="/admin-campaigns" className={({ isActive }) => `${linkClasses} ${isActive ? activeClasses : ''}`}>
-            Admin
-          </NavLink>
+          <>
+            <NavLink to="/admin-campaigns" className={({ isActive }) => `${linkClasses} ${isActive ? activeClasses : ''}`}>
+              Admin
+            </NavLink>
+            <NavLink to="/admin-charts" className={({ isActive }) => `${linkClasses} ${isActive ? activeClasses : ''}`}>
+              Admin Charts
+            </NavLink>
+          </>
         )}
 
         {user ? (
@@ -111,9 +116,14 @@ export default function Header() {
           </NavLink>
 
           {isAdmin && (
-            <NavLink to="/admin-campaigns" className={`${linkClasses} block px-4 py-2`} onClick={() => setMenuOpen(false)}>
-              Admin
-            </NavLink>
+            <>
+              <NavLink to="/admin-campaigns" className={`${linkClasses} block px-4 py-2`} onClick={() => setMenuOpen(false)}>
+                Admin
+              </NavLink>
+              <NavLink to="/admin-charts" className={`${linkClasses} block px-4 py-2`} onClick={() => setMenuOpen(false)}>
+                Admin Charts
+              </NavLink>
+            </>
           )}
 
           {user ? (
