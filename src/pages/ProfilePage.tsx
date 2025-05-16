@@ -36,6 +36,7 @@ interface Campaign {
   title: string;
   description: string;
   created_by: string;
+  status: string;
   latitude?: number;
   longitude?: number;
   creator_integrity?: number;
@@ -128,7 +129,11 @@ export default function ProfilePage() {
     try {
       const { data: profileData } = await supabase.from('profiles').select('*').eq('id', user?.id).single();
       const { data: votesData } = await supabase.from('votes').select('id, choice, created_at, campaign_id, campaigns(title)').eq('user_id', user?.id);
-      const { data: campaignsData } = await supabase.from('campaigns').select('*').eq('created_by', user?.id);
+
+      const { data: campaignsData } = await supabase
+        .from('campaigns')
+        .select('id, title, description, status, created_by, latitude, longitude, creator_integrity')
+        .eq('created_by', user?.id);
 
       if (profileData) {
         setProfile(profileData);
@@ -339,9 +344,23 @@ export default function ProfilePage() {
           <ul className="space-y-3">
             {createdCampaigns.map((campaign) => (
               <li key={campaign.id} className="border rounded p-4 bg-white shadow space-y-2">
-                <Link to={`/campaign/${campaign.id}`} className="text-lg font-medium text-blue-700 hover:underline">
-                  {campaign.title}
-                </Link>
+                <div className="flex items-center justify-between">
+                  <Link to={`/campaign/${campaign.id}`} className="text-lg font-medium text-blue-700 hover:underline">
+                    {campaign.title}
+                  </Link>
+                  <span
+                    className={`text-xs font-semibold px-2 py-1 rounded 
+                      ${
+                        campaign.status === 'approved'
+                          ? 'bg-green-100 text-green-700'
+                          : campaign.status === 'pending'
+                          ? 'bg-yellow-100 text-yellow-700'
+                          : 'bg-red-100 text-red-700'
+                      }`}
+                  >
+                    {campaign.status}
+                  </span>
+                </div>
                 <p className="text-sm text-gray-600">{campaign.description}</p>
                 <button onClick={() => deleteCampaign(campaign.id)} className="text-red-500 text-xs hover:underline">
                   Delete

@@ -163,7 +163,7 @@ export default function CreateCampaignPage() {
         campaign_latitude: campaignLatitude,
         campaign_longitude: campaignLongitude,
         created_by: user.id,
-        status: 'published',
+        status: 'pending', // ✅ status set to 'pending'
         creator_integrity,
         creator_verified_2fa: profile.two_factor_enabled || false,
         created_at: new Date().toISOString()
@@ -174,7 +174,7 @@ export default function CreateCampaignPage() {
       console.error('Error creating campaign:', error.message);
       alert('Error: ' + error.message);
     } else {
-      alert('✅ Campaign created successfully!');
+      alert('✅ Your campaign is awaiting approval.');
       navigate('/global-pulse');
     }
   };
