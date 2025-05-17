@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@corbado/react": "^3.0.4",
+    "@react-spring/web": "^10.0.0",
     "@supabase/supabase-js": "^2.49.4",
     "leaflet": "^1.9.4",
     "react": "^18.2.0",
