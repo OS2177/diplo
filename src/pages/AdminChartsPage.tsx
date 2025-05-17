@@ -125,7 +125,7 @@ export default function AdminChartsPage() {
               <VoterIntegrityChart campaignId={selectedCampaignId} />
             </div>
 
-            <div className="col-span-1 md:col-span-2 bg-white p-4 rounded-2xl shadow">
+            <div className="bg-white p-4 rounded-2xl shadow">
               <h2 className="text-xl font-semibold mb-2">🫧 Vote Pulse (Live)</h2>
               <VotePulseChart campaignId={selectedCampaignId} />
             </div>
