@@ -3,6 +3,7 @@
 export const DIPLO_COLORS = {
   background: '#ECFD00',
   foreground: '#FF2E92',
+  heartbeat: '#C4C4C4', // soft contrast ripple for ambient pulses (adjust as needed)
 };
 
 export const defaultChartMargins = {

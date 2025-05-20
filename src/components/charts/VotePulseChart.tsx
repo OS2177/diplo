@@ -13,17 +13,19 @@ type Pulse = {
   id: string;
   timestamp: number;
   impact: number;
+  isHeartbeat?: boolean;
 };
 
 export default function VotePulseChart({ campaignId }: Props) {
   const [pulses, setPulses] = useState<Pulse[]>([]);
 
-  const addPulse = (impact: number) => {
+  const addPulse = (impact: number = 1, isHeartbeat = false) => {
     const id = `${Date.now()}-${Math.random()}`;
     const newPulse: Pulse = {
       id,
       timestamp: Date.now(),
       impact,
+      isHeartbeat,
     };
     setPulses((prev) => [...prev.slice(-10), newPulse]);
   };
@@ -36,9 +38,11 @@ export default function VotePulseChart({ campaignId }: Props) {
       .order('created_at', { ascending: false })
       .limit(10);
 
-    data?.forEach((v: any) => {
-      addPulse(v.impact);
-    });
+    if (data && data.length > 0) {
+      data.forEach((v: any) => addPulse(v.impact));
+    } else {
+      addPulse(0.5, true); // Default heartbeat if no votes yet
+    }
   };
 
   useEffect(() => {
@@ -54,24 +58,31 @@ export default function VotePulseChart({ campaignId }: Props) {
       })
       .subscribe();
 
+    const heartbeatInterval = setInterval(() => {
+      addPulse(0.3, true);
+    }, 6000); // Every 6 seconds — gentle baseline pulse
+
     return () => {
       supabase.removeChannel(channel);
+      clearInterval(heartbeatInterval);
     };
   }, [campaignId]);
 
   return (
     <div className="relative h-[250px] w-full overflow-hidden" style={{ backgroundColor: DIPLO_COLORS.background }}>
       {pulses.map((pulse) => (
-        <Ripple key={pulse.id} impact={pulse.impact} />
+        <Ripple key={pulse.id} impact={pulse.impact} isHeartbeat={pulse.isHeartbeat} />
       ))}
     </div>
   );
 }
 
-function Ripple({ impact }: { impact: number }) {
+function Ripple({ impact, isHeartbeat = false }: { impact: number; isHeartbeat?: boolean }) {
+  const color = isHeartbeat ? DIPLO_COLORS.heartbeat : DIPLO_COLORS.foreground;
+
   const { scale, opacity } = useSpring({
-    from: { scale: 0.1, opacity: 0.8 },
-    to: { scale: 2.5 + impact * 1.5, opacity: 0 },
+    from: { scale: 0.2, opacity: 0.9 },
+    to: { scale: 2.8 + impact * 2, opacity: 0 },
     config: config.slow,
     reset: true,
   });
@@ -82,10 +93,10 @@ function Ripple({ impact }: { impact: number }) {
         position: 'absolute',
         top: '50%',
         left: '50%',
-        width: 20,
-        height: 20,
+        width: 24,
+        height: 24,
         borderRadius: '9999px',
-        border: `2px solid ${DIPLO_COLORS.foreground}`,
+        border: `2px solid ${color}`,
         transform: scale.to((s) => `translate(-50%, -50%) scale(${s})`),
         opacity,
       }}
