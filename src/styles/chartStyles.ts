@@ -1,9 +1,22 @@
-// src/styles/chartStyles.ts
-
 export const DIPLO_COLORS = {
-  background: '#ECFD00',
+  background: '#ECFD00', // legacy background
   foreground: '#FF2E92',
-  heartbeat: '#C4C4C4', // soft contrast ripple for ambient pulses (adjust as needed)
+  heartbeat: '#C4C4C4',
+  offWhite: '#F5F5F0',
+  black: '#000000',
+  magenta: '#FD1096',
+  luminousYellow: '#DDFF00',
+};
+
+export const CHART_THEMES = {
+  blackAndOffWhite: {
+    background: DIPLO_COLORS.offWhite,
+    foreground: DIPLO_COLORS.black,
+  },
+  luminousMagenta: {
+    background: DIPLO_COLORS.luminousYellow,
+    foreground: DIPLO_COLORS.magenta,
+  },
 };
 
 export const defaultChartMargins = {
