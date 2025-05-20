@@ -102,28 +102,36 @@ function BaseConcentricRings({ center, count, spacing }: { center: number; count
 }
 
 function VoteRipple({ impact }: { impact: number }) {
-  const { r, opacity } = useSpring({
-    from: { r: 0, opacity: 0.8 },
+  const styles = useSpring({
+    from: { r: 0, opacity: 0.9 },
     to: { r: 140 + impact * 5, opacity: 0 },
     config: config.slow,
     reset: true,
   });
 
   return (
-    <svg
+    <animated.svg
       width={256}
       height={256}
-      style={{ position: 'absolute', top: 0, left: 0, pointerEvents: 'none' }}
+      style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        pointerEvents: 'none',
+      }}
     >
       <animated.circle
         cx={128}
         cy={128}
-        r={r}
         stroke="#000"
         strokeWidth={2}
         fill="none"
-        opacity={opacity}
+        style={{
+          r: styles.r,
+          opacity: styles.opacity,
+        }}
       />
-    </svg>
+    </animated.svg>
   );
 }
+
