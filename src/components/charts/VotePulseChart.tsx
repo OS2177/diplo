@@ -38,8 +38,6 @@ export default function VotePulseChart({ campaignId }: Props) {
 
     if (data && data.length > 0) {
       data.forEach((v: any) => addPulse(v.impact));
-    } else {
-      addPulse(0.5); // Fallback visual on first load
     }
   };
 
@@ -62,77 +60,70 @@ export default function VotePulseChart({ campaignId }: Props) {
   }, [campaignId]);
 
   return (
-    <div className="relative h-[250px] w-full overflow-hidden flex items-center justify-center" style={{ backgroundColor: DIPLO_COLORS.background }}>
-      <RadarRings count={10} />
+    <div
+      className="relative"
+      style={{
+        width: 256,
+        height: 256,
+        backgroundColor: DIPLO_COLORS.offWhite,
+        borderRadius: '1rem',
+        overflow: 'hidden',
+      }}
+    >
+      <svg width={256} height={256}>
+        <BaseConcentricRings center={128} count={10} spacing={12} />
+      </svg>
       {pulses.map((pulse) => (
-        <Ripple key={pulse.id} impact={pulse.impact} />
+        <VoteRipple key={pulse.id} impact={pulse.impact} />
       ))}
     </div>
   );
 }
 
-function RadarRings({ count = 10 }: { count: number }) {
-  const springs = useSprings(
-    count,
-    new Array(count).fill(0).map((_, i) => ({
-      from: { scale: 0.1, opacity: 0.4 },
-      to: async (next) => {
-        while (true) {
-          await next({ scale: 3, opacity: 0 });
-          await next({ scale: 0.1, opacity: 0.4 });
-        }
-      },
-      config: {
-        duration: 3000 + i * 100,
-      },
-      delay: i * 250,
-      loop: true,
-    }))
-  );
-
+function BaseConcentricRings({ center, count, spacing }: { center: number; count: number; spacing: number }) {
   return (
     <>
-      {springs.map((style, index) => (
-        <animated.div
-          key={index}
-          style={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            width: 20,
-            height: 20,
-            borderRadius: '50%',
-            border: `1px solid ${DIPLO_COLORS.foreground}`,
-            transform: style.scale.to((s) => `translate(-50%, -50%) scale(${s})`),
-            opacity: style.opacity,
-          }}
-        />
-      ))}
+      {Array.from({ length: count }).map((_, i) => {
+        const radius = spacing * (i + 1);
+        return (
+          <circle
+            key={i}
+            cx={center}
+            cy={center}
+            r={radius}
+            stroke="#000"
+            strokeWidth={1.5}
+            fill="none"
+          />
+        );
+      })}
     </>
   );
 }
 
-function Ripple({ impact }: { impact: number }) {
-  const { scale, opacity } = useSpring({
-    from: { scale: 0.1, opacity: 1 },
-    to: { scale: 3 + impact * 1.2, opacity: 0 },
+function VoteRipple({ impact }: { impact: number }) {
+  const { r, opacity } = useSpring({
+    from: { r: 0, opacity: 0.8 },
+    to: { r: 140 + impact * 5, opacity: 0 },
     config: config.slow,
     reset: true,
   });
 
   return (
-    <animated.div
-      style={{
-        position: 'absolute',
-        top: '50%',
-        left: '50%',
-        width: 24,
-        height: 24,
-        borderRadius: '50%',
-        border: `2px solid ${DIPLO_COLORS.foreground}`,
-        transform: scale.to((s) => `translate(-50%, -50%) scale(${s})`),
-        opacity,
-      }}
-    />
+    <svg
+      width={256}
+      height={256}
+      style={{ position: 'absolute', top: 0, left: 0, pointerEvents: 'none' }}
+    >
+      <animated.circle
+        cx={128}
+        cy={128}
+        r={r}
+        stroke="#000"
+        strokeWidth={2}
+        fill="none"
+        opacity={opacity}
+      />
+    </svg>
   );
 }
