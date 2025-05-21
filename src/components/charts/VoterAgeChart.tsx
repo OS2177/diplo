@@ -22,7 +22,7 @@ export default function VoterAgeChart({ campaignId }: Props) {
     const fetchVotes = async () => {
   const { data: votes, error } = await supabase
     .from('votes')
-    .select('user_id, campaign_id, user:profiles(age)')
+    .select('age')
     .eq('campaign_id', campaignId);
 
   if (error) {
@@ -33,8 +33,8 @@ export default function VoterAgeChart({ campaignId }: Props) {
   if (votes && votes.length > 0) {
     const counts = [0, 0, 0, 0, 0];
     votes.forEach((vote: any) => {
-      const age = vote.user?.age;
-      if (typeof age !== 'number') return;
+      const age = Number(vote.age);
+      if (isNaN(age)) return;
       if (age < 25) counts[0]++;
       else if (age < 35) counts[1]++;
       else if (age < 45) counts[2]++;
@@ -47,6 +47,7 @@ export default function VoterAgeChart({ campaignId }: Props) {
     setHasData(false);
   }
 };
+
 
 
     fetchVotes();
