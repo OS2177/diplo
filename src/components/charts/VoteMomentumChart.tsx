@@ -6,18 +6,12 @@ import {
   YAxis,
   Tooltip,
   ResponsiveContainer,
-  CartesianGrid
+  CartesianGrid,
 } from 'recharts';
 import { supabase } from '../../lib/supabaseClient';
 import { groupVotesByTime } from '../../utils/chartUtils';
-import {
-  DIPLO_COLORS,
-  defaultChartMargins,
-  tickStyle,
-  axisLineStyle,
-  gridStyle,
-  chartWrapperStyle
-} from '../../styles/chartStyles';
+import { chartThemes } from '../../styles/chartThemes';
+import DiploChartWrapper from '../DiploChartWrapper';
 
 type Props = {
   campaignId: string;
@@ -29,6 +23,7 @@ type ChartPoint = {
 };
 
 export default function VoteMomentumChart({ campaignId }: Props) {
+  const theme = chartThemes.voteMomentum;
   const [data, setData] = useState<ChartPoint[]>([]);
 
   const fetchVotes = async () => {
@@ -59,32 +54,33 @@ export default function VoteMomentumChart({ campaignId }: Props) {
     };
   }, [campaignId]);
 
-  if (data.length === 0) return <p className="text-sm" style={{ color: DIPLO_COLORS.foreground }}>Loading vote momentum...</p>;
+  if (data.length === 0)
+    return <p className="text-sm" style={{ color: theme.primary }}>Loading vote momentum...</p>;
 
   return (
-    <div style={chartWrapperStyle}>
+    <DiploChartWrapper background={theme.background} borderColor={theme.primary}>
       <ResponsiveContainer width="100%" height={250}>
-        <AreaChart data={data} margin={defaultChartMargins}>
-          <CartesianGrid {...gridStyle} />
-          <XAxis dataKey="time" tick={tickStyle} axisLine={axisLineStyle} />
-          <YAxis allowDecimals={false} tick={tickStyle} axisLine={axisLineStyle} />
+        <AreaChart data={data}>
+          <CartesianGrid stroke={theme.primary} strokeDasharray="3 3" />
+          <XAxis dataKey="time" stroke={theme.primary} tick={{ fontSize: theme.fontSize, fill: theme.primary }} />
+          <YAxis allowDecimals={false} stroke={theme.primary} tick={{ fontSize: theme.fontSize, fill: theme.primary }} />
           <Tooltip
             contentStyle={{
-              backgroundColor: DIPLO_COLORS.background,
-              border: `1px solid ${DIPLO_COLORS.foreground}`,
-              fontSize: '10px',
-              color: DIPLO_COLORS.foreground,
+              backgroundColor: theme.tooltipBg,
+              border: `1px solid ${theme.primary}`,
+              fontSize: `${theme.fontSize}px`,
+              color: theme.tooltipText,
             }}
           />
           <Area
             type="monotone"
             dataKey="votes"
-            stroke={DIPLO_COLORS.foreground}
-            fill={DIPLO_COLORS.foreground}
+            stroke={theme.primary}
+            fill={theme.primary}
             strokeWidth={2}
           />
         </AreaChart>
       </ResponsiveContainer>
-    </div>
+    </DiploChartWrapper>
   );
 }

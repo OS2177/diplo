@@ -17,7 +17,7 @@ type Props = {
 };
 
 type Vote = {
-  integrity: number;
+  age: number;
 };
 
 type Bin = {
@@ -25,30 +25,30 @@ type Bin = {
   count: number;
 };
 
-export default function VoterIntegrityChart({ campaignId }: Props) {
-  const theme = chartThemes.voterIntegrity;
+export default function VoterAgeDistributionChart({ campaignId }: Props) {
+  const theme = chartThemes.ageDistribution;
   const [data, setData] = useState<Bin[]>([]);
 
   const fetchVotes = async () => {
     const { data: votes } = await supabase
       .from('votes')
-      .select('integrity')
+      .select('age')
       .eq('campaign_id', campaignId);
 
     const bins: Bin[] = [
-      { label: '0.0–0.2', count: 0 },
-      { label: '0.2–0.4', count: 0 },
-      { label: '0.4–0.6', count: 0 },
-      { label: '0.6–0.8', count: 0 },
-      { label: '0.8–1.0', count: 0 }
+      { label: '0–18', count: 0 },
+      { label: '18–25', count: 0 },
+      { label: '25–35', count: 0 },
+      { label: '35–50', count: 0 },
+      { label: '50+', count: 0 }
     ];
 
     votes?.forEach((vote: Vote) => {
-      const i = vote.integrity;
-      if (i < 0.2) bins[0].count += 1;
-      else if (i < 0.4) bins[1].count += 1;
-      else if (i < 0.6) bins[2].count += 1;
-      else if (i < 0.8) bins[3].count += 1;
+      const a = vote.age;
+      if (a < 18) bins[0].count += 1;
+      else if (a < 25) bins[1].count += 1;
+      else if (a < 35) bins[2].count += 1;
+      else if (a < 50) bins[3].count += 1;
       else bins[4].count += 1;
     });
 
@@ -60,7 +60,7 @@ export default function VoterIntegrityChart({ campaignId }: Props) {
     fetchVotes();
 
     const channel = supabase
-      .channel('votes:integrity-hist')
+      .channel('votes:age')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'votes' }, (payload) => {
         if (payload.new.campaign_id === campaignId) fetchVotes();
       })
@@ -72,21 +72,21 @@ export default function VoterIntegrityChart({ campaignId }: Props) {
   }, [campaignId]);
 
   if (data.length === 0)
-    return <p className="text-sm" style={{ color: theme.primary }}>Loading voter integrity chart...</p>;
+    return <p className="text-sm" style={{ color: theme.primary }}>Loading age distribution...</p>;
 
   return (
     <DiploChartWrapper background={theme.background} borderColor={theme.primary}>
       <ResponsiveContainer width="100%" height={250}>
         <BarChart data={data}>
-          <CartesianGrid stroke={theme.primary} strokeDasharray="3 3" />
-          <XAxis dataKey="label" stroke={theme.primary} tick={{ fontSize: theme.fontSize, fill: theme.primary }} />
-          <YAxis allowDecimals={false} stroke={theme.primary} tick={{ fontSize: theme.fontSize, fill: theme.primary }} />
+          <CartesianGrid strokeDasharray="3 3" stroke={theme.primary} />
+          <XAxis dataKey="label" stroke={theme.primary} tick={{ fill: theme.primary, fontSize: theme.fontSize }} />
+          <YAxis allowDecimals={false} stroke={theme.primary} tick={{ fill: theme.primary, fontSize: theme.fontSize }} />
           <Tooltip
             contentStyle={{
               backgroundColor: theme.tooltipBg,
               border: `1px solid ${theme.primary}`,
-              fontSize: `${theme.fontSize}px`,
               color: theme.tooltipText,
+              fontSize: theme.fontSize,
             }}
           />
           <Bar dataKey="count" fill={theme.primary} />

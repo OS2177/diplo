@@ -1,56 +1,63 @@
-// src/components/charts/VotePulseChart.tsx
-
 import { useEffect, useState } from 'react';
-import { animated, useSpring, useSprings, config } from '@react-spring/web';
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+} from 'recharts';
 import { supabase } from '../../lib/supabaseClient';
-import { DIPLO_COLORS } from '../../styles/chartStyles';
+import { chartThemes } from '../../styles/chartThemes';
+import DiploChartWrapper from '../DiploChartWrapper';
 
 type Props = {
   campaignId: string;
 };
 
 type Pulse = {
-  id: string;
-  timestamp: number;
-  impact: number;
+  time: string;
+  count: number;
 };
 
 export default function VotePulseChart({ campaignId }: Props) {
-  const [pulses, setPulses] = useState<Pulse[]>([]);
-
-  const addPulse = (impact: number) => {
-    const id = `${Date.now()}-${Math.random()}`;
-    const newPulse: Pulse = {
-      id,
-      timestamp: Date.now(),
-      impact,
-    };
-    setPulses((prev) => [...prev.slice(-10), newPulse]);
-  };
-
-  const fetchInitialVotes = async () => {
-    const { data } = await supabase
-      .from('votes')
-      .select('created_at, impact')
-      .eq('campaign_id', campaignId)
-      .order('created_at', { ascending: false })
-      .limit(10);
-
-    if (data && data.length > 0) {
-      data.forEach((v: any) => addPulse(v.impact));
-    }
-  };
+  const theme = chartThemes.votePulse;
+  const [data, setData] = useState<Pulse[]>([]);
 
   useEffect(() => {
     if (!campaignId) return;
-    fetchInitialVotes();
+
+    const updatePulse = async () => {
+      const { data: votes } = await supabase
+        .from('votes')
+        .select('created_at')
+        .eq('campaign_id', campaignId)
+        .order('created_at', { ascending: true });
+
+      const now = Date.now();
+      const interval = 1000 * 30; // 30s pulse window
+      const grouped = new Array(10).fill(0).map((_, i) => {
+        const t = now - interval * (9 - i);
+        return { time: new Date(t).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), count: 0 };
+      });
+
+      votes?.forEach((v) => {
+        const voteTime = new Date(v.created_at).getTime();
+        const i = Math.floor((voteTime - (now - interval * 10)) / interval);
+        if (i >= 0 && i < grouped.length) {
+          grouped[i].count++;
+        }
+      });
+
+      setData(grouped);
+    };
+
+    updatePulse();
 
     const channel = supabase
       .channel('votes:pulse')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'votes' }, (payload) => {
-        if (payload.new.campaign_id === campaignId) {
-          addPulse(payload.new.impact || 1);
-        }
+        if (payload.new.campaign_id === campaignId) updatePulse();
       })
       .subscribe();
 
@@ -59,79 +66,33 @@ export default function VotePulseChart({ campaignId }: Props) {
     };
   }, [campaignId]);
 
-  return (
-    <div
-      className="relative"
-      style={{
-        width: 256,
-        height: 256,
-        backgroundColor: DIPLO_COLORS.offWhite,
-        borderRadius: '1rem',
-        overflow: 'hidden',
-      }}
-    >
-      <svg width={256} height={256}>
-        <BaseConcentricRings center={128} count={10} spacing={12} />
-      </svg>
-      {pulses.map((pulse) => (
-        <VoteRipple key={pulse.id} impact={pulse.impact} />
-      ))}
-    </div>
-  );
-}
+  if (data.length === 0)
+    return <p className="text-sm" style={{ color: theme.primary }}>Pulsing data...</p>;
 
-function BaseConcentricRings({ center, count, spacing }: { center: number; count: number; spacing: number }) {
   return (
-    <>
-      {Array.from({ length: count }).map((_, i) => {
-        const radius = spacing * (i + 1);
-        return (
-          <circle
-            key={i}
-            cx={center}
-            cy={center}
-            r={radius}
-            stroke="#000"
-            strokeWidth={1.5}
-            fill="none"
+    <DiploChartWrapper background={theme.background} borderColor={theme.primary}>
+      <ResponsiveContainer width="100%" height={200}>
+        <LineChart data={data}>
+          <XAxis dataKey="time" stroke={theme.primary} tick={{ fill: theme.primary, fontSize: theme.fontSize }} />
+          <YAxis stroke={theme.primary} tick={{ fill: theme.primary, fontSize: theme.fontSize }} />
+          <Tooltip
+            contentStyle={{
+              backgroundColor: theme.tooltipBg,
+              border: `1px solid ${theme.primary}`,
+              color: theme.tooltipText,
+              fontSize: theme.fontSize,
+            }}
           />
-        );
-      })}
-    </>
+          <Line
+            type="monotone"
+            dataKey="count"
+            stroke={theme.primary}
+            strokeWidth={2}
+            dot={false}
+            animationDuration={300}
+          />
+        </LineChart>
+      </ResponsiveContainer>
+    </DiploChartWrapper>
   );
 }
-
-function VoteRipple({ impact }: { impact: number }) {
-  const styles = useSpring({
-    from: { r: 0, opacity: 0.9 },
-    to: { r: 140 + impact * 5, opacity: 0 },
-    config: config.slow,
-    reset: true,
-  });
-
-  return (
-    <animated.svg
-      width={256}
-      height={256}
-      style={{
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        pointerEvents: 'none',
-      }}
-    >
-      <animated.circle
-        cx={128}
-        cy={128}
-        stroke="#000"
-        strokeWidth={2}
-        fill="none"
-        style={{
-          r: styles.r,
-          opacity: styles.opacity,
-        }}
-      />
-    </animated.svg>
-  );
-}
-

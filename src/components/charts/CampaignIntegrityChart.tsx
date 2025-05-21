@@ -6,18 +6,12 @@ import {
   YAxis,
   Tooltip,
   ResponsiveContainer,
-  CartesianGrid
+  CartesianGrid,
 } from 'recharts';
 import { supabase } from '../../lib/supabaseClient';
 import { formatTimestamp } from '../../utils/chartUtils';
-import {
-  DIPLO_COLORS,
-  defaultChartMargins,
-  tickStyle,
-  axisLineStyle,
-  gridStyle,
-  chartWrapperStyle
-} from '../../styles/chartStyles';
+import { chartThemes } from '../../styles/chartThemes';
+import DiploChartWrapper from '../DiploChartWrapper';
 
 type Props = {
   campaignId: string;
@@ -34,6 +28,7 @@ type Point = {
 };
 
 export default function CampaignIntegrityChart({ campaignId }: Props) {
+  const theme = chartThemes.campaignIntegrity;
   const [data, setData] = useState<Point[]>([]);
 
   const fetchData = async () => {
@@ -92,32 +87,33 @@ export default function CampaignIntegrityChart({ campaignId }: Props) {
     };
   }, [campaignId]);
 
-  if (data.length === 0) return <p className="text-sm" style={{ color: DIPLO_COLORS.foreground }}>Loading integrity chart...</p>;
+  if (data.length === 0)
+    return <p className="text-sm" style={{ color: theme.primary }}>Loading integrity chart...</p>;
 
   return (
-    <div style={chartWrapperStyle}>
+    <DiploChartWrapper background={theme.background} borderColor={theme.primary}>
       <ResponsiveContainer width="100%" height={250}>
-        <LineChart data={data} margin={defaultChartMargins}>
-          <CartesianGrid {...gridStyle} />
-          <XAxis dataKey="time" tick={tickStyle} axisLine={axisLineStyle} />
-          <YAxis domain={[0, 1]} tick={tickStyle} axisLine={axisLineStyle} />
+        <LineChart data={data}>
+          <CartesianGrid stroke={theme.primary} strokeDasharray="3 3" />
+          <XAxis dataKey="time" stroke={theme.primary} tick={{ fontSize: theme.fontSize, fill: theme.primary }} />
+          <YAxis domain={[0, 1]} stroke={theme.primary} tick={{ fontSize: theme.fontSize, fill: theme.primary }} />
           <Tooltip
             contentStyle={{
-              backgroundColor: DIPLO_COLORS.background,
-              border: `1px solid ${DIPLO_COLORS.foreground}`,
-              fontSize: '10px',
-              color: DIPLO_COLORS.foreground,
+              backgroundColor: theme.tooltipBg,
+              border: `1px solid ${theme.primary}`,
+              fontSize: `${theme.fontSize}px`,
+              color: theme.tooltipText,
             }}
           />
           <Line
             type="monotone"
             dataKey="integrity"
-            stroke={DIPLO_COLORS.foreground}
+            stroke={theme.primary}
             strokeWidth={2}
             dot={false}
           />
         </LineChart>
       </ResponsiveContainer>
-    </div>
+    </DiploChartWrapper>
   );
 }

@@ -2,16 +2,20 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { useUser } from '../hooks/useUser';
+
 import VoteSplitChart from '../components/charts/VoteSplitChart';
-import CampaignIntegrityChart from '../components/charts/CampaignIntegrityChart';
-import ProximityReachChart from '../components/charts/ProximityReachChart';
 import VoteMomentumChart from '../components/charts/VoteMomentumChart';
+import CampaignIntegrityChart from '../components/charts/CampaignIntegrityChart';
 import VoterIntegrityChart from '../components/charts/VoterIntegrityChart';
+import ProximityReachChart from '../components/charts/ProximityReachChart';
 import VoteMapChart from '../components/charts/VoteMapChart';
 import VotePulseChart from '../components/charts/VotePulseChart';
-import VoterAgeChart from '../components/charts/VoterAgeChart';
-
-
+import VoteImpactMatrix from '../components/charts/VoteImpactMatrix';
+import VoterAgeDistributionChart from '../components/charts/VoterAgeDistributionChart';
+import VoterGenderDistributionChart from '../components/charts/VoterGenderDistributionChart';
+import VoteOriginMap from '../components/charts/VoteOriginMap';
+import CampaignScopeGridChart from '../components/charts/CampaignScopeGridChart';
+import CommunityIntegrityMap from '../components/charts/CommunityIntegrityMap';
 
 type Campaign = {
   id: string;
@@ -75,7 +79,7 @@ export default function AdminChartsPage() {
 
   return (
     <div className="min-h-screen bg-[#EEEDE5] p-6">
-      <h1 className="text-2xl font-bold mb-4">📊 Admin Charts (Full Suite)</h1>
+      <h1 className="text-3xl font-bold mb-6">🌐 Admin Data Dashboard</h1>
 
       <div className="mb-6">
         <label htmlFor="campaign" className="block mb-2 text-lg font-medium">
@@ -96,57 +100,26 @@ export default function AdminChartsPage() {
       </div>
 
       {selectedCampaignId && (
-        <>
-          <div className="text-green-700 text-sm mb-4">
-            Selected campaign ID: <code>{selectedCampaignId}</code>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-white p-4 rounded-2xl shadow">
-              <h2 className="text-xl font-semibold mb-2">🗳 Vote Split</h2>
-              <VoteSplitChart campaignId={selectedCampaignId} />
-            </div>
-
-            <div className="bg-white p-4 rounded-2xl shadow">
-              <h2 className="text-xl font-semibold mb-2">📈 Campaign Integrity</h2>
-              <CampaignIntegrityChart campaignId={selectedCampaignId} />
-            </div>
-
-            <div className="bg-white p-4 rounded-2xl shadow">
-              <h2 className="text-xl font-semibold mb-2">🌍 Proximity Reach</h2>
-              <ProximityReachChart campaignId={selectedCampaignId} />
-            </div>
-
-            <div className="bg-white p-4 rounded-2xl shadow">
-              <h2 className="text-xl font-semibold mb-2">🔄 Vote Momentum</h2>
-              <VoteMomentumChart campaignId={selectedCampaignId} />
-            </div>
-
-            <div className="bg-white p-4 rounded-2xl shadow">
-              <h2 className="text-xl font-semibold mb-2">🧠 Voter Integrity Distribution</h2>
-              <VoterIntegrityChart campaignId={selectedCampaignId} />
-            </div>
-
-            <div className="bg-white p-4 rounded-2xl shadow">
-              <h2 className="text-xl font-semibold mb-2">🫧 Vote Pulse (Live)</h2>
-              <VotePulseChart campaignId={selectedCampaignId} />
-            </div>
-
-          
-              <div className="p-4">
-                <h2 className="text-lg font-bold mb-2">Voter Age Distribution</h2>
-                <VoterAgeChart campaignId={selectedCampaignId} />
-              </div>
-
-            
-
-            <div className="col-span-1 md:col-span-2 bg-white p-4 rounded-2xl shadow">
-              <h2 className="text-xl font-semibold mb-2">🌐 Global Vote Map</h2>
-              <VoteMapChart campaignId={selectedCampaignId} />
-            </div>
-          </div>
-        </>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <VoteSplitChart campaignId={selectedCampaignId} />
+          <CampaignIntegrityChart campaignId={selectedCampaignId} />
+          <ProximityReachChart campaignId={selectedCampaignId} />
+          <VoteMomentumChart campaignId={selectedCampaignId} />
+          <VotePulseChart campaignId={selectedCampaignId} />
+          <VoteImpactMatrix campaignId={selectedCampaignId} />
+          <VoterIntegrityChart campaignId={selectedCampaignId} />
+          <VoterAgeDistributionChart campaignId={selectedCampaignId} />
+          <VoterGenderDistributionChart campaignId={selectedCampaignId} />
+          <VoteMapChart campaignId={selectedCampaignId} />
+          <VoteOriginMap campaignId={selectedCampaignId} />
+          <CommunityIntegrityMap campaignId={selectedCampaignId} />
+        </div>
       )}
+
+      <div className="mt-12">
+        <h2 className="text-2xl font-semibold mb-4">📡 Global Scope Overview</h2>
+        <CampaignScopeGridChart />
+      </div>
     </div>
   );
 }
