@@ -6,11 +6,11 @@ import {
   YAxis,
   Tooltip,
   ResponsiveContainer,
-  CartesianGrid,
+  CartesianGrid
 } from 'recharts';
 import { supabase } from '../../lib/supabaseClient';
-import { chartThemes } from '../../styles/chartThemes';
 import { formatTimestamp } from '../../utils/chartUtils';
+import { chartThemes } from '../../styles/chartThemes';
 import DiploChartWrapper from '../DiploChartWrapper';
 import { chartDescriptions } from '../../constants/ChartDescriptions';
 
@@ -48,11 +48,13 @@ export default function CampaignIntegrityChart({ campaignId }: Props) {
       .eq('campaign_id', campaignId)
       .order('created_at', { ascending: true });
 
+    const safeVotes = Array.isArray(voteData) ? voteData : [];
+
     const cumulative: Point[] = [];
 
-    voteData?.forEach((vote: Vote, index: number) => {
+    safeVotes.forEach((vote: Vote, index: number) => {
       const avgVoteIntegrity =
-        voteData.slice(0, index + 1).reduce((sum, v) => sum + v.integrity, 0) / (index + 1);
+        safeVotes.slice(0, index + 1).reduce((sum, v) => sum + v.integrity, 0) / (index + 1);
 
       const voteCountScore = Math.min((index + 1) / 100, 1);
 
@@ -89,33 +91,22 @@ export default function CampaignIntegrityChart({ campaignId }: Props) {
     };
   }, [campaignId]);
 
-  if (data.length === 0)
-    return <p className="text-sm" style={{ color: theme.primary }}>Loading integrity chart...</p>;
+  const safeData = Array.isArray(data) ? data : [];
+
+  if (safeData.length === 0)
+    return <p className="text-sm text-gray-500">Loading integrity chart...</p>;
 
   return (
     <DiploChartWrapper background={theme.background} borderColor={theme.primary}>
       <h2 className="text-xl font-semibold mb-1" style={{ color: theme.primary }}>{title}</h2>
       <p className="text-sm text-gray-500 mb-3">{subtitle}</p>
       <ResponsiveContainer width="100%" height={250}>
-        <LineChart data={data}>
-          <CartesianGrid strokeDasharray="3 3" stroke={theme.primary} />
-          <XAxis dataKey="time" tick={{ fontSize: theme.fontSize, fill: theme.primary }} />
-          <YAxis domain={[0, 1]} stroke={theme.primary} tick={{ fill: theme.primary, fontSize: theme.fontSize }} />
-          <Tooltip
-            contentStyle={{
-              backgroundColor: theme.tooltipBg,
-              border: `1px solid ${theme.primary}`,
-              color: theme.tooltipText,
-              fontSize: theme.fontSize,
-            }}
-          />
-          <Line
-            type="monotone"
-            dataKey="integrity"
-            stroke={theme.primary}
-            strokeWidth={2}
-            dot={false}
-          />
+        <LineChart data={safeData}>
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey="time" tick={{ fontSize: 10 }} />
+          <YAxis domain={[0, 1]} />
+          <Tooltip />
+          <Line type="monotone" dataKey="integrity" stroke={theme.primary} strokeWidth={2} dot={false} />
         </LineChart>
       </ResponsiveContainer>
     </DiploChartWrapper>

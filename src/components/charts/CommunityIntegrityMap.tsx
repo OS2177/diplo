@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
 import { MapContainer, TileLayer } from 'react-leaflet';
 import 'leaflet.heat';
-import { supabase } from '../../lib/supabaseClient';
-import GlowingHeatLayer from '../layers/GlowingHeatLayer'; // ✅ NEW COMPONENT
 import { chartThemes } from '../../styles/chartThemes';
+import { supabase } from '../../lib/supabaseClient';
 import DiploChartWrapper from '../DiploChartWrapper';
 import { chartDescriptions } from '../../constants/ChartDescriptions';
+import VoteHeatLayer from '../layers/VoteHeatLayer';
 
 type Vote = {
   latitude: number;
@@ -23,7 +23,8 @@ export default function CommunityIntegrityMap() {
       .from('votes')
       .select('latitude, longitude, integrity');
 
-    if (voteData) setVotes(voteData);
+    if (Array.isArray(voteData)) setVotes(voteData);
+    else setVotes([]);
   };
 
   useEffect(() => {
@@ -41,6 +42,8 @@ export default function CommunityIntegrityMap() {
     };
   }, []);
 
+  const safeVotes = Array.isArray(votes) ? votes : [];
+
   return (
     <DiploChartWrapper background={theme.background} borderColor={theme.primary}>
       <h2 className="text-xl font-semibold mb-1" style={{ color: theme.primary }}>{title}</h2>
@@ -49,7 +52,7 @@ export default function CommunityIntegrityMap() {
       <div className="h-[400px] w-full rounded-xl overflow-hidden">
         <MapContainer center={[0, 0]} zoom={2} scrollWheelZoom={true} style={{ height: '100%', width: '100%' }}>
           <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-          <GlowingHeatLayer votes={votes} /> {/* ✅ FIXED JSX HERE */}
+          <VoteHeatLayer votes={safeVotes} />
         </MapContainer>
       </div>
     </DiploChartWrapper>

@@ -4,7 +4,7 @@ import {
   Pie,
   Cell,
   Tooltip,
-  ResponsiveContainer,
+  ResponsiveContainer
 } from 'recharts';
 import { supabase } from '../../lib/supabaseClient';
 import { chartThemes } from '../../styles/chartThemes';
@@ -38,12 +38,14 @@ export default function VoteSplitChart({ campaignId }: Props) {
       return;
     }
 
-    const yesVotes = data.filter((v: Vote) => v.choice === 'yes').length;
-    const noVotes = data.length - yesVotes;
+    const safeData = Array.isArray(data) ? data : [];
+
+    const yesVotes = safeData.filter((v: Vote) => v.choice === 'yes').length;
+    const noVotes = safeData.length - yesVotes;
 
     setVoteData([
       { name: 'Yes', value: yesVotes },
-      { name: 'No', value: noVotes },
+      { name: 'No', value: noVotes }
     ]);
   };
 
@@ -56,7 +58,11 @@ export default function VoteSplitChart({ campaignId }: Props) {
       .channel('votes:realtime')
       .on(
         'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'votes' },
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'votes'
+        },
         (payload) => {
           const newVote = payload.new as Vote;
           if (newVote.campaign_id === campaignId) {
@@ -71,40 +77,34 @@ export default function VoteSplitChart({ campaignId }: Props) {
     };
   }, [campaignId]);
 
-  if (voteData.length === 0)
-    return <p className="text-sm" style={{ color: theme.primary }}>Loading vote data...</p>;
+  const safeVoteData = Array.isArray(voteData) ? voteData : [];
+
+  if (safeVoteData.length === 0) {
+    return <p className="text-sm text-gray-500">Loading vote data...</p>;
+  }
 
   return (
     <DiploChartWrapper background={theme.background} borderColor={theme.primary}>
-      <h2 className="text-xl font-semibold mb-1" style={{ color: theme.primary }}>
-        {title}
-      </h2>
+      <h2 className="text-xl font-semibold mb-1" style={{ color: theme.primary }}>{title}</h2>
       <p className="text-sm text-gray-500 mb-3">{subtitle}</p>
 
       <ResponsiveContainer width="100%" height={250}>
         <PieChart>
           <Pie
-            data={voteData}
+            data={safeVoteData}
             dataKey="value"
             nameKey="name"
             cx="50%"
             cy="50%"
             innerRadius={50}
             outerRadius={80}
-            label={{ fill: theme.primary, fontSize: theme.fontSize }}
+            label
           >
-            {voteData.map((entry, index) => (
+            {safeVoteData.map((entry, index) => (
               <Cell key={`cell-${index}`} fill={COLORS[index]} />
             ))}
           </Pie>
-          <Tooltip
-            contentStyle={{
-              backgroundColor: theme.tooltipBg,
-              border: `1px solid ${theme.primary}`,
-              fontSize: `${theme.fontSize}px`,
-              color: theme.tooltipText,
-            }}
-          />
+          <Tooltip />
         </PieChart>
       </ResponsiveContainer>
     </DiploChartWrapper>

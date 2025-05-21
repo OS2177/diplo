@@ -6,7 +6,7 @@ import {
   YAxis,
   Tooltip,
   ResponsiveContainer,
-  CartesianGrid,
+  CartesianGrid
 } from 'recharts';
 import { supabase } from '../../lib/supabaseClient';
 import { groupVotesByTime } from '../../utils/chartUtils';
@@ -41,7 +41,9 @@ export default function VoteMomentumChart({ campaignId }: Props) {
       .eq('campaign_id', campaignId)
       .order('created_at', { ascending: true });
 
-    const grouped = groupVotesByTime(votes || [], 'hour');
+    const safeVotes = Array.isArray(votes) ? votes : [];
+
+    const grouped = groupVotesByTime(safeVotes, 'hour');
     const formatted = grouped.map(d => ({ time: d.time, votes: d.yesCount + d.noCount }));
     setData(formatted);
   };
@@ -62,33 +64,22 @@ export default function VoteMomentumChart({ campaignId }: Props) {
     };
   }, [campaignId]);
 
-  if (data.length === 0)
-    return <p className="text-sm" style={{ color: theme.primary }}>Loading vote momentum...</p>;
+  const safeData = Array.isArray(data) ? data : [];
+
+  if (safeData.length === 0)
+    return <p className="text-sm text-gray-500">Loading vote momentum...</p>;
 
   return (
     <DiploChartWrapper background={theme.background} borderColor={theme.primary}>
       <h2 className="text-xl font-semibold mb-1" style={{ color: theme.primary }}>{title}</h2>
       <p className="text-sm text-gray-500 mb-3">{subtitle}</p>
       <ResponsiveContainer width="100%" height={250}>
-        <AreaChart data={data}>
-          <CartesianGrid strokeDasharray="3 3" stroke={theme.primary} />
-          <XAxis dataKey="time" tick={{ fontSize: theme.fontSize, fill: theme.primary }} />
-          <YAxis allowDecimals={false} stroke={theme.primary} tick={{ fill: theme.primary, fontSize: theme.fontSize }} />
-          <Tooltip
-            contentStyle={{
-              backgroundColor: theme.tooltipBg,
-              border: `1px solid ${theme.primary}`,
-              color: theme.tooltipText,
-              fontSize: theme.fontSize,
-            }}
-          />
-          <Area
-            type="monotone"
-            dataKey="votes"
-            stroke={theme.primary}
-            fill={theme.secondary}
-            strokeWidth={2}
-          />
+        <AreaChart data={safeData}>
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey="time" tick={{ fontSize: 10 }} />
+          <YAxis allowDecimals={false} />
+          <Tooltip />
+          <Area type="monotone" dataKey="votes" stroke={theme.primary} fill={theme.secondary} strokeWidth={2} />
         </AreaChart>
       </ResponsiveContainer>
     </DiploChartWrapper>

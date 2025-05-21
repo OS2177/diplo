@@ -4,7 +4,7 @@ import {
   Pie,
   Cell,
   Tooltip,
-  ResponsiveContainer,
+  ResponsiveContainer
 } from 'recharts';
 import { supabase } from '../../lib/supabaseClient';
 import { chartThemes } from '../../styles/chartThemes';
@@ -17,14 +17,15 @@ type Props = {
 
 type Vote = {
   gender: string;
+  campaign_id: string;
 };
 
-const COLORS = ['#818CF8', '#EC4899', '#FBBF24'];
-
 export default function VoterGenderDistributionChart({ campaignId }: Props) {
-  const theme = chartThemes.genderDistribution;
-  const { title, subtitle } = chartDescriptions.genderDistribution;
+  const theme = chartThemes.voterGender;
+  const { title, subtitle } = chartDescriptions.voterGender;
   const [data, setData] = useState<{ name: string; value: number }[]>([]);
+
+  const COLORS = ['#6366F1', '#EC4899', '#FBBF24', '#10B981', '#A855F7'];
 
   const fetchVotes = async () => {
     const { data: votes } = await supabase
@@ -32,16 +33,17 @@ export default function VoterGenderDistributionChart({ campaignId }: Props) {
       .select('gender')
       .eq('campaign_id', campaignId);
 
-    const counts: Record<string, number> = {};
+    const safeVotes = Array.isArray(votes) ? votes : [];
 
-    votes?.forEach((v: Vote) => {
-      const g = v.gender?.toLowerCase() || 'unspecified';
-      counts[g] = (counts[g] || 0) + 1;
+    const genderCounts: Record<string, number> = {};
+
+    safeVotes.forEach((vote: Vote) => {
+      const gender = vote.gender || 'Unspecified';
+      genderCounts[gender] = (genderCounts[gender] || 0) + 1;
     });
 
-    setData(
-      Object.entries(counts).map(([name, value]) => ({ name, value }))
-    );
+    const formatted = Object.entries(genderCounts).map(([name, value]) => ({ name, value }));
+    setData(formatted);
   };
 
   useEffect(() => {
@@ -49,7 +51,7 @@ export default function VoterGenderDistributionChart({ campaignId }: Props) {
     fetchVotes();
 
     const channel = supabase
-      .channel('votes:gender')
+      .channel('votes:gender-dist')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'votes' }, (payload) => {
         if (payload.new.campaign_id === campaignId) fetchVotes();
       })
@@ -60,18 +62,19 @@ export default function VoterGenderDistributionChart({ campaignId }: Props) {
     };
   }, [campaignId]);
 
-  if (data.length === 0)
-    return <p className="text-sm" style={{ color: theme.primary }}>Loading gender distribution...</p>;
+  const safeData = Array.isArray(data) ? data : [];
+
+  if (safeData.length === 0)
+    return <p className="text-sm text-gray-500">Loading gender data...</p>;
 
   return (
     <DiploChartWrapper background={theme.background} borderColor={theme.primary}>
       <h2 className="text-xl font-semibold mb-1" style={{ color: theme.primary }}>{title}</h2>
       <p className="text-sm text-gray-500 mb-3">{subtitle}</p>
-
       <ResponsiveContainer width="100%" height={250}>
         <PieChart>
           <Pie
-            data={data}
+            data={safeData}
             dataKey="value"
             nameKey="name"
             cx="50%"
@@ -79,18 +82,11 @@ export default function VoterGenderDistributionChart({ campaignId }: Props) {
             outerRadius={80}
             label
           >
-            {data.map((entry, index) => (
+            {safeData.map((entry, index) => (
               <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
             ))}
           </Pie>
-          <Tooltip
-            contentStyle={{
-              backgroundColor: theme.tooltipBg,
-              border: `1px solid ${theme.primary}`,
-              color: theme.tooltipText,
-              fontSize: theme.fontSize,
-            }}
-          />
+          <Tooltip />
         </PieChart>
       </ResponsiveContainer>
     </DiploChartWrapper>

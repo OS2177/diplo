@@ -6,7 +6,7 @@ import {
   YAxis,
   Tooltip,
   ResponsiveContainer,
-  CartesianGrid,
+  CartesianGrid
 } from 'recharts';
 import { supabase } from '../../lib/supabaseClient';
 import { chartThemes } from '../../styles/chartThemes';
@@ -38,15 +38,17 @@ export default function VoterIntegrityChart({ campaignId }: Props) {
       .select('integrity')
       .eq('campaign_id', campaignId);
 
+    const safeVotes = Array.isArray(votes) ? votes : [];
+
     const bins: Bin[] = [
       { label: '0.0–0.2', count: 0 },
       { label: '0.2–0.4', count: 0 },
       { label: '0.4–0.6', count: 0 },
       { label: '0.6–0.8', count: 0 },
-      { label: '0.8–1.0', count: 0 },
+      { label: '0.8–1.0', count: 0 }
     ];
 
-    votes?.forEach((vote: Vote) => {
+    safeVotes.forEach((vote: Vote) => {
       const i = vote.integrity;
       if (i < 0.2) bins[0].count += 1;
       else if (i < 0.4) bins[1].count += 1;
@@ -74,26 +76,21 @@ export default function VoterIntegrityChart({ campaignId }: Props) {
     };
   }, [campaignId]);
 
-  if (data.length === 0)
-    return <p className="text-sm" style={{ color: theme.primary }}>Loading voter integrity...</p>;
+  const safeData = Array.isArray(data) ? data : [];
+
+  if (safeData.length === 0)
+    return <p className="text-sm text-gray-500">Loading voter integrity chart...</p>;
 
   return (
     <DiploChartWrapper background={theme.background} borderColor={theme.primary}>
       <h2 className="text-xl font-semibold mb-1" style={{ color: theme.primary }}>{title}</h2>
       <p className="text-sm text-gray-500 mb-3">{subtitle}</p>
       <ResponsiveContainer width="100%" height={250}>
-        <BarChart data={data}>
-          <CartesianGrid strokeDasharray="3 3" stroke={theme.primary} />
-          <XAxis dataKey="label" stroke={theme.primary} tick={{ fill: theme.primary, fontSize: theme.fontSize }} />
-          <YAxis allowDecimals={false} stroke={theme.primary} tick={{ fill: theme.primary, fontSize: theme.fontSize }} />
-          <Tooltip
-            contentStyle={{
-              backgroundColor: theme.tooltipBg,
-              border: `1px solid ${theme.primary}`,
-              color: theme.tooltipText,
-              fontSize: theme.fontSize,
-            }}
-          />
+        <BarChart data={safeData}>
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey="label" />
+          <YAxis allowDecimals={false} />
+          <Tooltip />
           <Bar dataKey="count" fill={theme.primary} />
         </BarChart>
       </ResponsiveContainer>

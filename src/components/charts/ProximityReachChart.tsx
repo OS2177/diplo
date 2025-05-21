@@ -6,7 +6,7 @@ import {
   YAxis,
   Tooltip,
   ResponsiveContainer,
-  CartesianGrid,
+  CartesianGrid
 } from 'recharts';
 import { supabase } from '../../lib/supabaseClient';
 import { chartThemes } from '../../styles/chartThemes';
@@ -19,6 +19,7 @@ type Props = {
 
 type Vote = {
   proximity: number;
+  campaign_id: string;
 };
 
 type Bin = {
@@ -32,10 +33,12 @@ export default function ProximityReachChart({ campaignId }: Props) {
   const [data, setData] = useState<Bin[]>([]);
 
   const fetchVotes = async () => {
-    const { data: votes } = await supabase
+    const { data: voteData } = await supabase
       .from('votes')
       .select('proximity')
       .eq('campaign_id', campaignId);
+
+    const safeVotes = Array.isArray(voteData) ? voteData : [];
 
     const bins: Bin[] = [
       { label: '0–10 km', count: 0 },
@@ -44,7 +47,7 @@ export default function ProximityReachChart({ campaignId }: Props) {
       { label: '200+ km', count: 0 }
     ];
 
-    votes?.forEach((vote: Vote) => {
+    safeVotes.forEach((vote: Vote) => {
       const p = vote.proximity;
       if (p >= 0.9) bins[0].count += 1;
       else if (p >= 0.6) bins[1].count += 1;
@@ -71,26 +74,20 @@ export default function ProximityReachChart({ campaignId }: Props) {
     };
   }, [campaignId]);
 
-  if (data.length === 0)
-    return <p className="text-sm" style={{ color: theme.primary }}>Loading proximity chart...</p>;
+  const safeData = Array.isArray(data) ? data : [];
+
+  if (safeData.length === 0) return <p className="text-sm text-gray-500">Loading proximity chart...</p>;
 
   return (
     <DiploChartWrapper background={theme.background} borderColor={theme.primary}>
       <h2 className="text-xl font-semibold mb-1" style={{ color: theme.primary }}>{title}</h2>
       <p className="text-sm text-gray-500 mb-3">{subtitle}</p>
       <ResponsiveContainer width="100%" height={250}>
-        <BarChart data={data}>
-          <CartesianGrid strokeDasharray="3 3" stroke={theme.primary} />
-          <XAxis dataKey="label" stroke={theme.primary} tick={{ fill: theme.primary, fontSize: theme.fontSize }} />
-          <YAxis allowDecimals={false} stroke={theme.primary} tick={{ fill: theme.primary, fontSize: theme.fontSize }} />
-          <Tooltip
-            contentStyle={{
-              backgroundColor: theme.tooltipBg,
-              border: `1px solid ${theme.primary}`,
-              color: theme.tooltipText,
-              fontSize: theme.fontSize,
-            }}
-          />
+        <BarChart data={safeData}>
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey="label" />
+          <YAxis allowDecimals={false} />
+          <Tooltip />
           <Bar dataKey="count" fill={theme.primary} />
         </BarChart>
       </ResponsiveContainer>

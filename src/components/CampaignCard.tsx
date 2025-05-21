@@ -129,6 +129,7 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
   proximity: proximityScore,
   impact,
   age: profile.age ?? null, // 👈 add this line
+  gender: profile.gender ?? null,
 });
 
 

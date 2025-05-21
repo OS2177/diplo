@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { MapContainer, TileLayer } from 'react-leaflet';
 import 'leaflet.heat';
 import { supabase } from '../../lib/supabaseClient';
-import VoteHeatLayer from '../layers/VoteHeatLayer'; // ✅ updated import
+import VoteHeatLayer from '../layers/VoteHeatLayer';
 import { chartThemes } from '../../styles/chartThemes';
 import DiploChartWrapper from '../DiploChartWrapper';
 import { chartDescriptions } from '../../constants/ChartDescriptions';
@@ -16,9 +16,9 @@ type Vote = {
   longitude: number;
 };
 
-export default function VoteOriginMap({ campaignId }: Props) {
-  const theme = chartThemes.voteOriginMap;
-  const { title, subtitle } = chartDescriptions.voteOriginMap;
+export default function VoterOriginMap({ campaignId }: Props) {
+  const theme = chartThemes.voterOriginMap;
+  const { title, subtitle } = chartDescriptions.voterOriginMap;
   const [votes, setVotes] = useState<Vote[]>([]);
   const [center, setCenter] = useState<[number, number]>([0, 0]);
 
@@ -35,7 +35,8 @@ export default function VoteOriginMap({ campaignId }: Props) {
       .eq('campaign_id', campaignId);
 
     if (campaign) setCenter([campaign.latitude, campaign.longitude]);
-    if (voteData) setVotes(voteData);
+    if (Array.isArray(voteData)) setVotes(voteData);
+    else setVotes([]);
   };
 
   useEffect(() => {
@@ -43,7 +44,7 @@ export default function VoteOriginMap({ campaignId }: Props) {
     fetchVotes();
 
     const channel = supabase
-      .channel('votes:heatmap')
+      .channel('votes:origin-map')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'votes' }, (payload) => {
         if (payload.new.campaign_id === campaignId) fetchVotes();
       })
@@ -54,6 +55,8 @@ export default function VoteOriginMap({ campaignId }: Props) {
     };
   }, [campaignId]);
 
+  const safeVotes = Array.isArray(votes) ? votes : [];
+
   return (
     <DiploChartWrapper background={theme.background} borderColor={theme.primary}>
       <h2 className="text-xl font-semibold mb-1" style={{ color: theme.primary }}>{title}</h2>
@@ -62,7 +65,7 @@ export default function VoteOriginMap({ campaignId }: Props) {
       <div className="h-[400px] w-full rounded-xl overflow-hidden">
         <MapContainer center={center} zoom={2} scrollWheelZoom={true} style={{ height: '100%', width: '100%' }}>
           <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-          <VoteHeatLayer votes={votes} /> {/* ✅ REPLACED HERE */}
+          <VoteHeatLayer votes={safeVotes} />
         </MapContainer>
       </div>
     </DiploChartWrapper>
