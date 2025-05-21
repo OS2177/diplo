@@ -14,6 +14,7 @@ const AGE_BRACKETS = ['18–24', '25–34', '35–44', '45–54', '55+'];
 export default function VoterAgeChart({ campaignId }: Props) {
   const theme = CHART_THEMES.blackAndOffWhite;
   const [ageCounts, setAgeCounts] = useState<number[]>([0, 0, 0, 0, 0]);
+  const [hasData, setHasData] = useState(false);
 
   useEffect(() => {
     if (!campaignId) return;
@@ -24,10 +25,16 @@ export default function VoterAgeChart({ campaignId }: Props) {
         .select('user_id, campaign_id, profiles(age)')
         .eq('campaign_id', campaignId);
 
-      if (votes && !error) {
+      if (error) {
+        console.error('Supabase error:', error);
+        return;
+      }
+
+      if (votes && votes.length > 0) {
         const counts = [0, 0, 0, 0, 0];
         votes.forEach((vote: any) => {
           const age = vote.profiles?.age;
+          if (typeof age !== 'number') return;
           if (age < 25) counts[0]++;
           else if (age < 35) counts[1]++;
           else if (age < 45) counts[2]++;
@@ -35,6 +42,9 @@ export default function VoterAgeChart({ campaignId }: Props) {
           else counts[4]++;
         });
         setAgeCounts(counts);
+        setHasData(true);
+      } else {
+        setHasData(false);
       }
     };
 
@@ -62,20 +72,34 @@ export default function VoterAgeChart({ campaignId }: Props) {
         alignItems: 'flex-end',
         justifyContent: 'space-around',
         padding: '0 8px',
+        position: 'relative',
       }}
     >
-      {springs.map((style, i) => (
-        <animated.div
-          key={i}
+      {hasData ? (
+        springs.map((style, i) => (
+          <animated.div
+            key={i}
+            style={{
+              width: 16,
+              height: style.height,
+              backgroundColor: theme.foreground,
+              borderRadius: 4,
+            }}
+            title={AGE_BRACKETS[i]}
+          />
+        ))
+      ) : (
+        <div
+          className="absolute text-center text-xs text-black/50"
           style={{
-            width: 16,
-            height: style.height,
-            backgroundColor: theme.foreground,
-            borderRadius: 4,
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
           }}
-          title={AGE_BRACKETS[i]}
-        />
-      ))}
+        >
+          No voter age data
+        </div>
+      )}
     </div>
   );
 }
