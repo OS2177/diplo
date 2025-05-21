@@ -4,10 +4,10 @@ import {
   Pie,
   Cell,
   Tooltip,
-  ResponsiveContainer
+  ResponsiveContainer,
 } from 'recharts';
 import { supabase } from '../../lib/supabaseClient';
-import { DIPLO_COLORS, chartWrapperStyle } from '../../styles/chartStyles';
+import { chartThemes } from '../../styles/chartThemes';
 
 type Props = {
   campaignId: string;
@@ -18,9 +18,8 @@ type Vote = {
   campaign_id: string;
 };
 
-const COLORS = [DIPLO_COLORS.foreground, DIPLO_COLORS.foreground];
-
 export default function VoteSplitChart({ campaignId }: Props) {
+  const theme = chartThemes.voteSplit;
   const [voteData, setVoteData] = useState<{ name: string; value: number }[]>([]);
 
   const fetchVotes = async () => {
@@ -39,13 +38,12 @@ export default function VoteSplitChart({ campaignId }: Props) {
 
     setVoteData([
       { name: 'Yes', value: yesVotes },
-      { name: 'No', value: noVotes }
+      { name: 'No', value: noVotes },
     ]);
   };
 
   useEffect(() => {
     if (!campaignId) return;
-
     fetchVotes();
 
     const channel = supabase
@@ -61,11 +59,11 @@ export default function VoteSplitChart({ campaignId }: Props) {
   }, [campaignId]);
 
   if (voteData.length === 0) {
-    return <p className="text-sm" style={{ color: DIPLO_COLORS.foreground }}>Loading vote data...</p>;
+    return <p className="text-sm" style={{ color: theme.primary }}>Loading vote data...</p>;
   }
 
   return (
-    <div style={chartWrapperStyle}>
+    <div className="rounded-2xl p-4" style={{ backgroundColor: theme.background }}>
       <ResponsiveContainer width="100%" height={250}>
         <PieChart>
           <Pie
@@ -76,18 +74,20 @@ export default function VoteSplitChart({ campaignId }: Props) {
             cy="50%"
             innerRadius={50}
             outerRadius={80}
-            label={{ fill: DIPLO_COLORS.foreground, fontSize: 10 }}
+            label={{ fill: theme.primary, fontSize: theme.fontSize }}
+            animationBegin={0}
+            animationDuration={800}
+            isAnimationActive={true}
           >
-            {voteData.map((_, index) => (
-              <Cell key={`cell-${index}`} fill={COLORS[index]} />
-            ))}
+            <Cell fill={theme.primary} />
+            <Cell fill={theme.secondary} />
           </Pie>
           <Tooltip
             contentStyle={{
-              backgroundColor: DIPLO_COLORS.background,
-              border: `1px solid ${DIPLO_COLORS.foreground}`,
-              fontSize: '10px',
-              color: DIPLO_COLORS.foreground,
+              backgroundColor: theme.tooltipBg,
+              border: `1px solid ${theme.primary}`,
+              fontSize: `${theme.fontSize}px`,
+              color: theme.tooltipText,
             }}
           />
         </PieChart>
