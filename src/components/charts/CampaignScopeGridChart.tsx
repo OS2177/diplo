@@ -1,55 +1,80 @@
 import { useEffect, useState } from 'react';
 import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
+  PieChart,
+  Pie,
+  Cell,
   Tooltip,
   ResponsiveContainer,
-  CartesianGrid,
 } from 'recharts';
 import { supabase } from '../../lib/supabaseClient';
 import { chartThemes } from '../../styles/chartThemes';
 import DiploChartWrapper from '../DiploChartWrapper';
+import { chartDescriptions } from '../../constants/ChartDescriptions';
 
-type ScopeBin = {
+type Campaign = {
   scope: string;
-  count: number;
 };
 
 export default function CampaignScopeGridChart() {
   const theme = chartThemes.scopeGrid;
-  const [data, setData] = useState<ScopeBin[]>([]);
+  const { title, subtitle } = chartDescriptions.scopeGrid;
+  const [data, setData] = useState<{ name: string; value: number }[]>([]);
 
-  const fetchScopes = async () => {
+  const fetchCampaigns = async () => {
     const { data: campaigns } = await supabase
       .from('campaigns')
-      .select('scope');
+      .select('scope')
+      .eq('status', 'approved');
 
-    const bins: Record<string, number> = {};
+    const countByScope: Record<string, number> = {};
 
-    campaigns?.forEach((c) => {
-      const scope = (c.scope || 'Unspecified').toLowerCase();
-      bins[scope] = (bins[scope] || 0) + 1;
+    campaigns?.forEach((c: Campaign) => {
+      const s = c.scope?.toLowerCase() || 'unspecified';
+      countByScope[s] = (countByScope[s] || 0) + 1;
     });
 
-    setData(Object.entries(bins).map(([scope, count]) => ({ scope, count })));
+    setData(
+      Object.entries(countByScope).map(([name, value]) => ({ name, value }))
+    );
   };
 
   useEffect(() => {
-    fetchScopes();
+    fetchCampaigns();
+
+    const channel = supabase
+      .channel('campaigns:scopegrid')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'campaigns' }, () => {
+        fetchCampaigns();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   if (data.length === 0)
-    return <p className="text-sm" style={{ color: theme.primary }}>Loading campaign scopes...</p>;
+    return <p className="text-sm" style={{ color: theme.primary }}>Loading scope chart...</p>;
 
   return (
     <DiploChartWrapper background={theme.background} borderColor={theme.primary}>
+      <h2 className="text-xl font-semibold mb-1" style={{ color: theme.primary }}>{title}</h2>
+      <p className="text-sm text-gray-500 mb-3">{subtitle}</p>
       <ResponsiveContainer width="100%" height={250}>
-        <BarChart data={data}>
-          <CartesianGrid strokeDasharray="3 3" stroke={theme.primary} />
-          <XAxis dataKey="scope" stroke={theme.primary} tick={{ fill: theme.primary, fontSize: theme.fontSize }} />
-          <YAxis allowDecimals={false} stroke={theme.primary} tick={{ fill: theme.primary, fontSize: theme.fontSize }} />
+        <PieChart>
+          <Pie
+            data={data}
+            dataKey="value"
+            nameKey="name"
+            cx="50%"
+            cy="50%"
+            outerRadius={80}
+            label
+          >
+            {data.map((entry, index) => (
+              <Cell key={`cell-${index}`} fill={theme.colors[index % theme.colors.length]} />
+            ))}
+          </Pie>
           <Tooltip
             contentStyle={{
               backgroundColor: theme.tooltipBg,
@@ -58,8 +83,7 @@ export default function CampaignScopeGridChart() {
               fontSize: theme.fontSize,
             }}
           />
-          <Bar dataKey="count" fill={theme.primary} />
-        </BarChart>
+        </PieChart>
       </ResponsiveContainer>
     </DiploChartWrapper>
   );

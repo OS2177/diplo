@@ -9,6 +9,7 @@ import {
 import { supabase } from '../../lib/supabaseClient';
 import { chartThemes } from '../../styles/chartThemes';
 import DiploChartWrapper from '../DiploChartWrapper';
+import { chartDescriptions } from '../../constants/ChartDescriptions';
 
 type Props = {
   campaignId: string;
@@ -18,30 +19,29 @@ type Vote = {
   gender: string;
 };
 
+const COLORS = ['#818CF8', '#EC4899', '#FBBF24'];
+
 export default function VoterGenderDistributionChart({ campaignId }: Props) {
   const theme = chartThemes.genderDistribution;
-  const [voteData, setVoteData] = useState<{ name: string; value: number }[]>([]);
+  const { title, subtitle } = chartDescriptions.genderDistribution;
+  const [data, setData] = useState<{ name: string; value: number }[]>([]);
 
   const fetchVotes = async () => {
-    const { data, error } = await supabase
+    const { data: votes } = await supabase
       .from('votes')
       .select('gender')
       .eq('campaign_id', campaignId);
 
-    if (error) {
-      console.error('Error fetching gender votes:', error);
-      return;
-    }
-
     const counts: Record<string, number> = {};
 
-    data?.forEach((v: Vote) => {
+    votes?.forEach((v: Vote) => {
       const g = v.gender?.toLowerCase() || 'unspecified';
       counts[g] = (counts[g] || 0) + 1;
     });
 
-    const result = Object.entries(counts).map(([name, value]) => ({ name, value }));
-    setVoteData(result);
+    setData(
+      Object.entries(counts).map(([name, value]) => ({ name, value }))
+    );
   };
 
   useEffect(() => {
@@ -60,35 +60,35 @@ export default function VoterGenderDistributionChart({ campaignId }: Props) {
     };
   }, [campaignId]);
 
-  if (voteData.length === 0)
-    return <p className="text-sm" style={{ color: theme.primary }}>Loading gender breakdown...</p>;
-
-  const colorPalette = ['#C084FC', '#F472B6', '#60A5FA', '#FBBF24', '#A5B4FC'];
+  if (data.length === 0)
+    return <p className="text-sm" style={{ color: theme.primary }}>Loading gender distribution...</p>;
 
   return (
     <DiploChartWrapper background={theme.background} borderColor={theme.primary}>
+      <h2 className="text-xl font-semibold mb-1" style={{ color: theme.primary }}>{title}</h2>
+      <p className="text-sm text-gray-500 mb-3">{subtitle}</p>
+
       <ResponsiveContainer width="100%" height={250}>
         <PieChart>
           <Pie
-            data={voteData}
+            data={data}
             dataKey="value"
             nameKey="name"
             cx="50%"
             cy="50%"
-            innerRadius={50}
             outerRadius={80}
-            label={{ fill: theme.primary, fontSize: theme.fontSize }}
+            label
           >
-            {voteData.map((_, index) => (
-              <Cell key={`cell-${index}`} fill={colorPalette[index % colorPalette.length]} />
+            {data.map((entry, index) => (
+              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
             ))}
           </Pie>
           <Tooltip
             contentStyle={{
               backgroundColor: theme.tooltipBg,
               border: `1px solid ${theme.primary}`,
-              fontSize: `${theme.fontSize}px`,
               color: theme.tooltipText,
+              fontSize: theme.fontSize,
             }}
           />
         </PieChart>

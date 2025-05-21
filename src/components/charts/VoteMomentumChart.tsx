@@ -12,9 +12,16 @@ import { supabase } from '../../lib/supabaseClient';
 import { groupVotesByTime } from '../../utils/chartUtils';
 import { chartThemes } from '../../styles/chartThemes';
 import DiploChartWrapper from '../DiploChartWrapper';
+import { chartDescriptions } from '../../constants/ChartDescriptions';
 
 type Props = {
   campaignId: string;
+};
+
+type Vote = {
+  created_at: string;
+  choice: 'yes' | 'no';
+  campaign_id: string;
 };
 
 type ChartPoint = {
@@ -24,6 +31,7 @@ type ChartPoint = {
 
 export default function VoteMomentumChart({ campaignId }: Props) {
   const theme = chartThemes.voteMomentum;
+  const { title, subtitle } = chartDescriptions.voteMomentum;
   const [data, setData] = useState<ChartPoint[]>([]);
 
   const fetchVotes = async () => {
@@ -59,24 +67,26 @@ export default function VoteMomentumChart({ campaignId }: Props) {
 
   return (
     <DiploChartWrapper background={theme.background} borderColor={theme.primary}>
+      <h2 className="text-xl font-semibold mb-1" style={{ color: theme.primary }}>{title}</h2>
+      <p className="text-sm text-gray-500 mb-3">{subtitle}</p>
       <ResponsiveContainer width="100%" height={250}>
         <AreaChart data={data}>
-          <CartesianGrid stroke={theme.primary} strokeDasharray="3 3" />
-          <XAxis dataKey="time" stroke={theme.primary} tick={{ fontSize: theme.fontSize, fill: theme.primary }} />
-          <YAxis allowDecimals={false} stroke={theme.primary} tick={{ fontSize: theme.fontSize, fill: theme.primary }} />
+          <CartesianGrid strokeDasharray="3 3" stroke={theme.primary} />
+          <XAxis dataKey="time" tick={{ fontSize: theme.fontSize, fill: theme.primary }} />
+          <YAxis allowDecimals={false} stroke={theme.primary} tick={{ fill: theme.primary, fontSize: theme.fontSize }} />
           <Tooltip
             contentStyle={{
               backgroundColor: theme.tooltipBg,
               border: `1px solid ${theme.primary}`,
-              fontSize: `${theme.fontSize}px`,
               color: theme.tooltipText,
+              fontSize: theme.fontSize,
             }}
           />
           <Area
             type="monotone"
             dataKey="votes"
             stroke={theme.primary}
-            fill={theme.primary}
+            fill={theme.secondary}
             strokeWidth={2}
           />
         </AreaChart>

@@ -9,9 +9,10 @@ import {
   CartesianGrid,
 } from 'recharts';
 import { supabase } from '../../lib/supabaseClient';
-import { formatTimestamp } from '../../utils/chartUtils';
 import { chartThemes } from '../../styles/chartThemes';
+import { formatTimestamp } from '../../utils/chartUtils';
 import DiploChartWrapper from '../DiploChartWrapper';
+import { chartDescriptions } from '../../constants/ChartDescriptions';
 
 type Props = {
   campaignId: string;
@@ -29,6 +30,7 @@ type Point = {
 
 export default function CampaignIntegrityChart({ campaignId }: Props) {
   const theme = chartThemes.campaignIntegrity;
+  const { title, subtitle } = chartDescriptions.campaignIntegrity;
   const [data, setData] = useState<Point[]>([]);
 
   const fetchData = async () => {
@@ -92,17 +94,19 @@ export default function CampaignIntegrityChart({ campaignId }: Props) {
 
   return (
     <DiploChartWrapper background={theme.background} borderColor={theme.primary}>
+      <h2 className="text-xl font-semibold mb-1" style={{ color: theme.primary }}>{title}</h2>
+      <p className="text-sm text-gray-500 mb-3">{subtitle}</p>
       <ResponsiveContainer width="100%" height={250}>
         <LineChart data={data}>
-          <CartesianGrid stroke={theme.primary} strokeDasharray="3 3" />
-          <XAxis dataKey="time" stroke={theme.primary} tick={{ fontSize: theme.fontSize, fill: theme.primary }} />
-          <YAxis domain={[0, 1]} stroke={theme.primary} tick={{ fontSize: theme.fontSize, fill: theme.primary }} />
+          <CartesianGrid strokeDasharray="3 3" stroke={theme.primary} />
+          <XAxis dataKey="time" tick={{ fontSize: theme.fontSize, fill: theme.primary }} />
+          <YAxis domain={[0, 1]} stroke={theme.primary} tick={{ fill: theme.primary, fontSize: theme.fontSize }} />
           <Tooltip
             contentStyle={{
               backgroundColor: theme.tooltipBg,
               border: `1px solid ${theme.primary}`,
-              fontSize: `${theme.fontSize}px`,
               color: theme.tooltipText,
+              fontSize: theme.fontSize,
             }}
           />
           <Line

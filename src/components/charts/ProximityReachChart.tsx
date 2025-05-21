@@ -6,17 +6,12 @@ import {
   YAxis,
   Tooltip,
   ResponsiveContainer,
-  CartesianGrid
+  CartesianGrid,
 } from 'recharts';
 import { supabase } from '../../lib/supabaseClient';
-import {
-  DIPLO_COLORS,
-  defaultChartMargins,
-  tickStyle,
-  axisLineStyle,
-  gridStyle,
-  chartWrapperStyle
-} from '../../styles/chartStyles';
+import { chartThemes } from '../../styles/chartThemes';
+import DiploChartWrapper from '../DiploChartWrapper';
+import { chartDescriptions } from '../../constants/ChartDescriptions';
 
 type Props = {
   campaignId: string;
@@ -24,7 +19,6 @@ type Props = {
 
 type Vote = {
   proximity: number;
-  campaign_id: string;
 };
 
 type Bin = {
@@ -33,6 +27,8 @@ type Bin = {
 };
 
 export default function ProximityReachChart({ campaignId }: Props) {
+  const theme = chartThemes.proximityReach;
+  const { title, subtitle } = chartDescriptions.proximityReach;
   const [data, setData] = useState<Bin[]>([]);
 
   const fetchVotes = async () => {
@@ -75,26 +71,29 @@ export default function ProximityReachChart({ campaignId }: Props) {
     };
   }, [campaignId]);
 
-  if (data.length === 0) return <p className="text-sm" style={{ color: DIPLO_COLORS.foreground }}>Loading proximity chart...</p>;
+  if (data.length === 0)
+    return <p className="text-sm" style={{ color: theme.primary }}>Loading proximity chart...</p>;
 
   return (
-    <div style={chartWrapperStyle}>
+    <DiploChartWrapper background={theme.background} borderColor={theme.primary}>
+      <h2 className="text-xl font-semibold mb-1" style={{ color: theme.primary }}>{title}</h2>
+      <p className="text-sm text-gray-500 mb-3">{subtitle}</p>
       <ResponsiveContainer width="100%" height={250}>
-        <BarChart data={data} margin={defaultChartMargins}>
-          <CartesianGrid {...gridStyle} />
-          <XAxis dataKey="label" tick={tickStyle} axisLine={axisLineStyle} />
-          <YAxis allowDecimals={false} tick={tickStyle} axisLine={axisLineStyle} />
+        <BarChart data={data}>
+          <CartesianGrid strokeDasharray="3 3" stroke={theme.primary} />
+          <XAxis dataKey="label" stroke={theme.primary} tick={{ fill: theme.primary, fontSize: theme.fontSize }} />
+          <YAxis allowDecimals={false} stroke={theme.primary} tick={{ fill: theme.primary, fontSize: theme.fontSize }} />
           <Tooltip
             contentStyle={{
-              backgroundColor: DIPLO_COLORS.background,
-              border: `1px solid ${DIPLO_COLORS.foreground}`,
-              fontSize: '10px',
-              color: DIPLO_COLORS.foreground,
+              backgroundColor: theme.tooltipBg,
+              border: `1px solid ${theme.primary}`,
+              color: theme.tooltipText,
+              fontSize: theme.fontSize,
             }}
           />
-          <Bar dataKey="count" fill={DIPLO_COLORS.foreground} />
+          <Bar dataKey="count" fill={theme.primary} />
         </BarChart>
       </ResponsiveContainer>
-    </div>
+    </DiploChartWrapper>
   );
 }

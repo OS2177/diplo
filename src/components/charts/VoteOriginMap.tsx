@@ -1,8 +1,11 @@
 import { useEffect, useState } from 'react';
-import { MapContainer, TileLayer, CircleMarker, Tooltip } from 'react-leaflet';
+import { MapContainer, TileLayer } from 'react-leaflet';
+import 'leaflet.heat';
+import { createHeatLayer } from '../../utils/createHeatLayer';
 import { supabase } from '../../lib/supabaseClient';
 import { chartThemes } from '../../styles/chartThemes';
 import DiploChartWrapper from '../DiploChartWrapper';
+import { chartDescriptions } from '../../constants/ChartDescriptions';
 
 type Props = {
   campaignId: string;
@@ -15,14 +18,23 @@ type Vote = {
 
 export default function VoteOriginMap({ campaignId }: Props) {
   const theme = chartThemes.voteOriginMap;
+  const { title, subtitle } = chartDescriptions.voteOriginMap;
   const [votes, setVotes] = useState<Vote[]>([]);
+  const [center, setCenter] = useState<[number, number]>([0, 0]);
 
   const fetchVotes = async () => {
+    const { data: campaign } = await supabase
+      .from('campaigns')
+      .select('latitude, longitude')
+      .eq('id', campaignId)
+      .single();
+
     const { data: voteData } = await supabase
       .from('votes')
       .select('latitude, longitude')
       .eq('campaign_id', campaignId);
 
+    if (campaign) setCenter([campaign.latitude, campaign.longitude]);
     if (voteData) setVotes(voteData);
   };
 
@@ -31,7 +43,7 @@ export default function VoteOriginMap({ campaignId }: Props) {
     fetchVotes();
 
     const channel = supabase
-      .channel('votes:origin')
+      .channel('votes:heatmap')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'votes' }, (payload) => {
         if (payload.new.campaign_id === campaignId) fetchVotes();
       })
@@ -44,29 +56,13 @@ export default function VoteOriginMap({ campaignId }: Props) {
 
   return (
     <DiploChartWrapper background={theme.background} borderColor={theme.primary}>
+      <h2 className="text-xl font-semibold mb-1" style={{ color: theme.primary }}>{title}</h2>
+      <p className="text-sm text-gray-500 mb-3">{subtitle}</p>
+
       <div className="h-[400px] w-full rounded-xl overflow-hidden">
-        <MapContainer
-          center={[20, 0]}
-          zoom={2}
-          scrollWheelZoom={true}
-          style={{ height: '100%', width: '100%' }}
-        >
-          <TileLayer
-            attribution=""
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          />
-          {votes.map((vote, index) => (
-            <CircleMarker
-              key={index}
-              center={[vote.latitude, vote.longitude]}
-              radius={3}
-              pathOptions={{ color: theme.primary, fillOpacity: 0.6 }}
-            >
-              <Tooltip direction="top" offset={[0, -4]} opacity={1}>
-                <span style={{ color: theme.primary }}>📍 Vote</span>
-              </Tooltip>
-            </CircleMarker>
-          ))}
+        <MapContainer center={center} zoom={2} scrollWheelZoom={true} style={{ height: '100%', width: '100%' }}>
+          <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+          {createHeatLayer(votes)}
         </MapContainer>
       </div>
     </DiploChartWrapper>

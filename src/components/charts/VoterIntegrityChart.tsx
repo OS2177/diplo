@@ -11,6 +11,7 @@ import {
 import { supabase } from '../../lib/supabaseClient';
 import { chartThemes } from '../../styles/chartThemes';
 import DiploChartWrapper from '../DiploChartWrapper';
+import { chartDescriptions } from '../../constants/ChartDescriptions';
 
 type Props = {
   campaignId: string;
@@ -18,6 +19,7 @@ type Props = {
 
 type Vote = {
   integrity: number;
+  campaign_id: string;
 };
 
 type Bin = {
@@ -27,6 +29,7 @@ type Bin = {
 
 export default function VoterIntegrityChart({ campaignId }: Props) {
   const theme = chartThemes.voterIntegrity;
+  const { title, subtitle } = chartDescriptions.voterIntegrity;
   const [data, setData] = useState<Bin[]>([]);
 
   const fetchVotes = async () => {
@@ -40,7 +43,7 @@ export default function VoterIntegrityChart({ campaignId }: Props) {
       { label: '0.2–0.4', count: 0 },
       { label: '0.4–0.6', count: 0 },
       { label: '0.6–0.8', count: 0 },
-      { label: '0.8–1.0', count: 0 }
+      { label: '0.8–1.0', count: 0 },
     ];
 
     votes?.forEach((vote: Vote) => {
@@ -72,21 +75,23 @@ export default function VoterIntegrityChart({ campaignId }: Props) {
   }, [campaignId]);
 
   if (data.length === 0)
-    return <p className="text-sm" style={{ color: theme.primary }}>Loading voter integrity chart...</p>;
+    return <p className="text-sm" style={{ color: theme.primary }}>Loading voter integrity...</p>;
 
   return (
     <DiploChartWrapper background={theme.background} borderColor={theme.primary}>
+      <h2 className="text-xl font-semibold mb-1" style={{ color: theme.primary }}>{title}</h2>
+      <p className="text-sm text-gray-500 mb-3">{subtitle}</p>
       <ResponsiveContainer width="100%" height={250}>
         <BarChart data={data}>
-          <CartesianGrid stroke={theme.primary} strokeDasharray="3 3" />
-          <XAxis dataKey="label" stroke={theme.primary} tick={{ fontSize: theme.fontSize, fill: theme.primary }} />
-          <YAxis allowDecimals={false} stroke={theme.primary} tick={{ fontSize: theme.fontSize, fill: theme.primary }} />
+          <CartesianGrid strokeDasharray="3 3" stroke={theme.primary} />
+          <XAxis dataKey="label" stroke={theme.primary} tick={{ fill: theme.primary, fontSize: theme.fontSize }} />
+          <YAxis allowDecimals={false} stroke={theme.primary} tick={{ fill: theme.primary, fontSize: theme.fontSize }} />
           <Tooltip
             contentStyle={{
               backgroundColor: theme.tooltipBg,
               border: `1px solid ${theme.primary}`,
-              fontSize: `${theme.fontSize}px`,
               color: theme.tooltipText,
+              fontSize: theme.fontSize,
             }}
           />
           <Bar dataKey="count" fill={theme.primary} />
