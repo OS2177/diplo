@@ -55,4 +55,14 @@ export const chartThemes = {
     background: '#fff',
     primary: '#4F46E5',
   },
+  voterAge: {
+    background: '#fff',
+    primary: '#EC4899',
+  },
+  voterOriginMap: {
+    background: '#fff',
+    primary: '#FB923C',
+  },
+  
+  
 };

@@ -53,4 +53,13 @@ export const chartDescriptions = {
     title: '📡 Global Scope Overview',
     subtitle: 'How campaigns are distributed across local, national, and global scopes.',
   },
+  voterAge: {
+    title: '👥 Voter Age Overview',
+    subtitle: 'Displays the distribution of voter ages for this campaign.',
+  },
+  voterOriginMap: {
+    title: '🗺️ Voter Origin Density',
+    subtitle: 'Heatmap showing the geographic spread of votes by density.',
+  },
+
 };
