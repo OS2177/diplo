@@ -9,6 +9,8 @@ import VoteMomentumChart from '../components/charts/VoteMomentumChart';
 import VoterIntegrityChart from '../components/charts/VoterIntegrityChart';
 import VoteMapChart from '../components/charts/VoteMapChart';
 import VotePulseChart from '../components/charts/VotePulseChart';
+import VoterAgeChart from '../components/charts/VoterAgeChart';
+
 
 
 type Campaign = {
@@ -130,6 +132,13 @@ export default function AdminChartsPage() {
               <VotePulseChart campaignId={selectedCampaignId} />
             </div>
 
+          
+              <div className="p-4">
+                <h2 className="text-lg font-bold mb-2">Voter Age Distribution</h2>
+                <VoterAgeChart campaignId={selectedCampaignId} />
+              </div>
+
+            
 
             <div className="col-span-1 md:col-span-2 bg-white p-4 rounded-2xl shadow">
               <h2 className="text-xl font-semibold mb-2">🌐 Global Vote Map</h2>
