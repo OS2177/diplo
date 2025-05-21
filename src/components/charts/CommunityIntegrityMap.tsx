@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { MapContainer, TileLayer } from 'react-leaflet';
 import 'leaflet.heat';
-import { createGlowingHeatLayer } from '../../utils/createGlowingHeatLayer';
 import { supabase } from '../../lib/supabaseClient';
+import GlowingHeatLayer from '../layers/GlowingHeatLayer'; // ✅ NEW COMPONENT
 import { chartThemes } from '../../styles/chartThemes';
 import DiploChartWrapper from '../DiploChartWrapper';
 import { chartDescriptions } from '../../constants/ChartDescriptions';
@@ -49,7 +49,7 @@ export default function CommunityIntegrityMap() {
       <div className="h-[400px] w-full rounded-xl overflow-hidden">
         <MapContainer center={[0, 0]} zoom={2} scrollWheelZoom={true} style={{ height: '100%', width: '100%' }}>
           <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-          {createGlowingHeatLayer(votes)}
+          <GlowingHeatLayer votes={votes} /> {/* ✅ FIXED JSX HERE */}
         </MapContainer>
       </div>
     </DiploChartWrapper>
