@@ -120,15 +120,17 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
         const impact = parseFloat((integrity * proximityScore * globalModifier).toFixed(4));
 
         const { error } = await supabase.from('votes').insert({
-          campaign_id: campaign.id,
-          user_id: user.id,
-          choice,
-          latitude: userLat,
-          longitude: userLon,
-          integrity,
-          proximity: proximityScore,
-          impact,
-        });
+  campaign_id: campaign.id,
+  user_id: user.id,
+  choice,
+  latitude: userLat,
+  longitude: userLon,
+  integrity,
+  proximity: proximityScore,
+  impact,
+  age: profile.age ?? null, // 👈 add this line
+});
+
 
         if (error) {
           setVoteError(error.message);
