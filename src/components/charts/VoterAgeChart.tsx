@@ -20,33 +20,34 @@ export default function VoterAgeChart({ campaignId }: Props) {
     if (!campaignId) return;
 
     const fetchVotes = async () => {
-      const { data: votes, error } = await supabase
-        .from('votes')
-        .select('user_id, campaign_id, profiles(age)')
-        .eq('campaign_id', campaignId);
+  const { data: votes, error } = await supabase
+    .from('votes')
+    .select('user_id, campaign_id, user:profiles(age)')
+    .eq('campaign_id', campaignId);
 
-      if (error) {
-        console.error('Supabase error:', error);
-        return;
-      }
+  if (error) {
+    console.error('Supabase error:', error);
+    return;
+  }
 
-      if (votes && votes.length > 0) {
-        const counts = [0, 0, 0, 0, 0];
-        votes.forEach((vote: any) => {
-          const age = vote.profiles?.age;
-          if (typeof age !== 'number') return;
-          if (age < 25) counts[0]++;
-          else if (age < 35) counts[1]++;
-          else if (age < 45) counts[2]++;
-          else if (age < 55) counts[3]++;
-          else counts[4]++;
-        });
-        setAgeCounts(counts);
-        setHasData(true);
-      } else {
-        setHasData(false);
-      }
-    };
+  if (votes && votes.length > 0) {
+    const counts = [0, 0, 0, 0, 0];
+    votes.forEach((vote: any) => {
+      const age = vote.user?.age;
+      if (typeof age !== 'number') return;
+      if (age < 25) counts[0]++;
+      else if (age < 35) counts[1]++;
+      else if (age < 45) counts[2]++;
+      else if (age < 55) counts[3]++;
+      else counts[4]++;
+    });
+    setAgeCounts(counts);
+    setHasData(true);
+  } else {
+    setHasData(false);
+  }
+};
+
 
     fetchVotes();
   }, [campaignId]);
