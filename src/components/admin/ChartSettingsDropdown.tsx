@@ -1,4 +1,3 @@
-// src/components/admin/ChartSettingsDropdown.tsx
 import { useChartVisibility } from '../../context/ChartVisibilityContext';
 
 export default function ChartSettingsDropdown() {
