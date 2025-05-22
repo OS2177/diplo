@@ -16,8 +16,6 @@ import VoteOriginMap from '../components/charts/VoteOriginMap';
 import CampaignScopeGridChart from '../components/charts/CampaignScopeGridChart';
 import CommunityIntegrityMap from '../components/charts/CommunityIntegrityMap';
 
-import { chartDescriptions } from '../constants/ChartDescriptions'; // ✅ THIS ONE ONLY
-
 export default function LivePulsePage() {
   const { id: campaignId } = useParams<{ id: string }>();
   const [campaignTitle, setCampaignTitle] = useState('');
@@ -29,47 +27,37 @@ export default function LivePulsePage() {
         .select('title')
         .eq('id', campaignId)
         .single();
+
       if (data) setCampaignTitle(data.title);
     };
+
     if (campaignId) fetchCampaign();
   }, [campaignId]);
 
   return (
-      <div className="min-h-screen px-6 py-12 bg-gray-950 text-white">
-      <div className="mb-10 text-center">
-        <h1 className="text-4xl font-bold">{campaignTitle}</h1>
-        <p className="text-lg text-gray-400">Live Campaign Pulse Overview</p>
-      </div>
+    <div className="min-h-screen bg-[#EEEDE5] p-6">
+      <h1 className="text-3xl font-bold mb-6">📊 {campaignTitle}</h1>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {[
-          { Chart: VoteSplitChart, key: 'voteSplit' },
-          { Chart: VoteMomentumChart, key: 'voteMomentum' },
-          { Chart: CampaignIntegrityChart, key: 'campaignIntegrity' },
-          { Chart: VoterIntegrityChart, key: 'voterIntegrity' },
-          { Chart: ProximityReachChart, key: 'proximityReach' },
-          { Chart: VoteMapChart, key: 'voteMap' },
-          { Chart: VotePulseChart, key: 'votePulse' },
-          { Chart: VoteImpactMatrix, key: 'voteImpactMatrix' },
-          { Chart: VoterAgeDistributionChart, key: 'voterAgeDistribution' },
-          { Chart: VoterGenderDistributionChart, key: 'voterGender' },
-          { Chart: VoteOriginMap, key: 'voteOriginMap' },
-          { Chart: CampaignScopeGridChart, key: 'campaignScope' },
-          { Chart: CommunityIntegrityMap, key: 'communityIntegrityMap' },
-        ].map(({ Chart, key }) => (
-          <div key={key} className="rounded-2xl border border-gray-800 bg-gray-950 p-6 shadow-md hover:shadow-lg transition-shadow duration-300">
-            <div className="mb-4">
-              <h2 className="text-lg font-semibold text-white">
-                {chartDescriptions[key]?.title || key}
-              </h2>
-              <p className="text-sm text-gray-400">
-                {chartDescriptions[key]?.subtitle}
-              </p>
-            </div>
-            <Chart campaignId={campaignId!} />
-          </div>
+      {campaignId && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <VoteSplitChart campaignId={campaignId} />
+          <CampaignIntegrityChart campaignId={campaignId} />
+          <ProximityReachChart campaignId={campaignId} />
+          <VoteMomentumChart campaignId={campaignId} />
+          <VotePulseChart campaignId={campaignId} />
+          <VoteImpactMatrix campaignId={campaignId} />
+          <VoterIntegrityChart campaignId={campaignId} />
+          <VoterAgeDistributionChart campaignId={campaignId} />
+          <VoterGenderDistributionChart campaignId={campaignId} />
+          <VoteMapChart campaignId={campaignId} />
+          <VoteOriginMap campaignId={campaignId} />
+          <CommunityIntegrityMap campaignId={campaignId} />
+        </div>
+      )}
 
-        ))}
+      <div className="mt-12">
+        <h2 className="text-2xl font-semibold mb-4">📡 Global Scope Overview</h2>
+        <CampaignScopeGridChart />
       </div>
     </div>
   );
