@@ -1,3 +1,4 @@
+import { useChartVisibility } from '../context/ChartVisibilityContext'; // ✅ Fix missing import
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
@@ -18,7 +19,6 @@ import CampaignScopeGridChart from '../components/charts/CampaignScopeGridChart'
 import CommunityIntegrityMap from '../components/charts/CommunityIntegrityMap';
 
 import ChartSettingsDropdown from '../components/admin/ChartSettingsDropdown'; // ✅ NEW
-import { useChartVisibility } from '../context/ChartVisibilityContext'; // ✅ Fix missing import
 
 
 type Campaign = {
