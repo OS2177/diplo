@@ -16,7 +16,7 @@ import VoteOriginMap from '../components/charts/VoteOriginMap';
 import CampaignScopeGridChart from '../components/charts/CampaignScopeGridChart';
 import CommunityIntegrityMap from '../components/charts/CommunityIntegrityMap';
 
-import { CHART_DESCRIPTIONS } from '../constants/ChartDescriptions';
+import { chartDescriptions } from '../constants/ChartDescriptions'; // ✅ THIS ONE ONLY
 
 export default function LivePulsePage() {
   const { id: campaignId } = useParams<{ id: string }>();
@@ -24,7 +24,7 @@ export default function LivePulsePage() {
 
   useEffect(() => {
     const fetchCampaign = async () => {
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from('campaigns')
         .select('title')
         .eq('id', campaignId)
@@ -67,7 +67,6 @@ export default function LivePulsePage() {
             <Chart campaignId={campaignId!} />
           </div>
         ))}
-
       </div>
     </div>
   );

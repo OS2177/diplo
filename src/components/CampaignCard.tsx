@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { calculateUserIntegrity, calculateProximity } from '../utils/integrity';
+import { useNavigate } from 'react-router-dom';
+import VotePulseMicroChart from './charts/VotePulseMicroChart';
 
 type Campaign = {
   id: string;
@@ -27,6 +29,7 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
   const [voteError, setVoteError] = useState('');
   const [voteImpact, setVoteImpact] = useState<number | null>(null);
   const [voteCount, setVoteCount] = useState<number | null>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     checkIfUserVoted();
@@ -242,6 +245,15 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
             ❌ {voteError}
           </div>
         )}
+      </div>
+
+      {/* 🔥 Live Pulse Micro Chart */}
+      <div
+        className="mt-6 cursor-pointer border rounded p-2 hover:bg-gray-50"
+        onClick={() => navigate(`/pulse/${campaign.id}`)}
+      >
+        <p className="text-xs text-gray-600 mb-1">💓 Live Pulse</p>
+        <VotePulseMicroChart campaignId={campaign.id} />
       </div>
 
       {/* 📊 View Full Pulse link */}
