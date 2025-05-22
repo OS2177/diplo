@@ -18,6 +18,8 @@ import CampaignScopeGridChart from '../components/charts/CampaignScopeGridChart'
 import CommunityIntegrityMap from '../components/charts/CommunityIntegrityMap';
 
 import ChartSettingsDropdown from '../components/admin/ChartSettingsDropdown'; // ✅ NEW
+import { useChartVisibility } from '../context/ChartVisibilityContext'; // ✅ Fix missing import
+
 
 type Campaign = {
   id: string;
@@ -85,8 +87,6 @@ export default function AdminChartsPage() {
     <div className="min-h-screen bg-[#EEEDE5] p-6">
       <h1 className="text-3xl font-bold mb-6">🌐 Admin Data Dashboard</h1>
 
-      <ChartSettingsDropdown /> {/* ✅ Inserted dropdown here */}
-      
 <div className="mb-6">
   <ChartSettingsDropdown />
 </div>
