@@ -9,6 +9,7 @@ import GlobalPulse from './pages/GlobalPulse';
 import LoginPage from './pages/LoginPage';
 import AdminCampaignsPage from './pages/AdminCampaignsPage';
 import AdminChartsPage from './pages/AdminChartsPage'; // ✅ Add this import
+import LivePulsePage from './pages/LivePulsePage';
 
 
 import 'leaflet/dist/leaflet.css';
@@ -27,6 +28,7 @@ export default function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/admin-campaigns" element={<AdminCampaignsPage />} />
           <Route path="/admin-charts" element={<AdminChartsPage />} /> {/* ✅ Add this route */}
+          <Route path="/pulse/:id" element={<LivePulsePage />} />
         </Routes>
       </main>
       <Footer />

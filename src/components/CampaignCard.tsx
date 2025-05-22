@@ -120,18 +120,17 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
         const impact = parseFloat((integrity * proximityScore * globalModifier).toFixed(4));
 
         const { error } = await supabase.from('votes').insert({
-  campaign_id: campaign.id,
-  user_id: user.id,
-  choice,
-  latitude: userLat,
-  longitude: userLon,
-  integrity,
-  proximity: proximityScore,
-  impact,
-  age: profile.age ?? null, // 👈 add this line
-  gender: profile.gender ?? null,
-});
-
+          campaign_id: campaign.id,
+          user_id: user.id,
+          choice,
+          latitude: userLat,
+          longitude: userLon,
+          integrity,
+          proximity: proximityScore,
+          impact,
+          age: profile.age ?? null,
+          gender: profile.gender ?? null,
+        });
 
         if (error) {
           setVoteError(error.message);
@@ -243,6 +242,16 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
             ❌ {voteError}
           </div>
         )}
+      </div>
+
+      {/* 📊 View Full Pulse link */}
+      <div className="mt-6">
+        <button
+          onClick={() => window.location.href = `/pulse/${campaign.id}`}
+          className="text-sm text-blue-600 hover:text-blue-400 underline flex items-center gap-2"
+        >
+          📊 View Full Pulse
+        </button>
       </div>
 
       {campaign.campaign_latitude && campaign.campaign_longitude && (
