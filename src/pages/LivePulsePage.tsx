@@ -35,7 +35,7 @@ export default function LivePulsePage() {
   }, [campaignId]);
 
   return (
-    <div className="min-h-screen p-6 bg-black text-white">
+      <div className="min-h-screen px-6 py-12 bg-gray-950 text-white">
       <div className="mb-10 text-center">
         <h1 className="text-4xl font-bold">{campaignTitle}</h1>
         <p className="text-lg text-gray-400">Live Campaign Pulse Overview</p>
@@ -57,15 +57,18 @@ export default function LivePulsePage() {
           { Chart: CampaignScopeGridChart, key: 'campaignScope' },
           { Chart: CommunityIntegrityMap, key: 'communityIntegrityMap' },
         ].map(({ Chart, key }) => (
-          <div key={key} className="bg-gray-900 rounded-2xl p-4 shadow-xl">
-            <h2 className="text-xl font-semibold mb-1">
-              {chartDescriptions[key]?.title || key}
-            </h2>
-            <p className="text-sm text-gray-400 mb-4">
-              {chartDescriptions[key]?.subtitle}
-            </p>
+          <div key={key} className="rounded-2xl border border-gray-800 bg-gray-950 p-6 shadow-md hover:shadow-lg transition-shadow duration-300">
+            <div className="mb-4">
+              <h2 className="text-lg font-semibold text-white">
+                {chartDescriptions[key]?.title || key}
+              </h2>
+              <p className="text-sm text-gray-400">
+                {chartDescriptions[key]?.subtitle}
+              </p>
+            </div>
             <Chart campaignId={campaignId!} />
           </div>
+
         ))}
       </div>
     </div>
