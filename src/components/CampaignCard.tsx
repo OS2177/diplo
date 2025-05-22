@@ -1,20 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { calculateUserIntegrity, calculateProximity } from '../utils/integrity';
-import { useChartVisibility } from '../context/ChartVisibilityContext';
-
-// Chart components
-import VoteSplitChart from './charts/VoteSplitChart';
-import CampaignIntegrityChart from './charts/CampaignIntegrityChart';
-import ProximityReachChart from './charts/ProximityReachChart';
-import VoteMomentumChart from './charts/VoteMomentumChart';
-import VotePulseChart from './charts/VotePulseChart';
-import VoteImpactMatrix from './charts/VoteImpactMatrix';
-import VoterIntegrityChart from './charts/VoterIntegrityChart';
-import VoterAgeDistributionChart from './charts/VoterAgeDistributionChart';
-import VoterGenderDistributionChart from './charts/VoterGenderDistributionChart';
-import VoteMapChart from './charts/VoteMapChart';
-import VoteOriginMap from './charts/VoteOriginMap';
 
 type Campaign = {
   id: string;
@@ -41,8 +27,6 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
   const [voteError, setVoteError] = useState('');
   const [voteImpact, setVoteImpact] = useState<number | null>(null);
   const [voteCount, setVoteCount] = useState<number | null>(null);
-
-  const { visibleCharts } = useChartVisibility();
 
   useEffect(() => {
     checkIfUserVoted();
@@ -136,17 +120,18 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
         const impact = parseFloat((integrity * proximityScore * globalModifier).toFixed(4));
 
         const { error } = await supabase.from('votes').insert({
-          campaign_id: campaign.id,
-          user_id: user.id,
-          choice,
-          latitude: userLat,
-          longitude: userLon,
-          integrity,
-          proximity: proximityScore,
-          impact,
-          age: profile.age ?? null,
-          gender: profile.gender ?? null,
-        });
+  campaign_id: campaign.id,
+  user_id: user.id,
+  choice,
+  latitude: userLat,
+  longitude: userLon,
+  integrity,
+  proximity: proximityScore,
+  impact,
+  age: profile.age ?? null, // 👈 add this line
+  gender: profile.gender ?? null,
+});
+
 
         if (error) {
           setVoteError(error.message);
@@ -260,19 +245,28 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
         )}
       </div>
 
-      <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-        {visibleCharts.includes('VoteSplitChart') && <VoteSplitChart campaignId={campaign.id} />}
-        {visibleCharts.includes('CampaignIntegrityChart') && <CampaignIntegrityChart campaignId={campaign.id} />}
-        {visibleCharts.includes('ProximityReachChart') && <ProximityReachChart campaignId={campaign.id} />}
-        {visibleCharts.includes('VoteMomentumChart') && <VoteMomentumChart campaignId={campaign.id} />}
-        {visibleCharts.includes('VotePulseChart') && <VotePulseChart campaignId={campaign.id} />}
-        {visibleCharts.includes('VoteImpactMatrix') && <VoteImpactMatrix campaignId={campaign.id} />}
-        {visibleCharts.includes('VoterIntegrityChart') && <VoterIntegrityChart campaignId={campaign.id} />}
-        {visibleCharts.includes('VoterAgeDistributionChart') && <VoterAgeDistributionChart campaignId={campaign.id} />}
-        {visibleCharts.includes('VoterGenderDistributionChart') && <VoterGenderDistributionChart campaignId={campaign.id} />}
-        {visibleCharts.includes('VoteMapChart') && <VoteMapChart campaignId={campaign.id} />}
-        {visibleCharts.includes('VoteOriginMap') && <VoteOriginMap campaignId={campaign.id} />}
-      </div>
+      {campaign.campaign_latitude && campaign.campaign_longitude && (
+        <div className="mt-6 mb-4">
+          <iframe
+            width="100%"
+            height="250"
+            className="rounded border"
+            frameBorder="0"
+            scrolling="no"
+            src={`https://www.openstreetmap.org/export/embed.html?bbox=${campaign.campaign_longitude - 0.01}%2C${campaign.campaign_latitude - 0.01}%2C${campaign.campaign_longitude + 0.01}%2C${campaign.campaign_latitude + 0.01}&layer=mapnik&marker=${campaign.campaign_latitude}%2C${campaign.campaign_longitude}`}
+          ></iframe>
+          <p className="text-xs text-gray-500 mt-2">
+            <a
+              href={`https://www.openstreetmap.org/?mlat=${campaign.campaign_latitude}&mlon=${campaign.campaign_longitude}#map=15/${campaign.campaign_latitude}/${campaign.campaign_longitude}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline"
+            >
+              View full map
+            </a>
+          </p>
+        </div>
+      )}
     </div>
   );
 }

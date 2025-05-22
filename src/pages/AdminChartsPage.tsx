@@ -1,26 +1,31 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
-import { useChartVisibility } from '../context/ChartVisibilityContext';
+import { useUser } from '../hooks/useUser';
 
 import VoteSplitChart from '../components/charts/VoteSplitChart';
-import CampaignIntegrityChart from '../components/charts/CampaignIntegrityChart';
-import ProximityReachChart from '../components/charts/ProximityReachChart';
 import VoteMomentumChart from '../components/charts/VoteMomentumChart';
+import CampaignIntegrityChart from '../components/charts/CampaignIntegrityChart';
+import VoterIntegrityChart from '../components/charts/VoterIntegrityChart';
+import ProximityReachChart from '../components/charts/ProximityReachChart';
+import VoteMapChart from '../components/charts/VoteMapChart';
 import VotePulseChart from '../components/charts/VotePulseChart';
 import VoteImpactMatrix from '../components/charts/VoteImpactMatrix';
-import VoterIntegrityChart from '../components/charts/VoterIntegrityChart';
 import VoterAgeDistributionChart from '../components/charts/VoterAgeDistributionChart';
 import VoterGenderDistributionChart from '../components/charts/VoterGenderDistributionChart';
-import VoteMapChart from '../components/charts/VoteMapChart';
 import VoteOriginMap from '../components/charts/VoteOriginMap';
+import CampaignScopeGridChart from '../components/charts/CampaignScopeGridChart';
 import CommunityIntegrityMap from '../components/charts/CommunityIntegrityMap';
-import ChartSettingsDropdown from '../components/admin/ChartSettingsDropdown';
+
+type Campaign = {
+  id: string;
+  title: string;
+};
 
 export default function AdminChartsPage() {
   const { user } = useUser();
   const navigate = useNavigate();
-  const { visibility } = useChartVisibility();
+
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [selectedCampaignId, setSelectedCampaignId] = useState<string | null>(null);
@@ -77,10 +82,6 @@ export default function AdminChartsPage() {
       <h1 className="text-3xl font-bold mb-6">🌐 Admin Data Dashboard</h1>
 
       <div className="mb-6">
-        <ChartSettingsDropdown />
-      </div>
-
-      <div className="mb-6 mt-4">
         <label htmlFor="campaign" className="block mb-2 text-lg font-medium">
           Select Campaign
         </label>
@@ -100,27 +101,25 @@ export default function AdminChartsPage() {
 
       {selectedCampaignId && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {visibility.voteSplit && <VoteSplitChart campaignId={selectedCampaignId} />}
-          {visibility.campaignIntegrity && <CampaignIntegrityChart campaignId={selectedCampaignId} />}
-          {visibility.proximityReach && <ProximityReachChart campaignId={selectedCampaignId} />}
-          {visibility.voteMomentum && <VoteMomentumChart campaignId={selectedCampaignId} />}
-          {visibility.votePulse && <VotePulseChart campaignId={selectedCampaignId} />}
-          {visibility.voteImpactMatrix && <VoteImpactMatrix campaignId={selectedCampaignId} />}
-          {visibility.voterIntegrity && <VoterIntegrityChart campaignId={selectedCampaignId} />}
-          {visibility.voterAge && <VoterAgeDistributionChart campaignId={selectedCampaignId} />}
-          {visibility.voterGender && <VoterGenderDistributionChart campaignId={selectedCampaignId} />}
-          {visibility.voteMap && <VoteMapChart campaignId={selectedCampaignId} />}
-          {visibility.voteOriginMap && <VoteOriginMap campaignId={selectedCampaignId} />}
-          {visibility.communityIntegrityMap && <CommunityIntegrityMap campaignId={selectedCampaignId} />}
+          <VoteSplitChart campaignId={selectedCampaignId} />
+          <CampaignIntegrityChart campaignId={selectedCampaignId} />
+          <ProximityReachChart campaignId={selectedCampaignId} />
+          <VoteMomentumChart campaignId={selectedCampaignId} />
+          <VotePulseChart campaignId={selectedCampaignId} />
+          <VoteImpactMatrix campaignId={selectedCampaignId} />
+          <VoterIntegrityChart campaignId={selectedCampaignId} />
+          <VoterAgeDistributionChart campaignId={selectedCampaignId} />
+          <VoterGenderDistributionChart campaignId={selectedCampaignId} />
+          <VoteMapChart campaignId={selectedCampaignId} />
+          <VoteOriginMap campaignId={selectedCampaignId} />
+          <CommunityIntegrityMap campaignId={selectedCampaignId} />
         </div>
       )}
 
-      {visibility.campaignScope && (
-        <div className="mt-12">
-          <h2 className="text-2xl font-semibold mb-4">📡 Global Scope Overview</h2>
-          <CampaignScopeGridChart />
-        </div>
-      )}
+      <div className="mt-12">
+        <h2 className="text-2xl font-semibold mb-4">📡 Global Scope Overview</h2>
+        <CampaignScopeGridChart />
+      </div>
     </div>
   );
 }
