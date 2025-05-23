@@ -30,88 +30,84 @@ export default function Header() {
     fetchAdminStatus();
   }, [user]);
 
-  useEffect(() => {
-    const handleClose = () => setMenuOpen(false);
-    if (menuOpen) {
-      window.addEventListener('scroll', handleClose);
-      window.addEventListener('click', handleClose);
-    }
-    return () => {
-      window.removeEventListener('scroll', handleClose);
-      window.removeEventListener('click', handleClose);
-    };
-  }, [menuOpen]);
-
   const handleLogout = async () => {
     await supabase.auth.signOut();
     navigate('/login', { state: { message: 'logout-success' } });
   };
 
   return (
-    <header className="bg-[#EEEDE5] px-[3vw] pt-6 pb-2">
-      {/* Top Row */}
-      <div className="flex justify-between items-start">
-        <div className="flex flex-col items-start">
-          <a href="https://diplo.cargo.site/" className="flex items-center gap-4">
-            <img src="/images/diplo_logo.png" alt="Diplo Logo" className="h-14 w-14" />
-            <h1 className="text-5xl font-extrabold text-black leading-none">diplo</h1>
-          </a>
-          {/* Divider */}
-          <hr className="border-black mt-3 mb-2 w-full" />
-          {/* Tagline */}
-          <p className="text-[#F69BE4] font-bold text-lg">collective diplomacy</p>
+    <nav className="flex items-center justify-between px-8 py-4 bg-[#EEEDE5] shadow-md relative">
+      {/* Left side: Logo + diplo + tagline */}
+      <div className="flex items-center gap-4">
+        <img src="/images/diplo_logo.png" alt="Diplo Logo" className="h-10 w-10" />
+        <div>
+          <h1 className="text-3xl font-black leading-none">diplo</h1>
+          <p className="text-sm text-pink-500 font-semibold -mt-1">collective diplomacy</p>
         </div>
+      </div>
 
-        <nav className="hidden lg:flex items-center space-x-6 pt-2">
-          <NavLink to="/" className={({ isActive }) => `${linkClasses} ${isActive ? activeClasses : ''}`}>Home</NavLink>
-          <NavLink to="/global-pulse" className={({ isActive }) => `${linkClasses} ${isActive ? activeClasses : ''}`}>Global Pulse</NavLink>
-          <NavLink to="/create" className={({ isActive }) => `${linkClasses} ${isActive ? activeClasses : ''}`}>Create Campaign</NavLink>
-          {isAdmin && (
-            <>
-              <NavLink to="/admin-campaigns" className={({ isActive }) => `${linkClasses} ${isActive ? activeClasses : ''}`}>Admin</NavLink>
-              <NavLink to="/admin-charts" className={({ isActive }) => `${linkClasses} ${isActive ? activeClasses : ''}`}>Admin Charts</NavLink>
-            </>
-          )}
-          {user ? (
-            <>
-              <NavLink to="/profile" className={`${linkClasses} px-4 py-2 rounded-md bg-gray-100`}>Profile</NavLink>
-              <button onClick={handleLogout} className="text-sm text-red-600 hover:text-red-800">Logout</button>
-            </>
-          ) : (
-            <NavLink to="/login" className={({ isActive }) => `${linkClasses} ${isActive ? activeClasses : ''}`}>Login</NavLink>
-          )}
-        </nav>
+      {/* Right side nav links (desktop) */}
+      <div className="hidden lg:flex items-center space-x-6">
+        <NavLink to="/" className={({ isActive }) => `${linkClasses} ${isActive ? activeClasses : ''}`}>
+          Home
+        </NavLink>
+
+        <NavLink to="/global-pulse" className={({ isActive }) => `${linkClasses} ${isActive ? activeClasses : ''}`}>
+          Global Pulse
+        </NavLink>
+
+        <NavLink to="/create" className={({ isActive }) => `${linkClasses} ${isActive ? activeClasses : ''}`}>
+          Create Campaign
+        </NavLink>
+
+        {isAdmin && (
+          <>
+            <NavLink to="/admin-campaigns" className={({ isActive }) => `${linkClasses} ${isActive ? activeClasses : ''}`}>
+              Admin
+            </NavLink>
+            <NavLink to="/admin-charts" className={({ isActive }) => `${linkClasses} ${isActive ? activeClasses : ''}`}>
+              Admin Charts
+            </NavLink>
+          </>
+        )}
+
+        {user ? (
+          <>
+            <NavLink to="/profile" className={`${linkClasses} px-4 py-2 rounded-md bg-gray-100`}>
+              Profile
+            </NavLink>
+            <button onClick={handleLogout} className="text-sm text-red-600 hover:text-red-800">
+              Logout
+            </button>
+          </>
+        ) : (
+          <NavLink to="/login" className={({ isActive }) => `${linkClasses} ${isActive ? activeClasses : ''}`}>
+            Login
+          </NavLink>
+        )}
       </div>
 
       {/* Mobile menu icon */}
-      <div className="lg:hidden mt-2">
+      <div className="lg:hidden">
         <button
           onClick={() => setMenuOpen(!menuOpen)}
-          className="text-gray-700 hover:text-black text-2xl"
+          className="text-gray-700 hover:text-black"
         >
-          {menuOpen ? '×' : (
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          )}
+          <svg
+            className="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
         </button>
       </div>
 
       {/* Mobile menu dropdown */}
       {menuOpen && (
         <div className="absolute left-0 top-20 w-full bg-[#EEEDE5] shadow-lg z-50 lg:hidden">
-          <div className="flex justify-end px-4 py-2">
-            <button onClick={() => setMenuOpen(false)} className="text-black text-2xl">
-              &times;
-            </button>
-          </div>
-
           <NavLink to="/" className={`${linkClasses} block px-4 py-2`} onClick={() => setMenuOpen(false)}>
             Home
           </NavLink>
@@ -154,6 +150,6 @@ export default function Header() {
           )}
         </div>
       )}
-    </header>
+    </nav>
   );
 }
