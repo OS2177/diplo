@@ -30,6 +30,18 @@ export default function Header() {
     fetchAdminStatus();
   }, [user]);
 
+  useEffect(() => {
+    const handleClose = () => setMenuOpen(false);
+    if (menuOpen) {
+      window.addEventListener('scroll', handleClose);
+      window.addEventListener('click', handleClose);
+    }
+    return () => {
+      window.removeEventListener('scroll', handleClose);
+      window.removeEventListener('click', handleClose);
+    };
+  }, [menuOpen]);
+
   const handleLogout = async () => {
     await supabase.auth.signOut();
     navigate('/login', { state: { message: 'logout-success' } });
@@ -39,10 +51,10 @@ export default function Header() {
     <header className="bg-[#EEEDE5] px-[3vw] pt-6 pb-2">
       {/* Top Row */}
       <div className="flex justify-between items-start">
-        <div className="flex items-center gap-4">
+        <a href="https://diplo.cargo.site/" className="flex items-center gap-4">
           <img src="/images/diplo_logo.png" alt="Diplo Logo" className="h-14 w-14" />
           <h1 className="text-5xl font-extrabold text-black leading-none">diplo</h1>
-        </div>
+        </a>
 
         <nav className="hidden lg:flex items-center space-x-6 pt-2">
           <NavLink to="/" className={({ isActive }) => `${linkClasses} ${isActive ? activeClasses : ''}`}>Home</NavLink>
@@ -69,7 +81,7 @@ export default function Header() {
       <hr className="border-black mt-3 mb-2" />
 
       {/* Tagline */}
-      <p className="text-[#F69BE4] font-bold text-lg pl-[4.5rem]">collective diplomacy</p>
+      <p className="text-[#F69BE4] font-bold text-lg ml-[3.5rem]">collective diplomacy</p>
 
       {/* Mobile menu icon */}
       <div className="lg:hidden">
@@ -92,6 +104,12 @@ export default function Header() {
       {/* Mobile menu dropdown */}
       {menuOpen && (
         <div className="absolute left-0 top-20 w-full bg-[#EEEDE5] shadow-lg z-50 lg:hidden">
+          <div className="flex justify-end px-4 py-2">
+            <button onClick={() => setMenuOpen(false)} className="text-black text-2xl">
+              &times;
+            </button>
+          </div>
+
           <NavLink to="/" className={`${linkClasses} block px-4 py-2`} onClick={() => setMenuOpen(false)}>
             Home
           </NavLink>
