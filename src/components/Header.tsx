@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { useUser } from '../hooks/useUser';
@@ -12,6 +12,7 @@ export default function Header() {
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const mobileMenuRef = useRef(null);
 
   useEffect(() => {
     const fetchAdminStatus = async () => {
@@ -31,14 +32,19 @@ export default function Header() {
   }, [user]);
 
   useEffect(() => {
-    const handleClose = () => setMenuOpen(false);
+    const handleClose = (e: MouseEvent) => {
+      if (mobileMenuRef.current && !(mobileMenuRef.current as HTMLElement).contains(e.target as Node)) {
+        setMenuOpen(false);
+      }
+    };
+
     if (menuOpen) {
-      window.addEventListener('scroll', handleClose);
-      window.addEventListener('click', handleClose);
+      window.addEventListener('scroll', () => setMenuOpen(false));
+      document.addEventListener('click', handleClose);
     }
     return () => {
-      window.removeEventListener('scroll', handleClose);
-      window.removeEventListener('click', handleClose);
+      window.removeEventListener('scroll', () => setMenuOpen(false));
+      document.removeEventListener('click', handleClose);
     };
   }, [menuOpen]);
 
@@ -51,10 +57,33 @@ export default function Header() {
     <header className="bg-[#EEEDE5] px-[3vw] pt-6 pb-2">
       {/* Top Row */}
       <div className="flex justify-between items-start">
-        <a href="https://diplo.cargo.site/" className="flex items-center gap-4">
-          <img src="/images/diplo_logo.png" alt="Diplo Logo" className="h-14 w-14" />
-          <h1 className="text-5xl font-extrabold text-black leading-none">diplo</h1>
-        </a>
+        <div className="flex flex-col items-start">
+          <a href="https://diplo.cargo.site/" className="flex items-center gap-4">
+            <img src="/images/diplo_logo.png" alt="Diplo Logo" className="h-14 w-14" />
+            <h1 className="text-5xl font-extrabold text-black leading-none">diplo</h1>
+          </a>
+          <p className="text-[#F69BE4] font-bold text-lg mt-2">collective diplomacy</p>
+        </div>
+
+        <div className="lg:hidden mt-2">
+          <button
+            onClick={(e) => {
+              e.stopPropagation(); // Prevent closing immediately
+              setMenuOpen(!menuOpen);
+            }}
+            className="text-gray-700 hover:text-black"
+          >
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+        </div>
 
         <nav className="hidden lg:flex items-center space-x-6 pt-2">
           <NavLink to="/" className={({ isActive }) => `${linkClasses} ${isActive ? activeClasses : ''}`}>Home</NavLink>
@@ -77,78 +106,35 @@ export default function Header() {
         </nav>
       </div>
 
-      {/* Divider */}
       <hr className="border-black mt-3 mb-2" />
-
-      {/* Tagline */}
-      <p className="text-[#F69BE4] font-bold text-lg ml-[3.5rem]">collective diplomacy</p>
-
-      {/* Mobile menu icon */}
-      <div className="lg:hidden">
-        <button
-          onClick={() => setMenuOpen(!menuOpen)}
-          className="text-gray-700 hover:text-black"
-        >
-          <svg
-            className="w-6 h-6"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
-        </button>
-      </div>
 
       {/* Mobile menu dropdown */}
       {menuOpen && (
-        <div className="absolute left-0 top-20 w-full bg-[#EEEDE5] shadow-lg z-50 lg:hidden">
+        <div ref={mobileMenuRef} className="absolute left-0 top-20 w-full bg-[#EEEDE5] shadow-lg z-50 lg:hidden">
           <div className="flex justify-end px-4 py-2">
             <button onClick={() => setMenuOpen(false)} className="text-black text-2xl">
               &times;
             </button>
           </div>
 
-          <NavLink to="/" className={`${linkClasses} block px-4 py-2`} onClick={() => setMenuOpen(false)}>
-            Home
-          </NavLink>
-
-          <NavLink to="/global-pulse" className={`${linkClasses} block px-4 py-2`} onClick={() => setMenuOpen(false)}>
-            Global Pulse
-          </NavLink>
-
-          <NavLink to="/create" className={`${linkClasses} block px-4 py-2`} onClick={() => setMenuOpen(false)}>
-            Create Campaign
-          </NavLink>
+          <NavLink to="/" className={`${linkClasses} block px-4 py-2`} onClick={() => setMenuOpen(false)}>Home</NavLink>
+          <NavLink to="/global-pulse" className={`${linkClasses} block px-4 py-2`} onClick={() => setMenuOpen(false)}>Global Pulse</NavLink>
+          <NavLink to="/create" className={`${linkClasses} block px-4 py-2`} onClick={() => setMenuOpen(false)}>Create Campaign</NavLink>
 
           {isAdmin && (
             <>
-              <NavLink to="/admin-campaigns" className={`${linkClasses} block px-4 py-2`} onClick={() => setMenuOpen(false)}>
-                Admin
-              </NavLink>
-              <NavLink to="/admin-charts" className={`${linkClasses} block px-4 py-2`} onClick={() => setMenuOpen(false)}>
-                Admin Charts
-              </NavLink>
+              <NavLink to="/admin-campaigns" className={`${linkClasses} block px-4 py-2`} onClick={() => setMenuOpen(false)}>Admin</NavLink>
+              <NavLink to="/admin-charts" className={`${linkClasses} block px-4 py-2`} onClick={() => setMenuOpen(false)}>Admin Charts</NavLink>
             </>
           )}
 
           {user ? (
             <>
-              <NavLink to="/profile" className={`${linkClasses} block px-4 py-2`} onClick={() => setMenuOpen(false)}>
-                Profile
-              </NavLink>
-              <button
-                onClick={handleLogout}
-                className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:text-red-800"
-              >
-                Logout
-              </button>
+              <NavLink to="/profile" className={`${linkClasses} block px-4 py-2`} onClick={() => setMenuOpen(false)}>Profile</NavLink>
+              <button onClick={handleLogout} className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:text-red-800">Logout</button>
             </>
           ) : (
-            <NavLink to="/login" className={`${linkClasses} block px-4 py-2`} onClick={() => setMenuOpen(false)}>
-              Login
-            </NavLink>
+            <NavLink to="/login" className={`${linkClasses} block px-4 py-2`} onClick={() => setMenuOpen(false)}>Login</NavLink>
           )}
         </div>
       )}
