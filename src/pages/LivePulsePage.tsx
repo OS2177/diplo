@@ -34,19 +34,19 @@ export default function LivePulsePage() {
   }, [campaignId]);
 
   return (
-    <div className="min-h-screen p-6 bg-black text-white">
+    <div className="min-h-screen bg-[#EEEDE5] p-6 text-black">
       <div className="mb-6">
         <button
           onClick={() => window.location.href = `/campaign/${campaignId}`}
-          className="text-sm text-blue-500 hover:text-blue-300 underline flex items-center gap-1"
+          className="text-sm text-blue-500 hover:text-blue-800 underline flex items-center gap-1"
         >
           ← Back to Campaign
         </button>
       </div>
 
       <div className="mb-10 text-center">
-        <h1 className="text-2xl text-white">{campaignTitle}</h1>
-        <p className="text-lg text-gray-400">Live Campaign Pulse Overview</p>
+        <h1 className="text-2xl text-black font-normal">{campaignTitle}</h1>
+        <p className="text-lg text-gray-600">Live Campaign Pulse Overview</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -65,11 +65,11 @@ export default function LivePulsePage() {
           { Chart: CampaignScopeGridChart, key: 'campaignScope' },
           { Chart: CommunityIntegrityMap, key: 'communityIntegrityMap' },
         ].map(({ Chart, key }) => (
-          <div key={key} className="bg-gray-900 rounded-2xl p-4 shadow-xl">
+          <div key={key} className="bg-[#E3F739] border-2 border-[#F953A3] text-[#FD1096] rounded-2xl p-4 shadow-xl">
             <h2 className="text-xl font-semibold mb-1">
               {chartDescriptions[key]?.title || key}
             </h2>
-            <p className="text-sm text-gray-400 mb-4">
+            <p className="text-sm mb-4">
               {chartDescriptions[key]?.subtitle}
             </p>
             <Chart campaignId={campaignId!} />

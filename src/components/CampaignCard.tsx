@@ -166,13 +166,13 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
 
       {campaign.creator_integrity !== undefined && (
         <p className="text-sm text-purple-600 mb-2">
-          🧬 Creator Integrity: <strong>{(campaign.creator_integrity * 100).toFixed(0)}%</strong>
+          Creator Integrity: <strong>{(campaign.creator_integrity * 100).toFixed(0)}%</strong>
         </p>
       )}
 
       {campaign.campaign_integrity !== undefined && (
         <p className="text-sm text-indigo-600 mb-2">
-          📊 Campaign Integrity: <strong>{(campaign.campaign_integrity * 100).toFixed(1)}%</strong>
+          Campaign Integrity: <strong>{(campaign.campaign_integrity * 100).toFixed(1)}%</strong>
         </p>
       )}
 
@@ -227,7 +227,7 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
             </p>
             {voteImpact !== null && (
               <p className="text-sm text-blue-700">
-                🧠 Your vote impact: <strong>{(voteImpact * 100).toFixed(1)}%</strong>
+                Your vote impact: <strong>{(voteImpact * 100).toFixed(1)}%</strong>
               </p>
             )}
           </>
@@ -278,7 +278,7 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
           onClick={() => window.location.href = `/pulse/${campaign.id}`}
           className="text-sm text-blue-600 hover:text-blue-400 underline flex items-center gap-2"
         >
-          📊 View Full Pulse
+          View Full Pulse
         </button>
       </div>
 

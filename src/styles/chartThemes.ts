@@ -2,66 +2,66 @@
 
 export const chartThemes = {
   voteSplit: {
-    background: '#fff',
-    primary: '#6366F1',
+    background: '#E3F739',
+    primary: '#F953A3',
   },
   campaignIntegrity: {
-    background: '#fff',
-    primary: '#3B82F6',
+    background: '#E3F739',
+    primary: '#F953A3',
   },
   proximityReach: {
-    background: '#fff',
-    primary: '#10B981',
+    background: '#E3F739',
+    primary: '#F953A3',
   },
   voteMomentum: {
-    background: '#fff',
-    primary: '#6366F1',
+    background: '#E3F739',
+    primary: '#F953A3',
   },
   voterIntegrity: {
-    background: '#fff',
-    primary: '#8B5CF6',
+    background: '#E3F739',
+    primary: '#F953A3',
   },
   voterAgeDistribution: {
-    background: '#fff',
-    primary: '#EC4899',
+    background: '#E3F739',
+    primary: '#F953A3',
   },
   voterGender: {
-    background: '#fff',
-    primary: '#F472B6',
+    background: '#E3F739',
+    primary: '#F953A3',
   },
   voteOriginMap: {
-    background: '#fff',
-    primary: '#FCD34D',
+    background: '#E3F739',
+    primary: '#F953A3',
   },
   communityIntegrityMap: {
-    background: '#fff',
-    primary: '#14B8A6',
+    background: '#E3F739',
+    primary: '#F953A3',
   },
   voteImpactMatrix: {
-    background: '#fff',
-    primary: '#7C3AED',
+    background: '#E3F739',
+    primary: '#F953A3',
   },
   voteMap: {
-    background: '#fff',
-    primary: '#6366F1',
+    background: '#E3F739',
+    primary: '#F953A3',
     positive: '#34D399',
     negative: '#EF4444',
   },
   votePulse: {
-    background: '#fff',
-    primary: '#6366F1',
+    background: '#E3F739',
+    primary: '#F953A3',
   },
   campaignScope: {
-    background: '#fff',
-    primary: '#4F46E5',
+    background: '#E3F739',
+    primary: '#F953A3',
   },
   voterAge: {
-    background: '#fff',
-    primary: '#EC4899',
+    background: '#E3F739',
+    primary: '#F953A3',
   },
   voterOriginMap: {
-    background: '#fff',
-    primary: '#FB923C',
+    background: '#E3F739',
+    primary: '#F953A3',
   },
   
   
