@@ -8,9 +8,9 @@ export default function PulsePreviewGallery({ campaignId }: Props) {
   const navigate = useNavigate();
 
   const images = [
-    '/public/images/small_neon_squares_diplo_pulse.png',
-    '/public/images/perspectives_02_diplo_pulse.png',
-    '/public/images/animated_lines_diplo_pulse.gif', // your animated one
+    '/images/small_neon_squares_diplo_pulse.png',
+    '/images/perspectives_02_diplo_pulse.png',
+    '/images/animated_lines_diplo_pulse.gif', // your animated one
   ];
 
   return (
