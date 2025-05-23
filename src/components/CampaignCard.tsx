@@ -253,17 +253,17 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
 >
   <div className="grid grid-cols-3 gap-0">
     <img
-      src="images/square-1.png"
+      src="public/images/square-1.png"
       alt="Pulse 1"
       className="w-full h-full object-cover"
     />
     <img
-      src="images/square-2.png"
+      src="public/images/square-2.png"
       alt="Pulse 2"
       className="w-full h-full object-cover"
     />
     <img
-      src="images/square-3.gif"
+      src="public/images/square-3.gif"
       alt="Pulse 3"
       className="w-full h-full object-cover"
     />
