@@ -36,35 +36,21 @@ export default function Header() {
   };
 
   return (
-    <nav className="flex items-center justify-between px-8 py-6 bg-[#EEEDE5] shadow-md relative">
-      <div className="flex items-center space-x-4">
-        <img src="/images/diplo_logo.png" alt="Diplo Logo" className="h-14" />
-        <a href="https://diplo.cargo.site/" target="_blank" rel="noopener noreferrer">
-          <h1 className="text-4xl font-extrabold text-black">diplo</h1>
-        </a>
+    <nav className="flex items-center justify-between px-8 py-4 bg-[#EEEDE5] shadow-md relative">
+      {/* Left side: Logo + diplo + tagline */}
+      <div className="flex items-center gap-4">
+        <img src="/images/diplo_logo.png" alt="Diplo Logo" className="h-10 w-10" />
+        <div>
+          <h1 className="text-3xl font-black leading-none">diplo</h1>
+          <p className="text-sm text-pink-500 font-semibold -mt-1">collective diplomacy</p>
+        </div>
       </div>
 
-      <div className="lg:hidden">
-        <button
-          onClick={() => setMenuOpen(!menuOpen)}
-          className="text-gray-700 hover:text-black"
-        >
-          <svg
-            className="w-6 h-6"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
-        </button>
-      </div>
-
+      {/* Right side nav links (desktop) */}
       <div className="hidden lg:flex items-center space-x-6">
-        <a href="https://diplo.cargo.site/" className={linkClasses}>
+        <NavLink to="/" className={({ isActive }) => `${linkClasses} ${isActive ? activeClasses : ''}`}>
           Home
-        </a>
+        </NavLink>
 
         <NavLink to="/global-pulse" className={({ isActive }) => `${linkClasses} ${isActive ? activeClasses : ''}`}>
           Global Pulse
@@ -87,10 +73,10 @@ export default function Header() {
 
         {user ? (
           <>
-            <NavLink to="/profile" className={`${linkClasses} ${activeClasses} px-4 py-2`}>
+            <NavLink to="/profile" className={`${linkClasses} px-4 py-2 rounded-md bg-gray-100`}>
               Profile
             </NavLink>
-            <button onClick={handleLogout} className="text-sm text-red-600 hover:bg-gray-100 px-4 py-2">
+            <button onClick={handleLogout} className="text-sm text-red-600 hover:text-red-800">
               Logout
             </button>
           </>
@@ -101,11 +87,30 @@ export default function Header() {
         )}
       </div>
 
+      {/* Mobile menu icon */}
+      <div className="lg:hidden">
+        <button
+          onClick={() => setMenuOpen(!menuOpen)}
+          className="text-gray-700 hover:text-black"
+        >
+          <svg
+            className="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+      </div>
+
+      {/* Mobile menu dropdown */}
       {menuOpen && (
         <div className="absolute left-0 top-20 w-full bg-[#EEEDE5] shadow-lg z-50 lg:hidden">
-          <a href="https://diplo.cargo.site/" className={`${linkClasses} block px-4 py-2`} onClick={() => setMenuOpen(false)}>
+          <NavLink to="/" className={`${linkClasses} block px-4 py-2`} onClick={() => setMenuOpen(false)}>
             Home
-          </a>
+          </NavLink>
 
           <NavLink to="/global-pulse" className={`${linkClasses} block px-4 py-2`} onClick={() => setMenuOpen(false)}>
             Global Pulse
@@ -133,7 +138,7 @@ export default function Header() {
               </NavLink>
               <button
                 onClick={handleLogout}
-                className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:text-red-800"
               >
                 Logout
               </button>

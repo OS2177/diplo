@@ -5,19 +5,7 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-[#EEEDE5] p-6">
-      {/* Logo and Tagline */}
-      <div className="mb-4 text-center">
-        <img
-          src="/images/diplo_logo.png"
-          alt="Diplo Logo"
-          className="h-16 mx-auto"
-        />
-        <h1 className="text-4xl font-black mt-2">diplo</h1>
-        <p className="text-pink-500 text-lg font-semibold mt-1">collective diplomacy</p>
-        <div className="border-t border-black mt-4 mb-8 w-full" />
-      </div>
-
-      {/* 3 Preview Images */}
+      {/* Pulse Preview Image Row Only */}
       <div
         className="cursor-pointer border rounded overflow-hidden hover:shadow-md transition-shadow bg-white"
         onClick={() => navigate('/global-pulse')}
