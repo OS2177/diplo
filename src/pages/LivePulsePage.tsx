@@ -15,6 +15,7 @@ import VoterGenderDistributionChart from '../components/charts/VoterGenderDistri
 import VoteOriginMap from '../components/charts/VoteOriginMap';
 import CampaignScopeGridChart from '../components/charts/CampaignScopeGridChart';
 import CommunityIntegrityMap from '../components/charts/CommunityIntegrityMap';
+import { chartDescriptions } from '../constants/ChartDescriptions';
 
 export default function LivePulsePage() {
   const { id: campaignId } = useParams<{ id: string }>();
@@ -22,42 +23,58 @@ export default function LivePulsePage() {
 
   useEffect(() => {
     const fetchCampaign = async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('campaigns')
         .select('title')
         .eq('id', campaignId)
         .single();
-
       if (data) setCampaignTitle(data.title);
     };
-
     if (campaignId) fetchCampaign();
   }, [campaignId]);
 
   return (
-    <div className="min-h-screen bg-[#EEEDE5] p-6">
-      <h1 className="text-3xl font-bold mb-6">📊 {campaignTitle}</h1>
+    <div className="min-h-screen p-6 bg-black text-white">
+      <div className="mb-6">
+        <button
+          onClick={() => window.location.href = `/campaign/${campaignId}`}
+          className="text-sm text-blue-500 hover:text-blue-300 underline flex items-center gap-1"
+        >
+          ← Back to Campaign
+        </button>
+      </div>
 
-      {campaignId && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <VoteSplitChart campaignId={campaignId} />
-          <CampaignIntegrityChart campaignId={campaignId} />
-          <ProximityReachChart campaignId={campaignId} />
-          <VoteMomentumChart campaignId={campaignId} />
-          <VotePulseChart campaignId={campaignId} />
-          <VoteImpactMatrix campaignId={campaignId} />
-          <VoterIntegrityChart campaignId={campaignId} />
-          <VoterAgeDistributionChart campaignId={campaignId} />
-          <VoterGenderDistributionChart campaignId={campaignId} />
-          <VoteMapChart campaignId={campaignId} />
-          <VoteOriginMap campaignId={campaignId} />
-          <CommunityIntegrityMap campaignId={campaignId} />
-        </div>
-      )}
+      <div className="mb-10 text-center">
+        <h1 className="text-2xl text-white">{campaignTitle}</h1>
+        <p className="text-lg text-gray-400">Live Campaign Pulse Overview</p>
+      </div>
 
-      <div className="mt-12">
-        <h2 className="text-2xl font-semibold mb-4">📡 Global Scope Overview</h2>
-        <CampaignScopeGridChart />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {[
+          { Chart: VoteSplitChart, key: 'voteSplit' },
+          { Chart: VoteMomentumChart, key: 'voteMomentum' },
+          { Chart: CampaignIntegrityChart, key: 'campaignIntegrity' },
+          { Chart: VoterIntegrityChart, key: 'voterIntegrity' },
+          { Chart: ProximityReachChart, key: 'proximityReach' },
+          { Chart: VoteMapChart, key: 'voteMap' },
+          { Chart: VotePulseChart, key: 'votePulse' },
+          { Chart: VoteImpactMatrix, key: 'voteImpactMatrix' },
+          { Chart: VoterAgeDistributionChart, key: 'voterAgeDistribution' },
+          { Chart: VoterGenderDistributionChart, key: 'voterGender' },
+          { Chart: VoteOriginMap, key: 'voteOriginMap' },
+          { Chart: CampaignScopeGridChart, key: 'campaignScope' },
+          { Chart: CommunityIntegrityMap, key: 'communityIntegrityMap' },
+        ].map(({ Chart, key }) => (
+          <div key={key} className="bg-gray-900 rounded-2xl p-4 shadow-xl">
+            <h2 className="text-xl font-semibold mb-1">
+              {chartDescriptions[key]?.title || key}
+            </h2>
+            <p className="text-sm text-gray-400 mb-4">
+              {chartDescriptions[key]?.subtitle}
+            </p>
+            <Chart campaignId={campaignId!} />
+          </div>
+        ))}
       </div>
     </div>
   );
