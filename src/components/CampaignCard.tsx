@@ -247,28 +247,29 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
       </div>
 
       {/* 🔥 Pulse Preview Gallery (3 images including a gif) */}
-     <div
-  className="mt-6 cursor-pointer border rounded overflow-hidden hover:shadow-md transition-shadow bg-white"
-  onClick={() => navigate(`/pulse/${campaign.id}`)}
->
-  <div className="grid grid-cols-3 gap-0">
-    <img
-      src="public/images/square-1.png"
-      alt="Pulse 1"
-      className="w-full h-full object-cover"
-    />
-    <img
-      src="public/images/square-2.png"
-      alt="Pulse 2"
-      className="w-full h-full object-cover"
-    />
-    <img
-      src="public/images/square-3.gif"
-      alt="Pulse 3"
-      className="w-full h-full object-cover"
-    />
-  </div>
-</div>
+      <div
+        className="mt-6 cursor-pointer border rounded overflow-hidden hover:shadow-md transition-shadow bg-white"
+        onClick={() => navigate(`/pulse/${campaign.id}`)}
+      >
+        <div className="flex">
+          <img
+            src="images/square-1.png"
+            alt="Pulse 1"
+            className="w-1/3 object-cover"
+          />
+          <img
+            src="images/square-2.png"
+            alt="Pulse 2"
+            className="w-1/3 object-cover"
+          />
+          <img
+            src="images/square-3.gif"
+            alt="Pulse 3"
+            className="w-1/3 object-cover"
+          />
+        </div>
+      </div>
+
 
 
       {/* 📊 View Full Pulse link */}
