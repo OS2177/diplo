@@ -36,56 +36,40 @@ export default function Header() {
   };
 
   return (
-    <nav className="flex items-center justify-between px-8 py-4 bg-[#EEEDE5] shadow-md relative">
-      {/* Left side: Logo + diplo + tagline */}
-      <div className="flex items-center gap-4">
-        <img src="/images/diplo_logo.png" alt="Diplo Logo" className="h-10 w-10" />
-        <div>
-          <h1 className="text-3xl font-black leading-none">diplo</h1>
-          <p className="text-sm text-pink-500 font-semibold -mt-1">collective diplomacy</p>
+    <header className="bg-[#EEEDE5] px-[3vw] pt-6 pb-2">
+      {/* Top Row */}
+      <div className="flex justify-between items-start">
+        <div className="flex items-center gap-4">
+          <img src="/images/diplo_logo.png" alt="Diplo Logo" className="h-14 w-14" />
+          <h1 className="text-5xl font-extrabold text-black leading-none">diplo</h1>
         </div>
+
+        <nav className="hidden lg:flex items-center space-x-6 pt-2">
+          <NavLink to="/" className={({ isActive }) => `${linkClasses} ${isActive ? activeClasses : ''}`}>Home</NavLink>
+          <NavLink to="/global-pulse" className={({ isActive }) => `${linkClasses} ${isActive ? activeClasses : ''}`}>Global Pulse</NavLink>
+          <NavLink to="/create" className={({ isActive }) => `${linkClasses} ${isActive ? activeClasses : ''}`}>Create Campaign</NavLink>
+          {isAdmin && (
+            <>
+              <NavLink to="/admin-campaigns" className={({ isActive }) => `${linkClasses} ${isActive ? activeClasses : ''}`}>Admin</NavLink>
+              <NavLink to="/admin-charts" className={({ isActive }) => `${linkClasses} ${isActive ? activeClasses : ''}`}>Admin Charts</NavLink>
+            </>
+          )}
+          {user ? (
+            <>
+              <NavLink to="/profile" className={`${linkClasses} px-4 py-2 rounded-md bg-gray-100`}>Profile</NavLink>
+              <button onClick={handleLogout} className="text-sm text-red-600 hover:text-red-800">Logout</button>
+            </>
+          ) : (
+            <NavLink to="/login" className={({ isActive }) => `${linkClasses} ${isActive ? activeClasses : ''}`}>Login</NavLink>
+          )}
+        </nav>
       </div>
 
-      {/* Right side nav links (desktop) */}
-      <div className="hidden lg:flex items-center space-x-6">
-        <NavLink to="/" className={({ isActive }) => `${linkClasses} ${isActive ? activeClasses : ''}`}>
-          Home
-        </NavLink>
+      {/* Divider */}
+      <hr className="border-black mt-3 mb-2" />
 
-        <NavLink to="/global-pulse" className={({ isActive }) => `${linkClasses} ${isActive ? activeClasses : ''}`}>
-          Global Pulse
-        </NavLink>
-
-        <NavLink to="/create" className={({ isActive }) => `${linkClasses} ${isActive ? activeClasses : ''}`}>
-          Create Campaign
-        </NavLink>
-
-        {isAdmin && (
-          <>
-            <NavLink to="/admin-campaigns" className={({ isActive }) => `${linkClasses} ${isActive ? activeClasses : ''}`}>
-              Admin
-            </NavLink>
-            <NavLink to="/admin-charts" className={({ isActive }) => `${linkClasses} ${isActive ? activeClasses : ''}`}>
-              Admin Charts
-            </NavLink>
-          </>
-        )}
-
-        {user ? (
-          <>
-            <NavLink to="/profile" className={`${linkClasses} px-4 py-2 rounded-md bg-gray-100`}>
-              Profile
-            </NavLink>
-            <button onClick={handleLogout} className="text-sm text-red-600 hover:text-red-800">
-              Logout
-            </button>
-          </>
-        ) : (
-          <NavLink to="/login" className={({ isActive }) => `${linkClasses} ${isActive ? activeClasses : ''}`}>
-            Login
-          </NavLink>
-        )}
-      </div>
+      {/* Tagline */}
+      <p className="text-[#F69BE4] font-bold text-lg pl-[4.5rem]">collective diplomacy</p>
 
       {/* Mobile menu icon */}
       <div className="lg:hidden">
@@ -150,6 +134,6 @@ export default function Header() {
           )}
         </div>
       )}
-    </nav>
+    </header>
   );
 }
