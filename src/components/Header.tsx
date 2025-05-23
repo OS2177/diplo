@@ -121,55 +121,64 @@ export default function Header() {
       </div>
 
       {menuOpen && (
-  <div className="fixed inset-0 z-50 bg-[#EEEDE5] flex flex-col items-center justify-center space-y-6 text-center lg:hidden">
-    <a
-      href="https://diplo.cargo.site/"
-      className={`${linkClasses} text-xl`}
-      onClick={() => setMenuOpen(false)}
-    >
-      Home
-    </a>
-    <NavLink
-      to="/global-pulse"
-      className={`${linkClasses} text-xl`}
-      onClick={() => setMenuOpen(false)}
-    >
-      Global Pulse
-    </NavLink>
-    <NavLink
-      to="/create"
-      className={`${linkClasses} text-xl`}
-      onClick={() => setMenuOpen(false)}
-    >
-      Create Campaign
-    </NavLink>
-    {user ? (
-      <>
-        <NavLink
-          to="/profile"
-          className={`${linkClasses} text-xl`}
-          onClick={() => setMenuOpen(false)}
-        >
-          Profile
-        </NavLink>
-        <button
-          onClick={handleLogout}
-          className="text-xl text-red-600 hover:bg-gray-100 px-4 py-2"
-        >
-          Logout
-        </button>
-      </>
-    ) : (
-      <NavLink
-        to="/login"
-        className={`${linkClasses} text-xl`}
-        onClick={() => setMenuOpen(false)}
-      >
-        Login
-      </NavLink>
-    )}
-  </div>
-)}
+        <div className="fixed inset-0 z-50 bg-[#EEEDE5] flex flex-col items-center justify-center space-y-6 text-center lg:hidden">
+          <a
+            href="https://diplo.cargo.site/"
+            className={`${linkClasses} text-xl`}
+            onClick={() => setMenuOpen(false)}
+          >
+            Home
+          </a>
+          <NavLink
+            to="/global-pulse"
+            className={`${linkClasses} text-xl`}
+            onClick={() => setMenuOpen(false)}
+          >
+            Global Pulse
+          </NavLink>
+          <NavLink
+            to="/create"
+            className={`${linkClasses} text-xl`}
+            onClick={() => setMenuOpen(false)}
+          >
+            Create Campaign
+          </NavLink>
+          {user ? (
+            <>
+              <NavLink
+                to="/profile"
+                className={`${linkClasses} text-xl`}
+                onClick={() => setMenuOpen(false)}
+              >
+                Profile
+              </NavLink>
+              <button
+                onClick={handleLogout}
+                className="text-xl text-red-600 hover:bg-gray-100 px-4 py-2"
+              >
+                Logout
+              </button>
+            </>
+          ) : (
+            <NavLink
+              to="/login"
+              className={`${linkClasses} text-xl`}
+              onClick={() => setMenuOpen(false)}
+            >
+              Login
+            </NavLink>
+          )}
+
+          {/* Close Button */}
+          <button
+            onClick={() => setMenuOpen(false)}
+            className="text-xl text-gray-500 hover:text-black"
+          >
+            X Close
+          </button>
+        </div>
+      )}
+
 
     </nav>
   );
