@@ -173,8 +173,9 @@ export default function Header() {
           <button
             onClick={() => setMenuOpen(false)}
             className="text-xl text-gray-500 hover:text-black"
+            style={{ fontFamily: 'MD Nichrome Bold, sans-serif' }}
           >
-            X Close
+            X
           </button>
         </div>
       )}
