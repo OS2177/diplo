@@ -1,11 +1,10 @@
-
 import { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { useUser } from '../hooks/useUser';
 
 const linkClasses =
-'text-gray-600 hover:text-black px-3 py-2 rounded-md text-sm font-medium';
+  'text-gray-600 hover:text-black px-3 py-2 rounded-md text-sm font-medium';
 const activeClasses = 'bg-gray-200 text-black';
 
 export default function Header() {
@@ -36,20 +35,37 @@ export default function Header() {
           onClick={() => setMenuOpen(!menuOpen)}
           className="text-gray-700 hover:text-black"
         >
-          <svg
-            className="w-6 h-6"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M4 6h16M4 12h16M4 18h16"
-            />
-          </svg>
+          {menuOpen ? (
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          ) : (
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 6h16M4 12h16M4 18h16"
+              />
+            </svg>
+          )}
         </button>
       </div>
 
@@ -105,25 +121,24 @@ export default function Header() {
       </div>
 
       {menuOpen && (
-        {menuOpen && (
-  <div className="absolute left-0 top-20 w-full bg-[#EEEDE5] shadow-lg z-50 lg:hidden text-center">
+        <div className="absolute left-0 top-20 w-full bg-[#EEEDE5] shadow-lg z-50 lg:hidden">
           <a
             href="https://diplo.cargo.site/"
-            className={`${linkClasses} block px-4 py-2`}
+            className={`${linkClasses} block px-4 py-2 text-center`}
             onClick={() => setMenuOpen(false)}
           >
             Home
           </a>
           <NavLink
             to="/global-pulse"
-            className={`${linkClasses} block px-4 py-2`}
+            className={`${linkClasses} block px-4 py-2 text-center`}
             onClick={() => setMenuOpen(false)}
           >
             Global Pulse
           </NavLink>
           <NavLink
             to="/create"
-            className={`${linkClasses} block px-4 py-2`}
+            className={`${linkClasses} block px-4 py-2 text-center`}
             onClick={() => setMenuOpen(false)}
           >
             Create Campaign
@@ -132,14 +147,14 @@ export default function Header() {
             <>
               <NavLink
                 to="/profile"
-                className={`${linkClasses} block px-4 py-2`}
+                className={`${linkClasses} block px-4 py-2 text-center`}
                 onClick={() => setMenuOpen(false)}
               >
                 Profile
               </NavLink>
               <button
                 onClick={handleLogout}
-                className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                className="block w-full text-center px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
               >
                 Logout
               </button>
@@ -147,7 +162,7 @@ export default function Header() {
           ) : (
             <NavLink
               to="/login"
-              className={`${linkClasses} block px-4 py-2`}
+              className={`${linkClasses} block px-4 py-2 text-center`}
               onClick={() => setMenuOpen(false)}
             >
               Login
