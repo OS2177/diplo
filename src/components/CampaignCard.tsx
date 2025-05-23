@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { calculateUserIntegrity, calculateProximity } from '../utils/integrity';
 import { useNavigate } from 'react-router-dom';
-import VotePulseMicroChart from './charts/VotePulseMicroChart';
 
 type Campaign = {
   id: string;
@@ -247,13 +246,17 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
         )}
       </div>
 
-      {/* 🔥 Live Pulse Micro Chart */}
+      {/* 🔥 Pulse Preview Gallery (3 images including a gif) */}
       <div
-        className="mt-6 cursor-pointer border rounded p-2 hover:bg-gray-50"
+        className="mt-6 cursor-pointer border rounded p-2 hover:shadow-md transition-shadow bg-white"
         onClick={() => navigate(`/pulse/${campaign.id}`)}
       >
-        <p className="text-xs text-gray-600 mb-1">💓 Live Pulse</p>
-        <VotePulseMicroChart campaignId={campaign.id} />
+        <p className="text-xs text-gray-600 mb-2 pl-1">💓 View Pulse</p>
+        <div className="flex gap-2 justify-center items-center">
+          <img src="/images/square-1.png" alt="Pulse 1" className="h-20 w-20 object-contain rounded" />
+          <img src="/images/square-2.png" alt="Pulse 2" className="h-20 w-20 object-contain rounded" />
+          <img src="/images/square-3.gif" alt="Pulse 3" className="h-20 w-20 object-contain rounded" />
+        </div>
       </div>
 
       {/* 📊 View Full Pulse link */}
