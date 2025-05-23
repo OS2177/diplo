@@ -1,32 +1,45 @@
+import { useNavigate } from 'react-router-dom';
+
 export default function HomePage() {
+  const navigate = useNavigate();
+
   return (
-    <div className="max-w-2xl mx-auto p-6 text-center mt-20"> {/* Adjusted margin-top to move sections down */}
-      {/* Diplo Logo and Name */}
-      <div className="mb-6">
-        <img 
-          src="/images/diplo_logo.png" 
-          alt="Diplo Logo" 
-          className="h-14 mx-auto" 
+    <div className="min-h-screen bg-[#EEEDE5] p-6">
+      {/* Logo and Tagline */}
+      <div className="mb-4 text-center">
+        <img
+          src="/images/diplo_logo.png"
+          alt="Diplo Logo"
+          className="h-16 mx-auto"
         />
+        <h1 className="text-4xl font-black mt-2">diplo</h1>
+        <p className="text-pink-500 text-lg font-semibold mt-1">collective diplomacy</p>
+        <div className="border-t border-black mt-4 mb-8 w-full" />
       </div>
 
-      {/* Welcome Heading */}
-      <h1 className="text-3xl font-bold mb-4">Welcome to Diplo</h1>
-
-      {/* Description */}
-      <p className="text-gray-600 mb-4">
-        A new model for truth-based, public sentiment and collective diplomacy
-      </p>
-
-      {/* Learn More Link */}
-      <a 
-        href="https://diplo.cargo.site/" 
-        target="_blank" 
-        rel="noopener noreferrer"
-        className="text-blue-500 hover:text-blue-700"
+      {/* 3 Preview Images */}
+      <div
+        className="cursor-pointer border rounded overflow-hidden hover:shadow-md transition-shadow bg-white"
+        onClick={() => navigate('/global-pulse')}
       >
-        Learn More
-      </a>
+        <div className="flex">
+          <img
+            src="/images/square-1.png"
+            alt="Pulse 1"
+            className="w-1/3 h-auto object-cover"
+          />
+          <img
+            src="/images/square-2.png"
+            alt="Pulse 2"
+            className="w-1/3 h-auto object-cover"
+          />
+          <img
+            src="/images/square-3.gif"
+            alt="Pulse 3"
+            className="w-1/3 h-auto object-cover"
+          />
+        </div>
+      </div>
     </div>
   );
 }
