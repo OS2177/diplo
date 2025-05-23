@@ -121,55 +121,56 @@ export default function Header() {
       </div>
 
       {menuOpen && (
-        <div className="absolute left-0 top-20 w-full bg-[#EEEDE5] shadow-lg z-50 lg:hidden">
-          <a
-            href="https://diplo.cargo.site/"
-            className={`${linkClasses} block px-4 py-2 text-center`}
-            onClick={() => setMenuOpen(false)}
-          >
-            Home
-          </a>
-          <NavLink
-            to="/global-pulse"
-            className={`${linkClasses} block px-4 py-2 text-center`}
-            onClick={() => setMenuOpen(false)}
-          >
-            Global Pulse
-          </NavLink>
-          <NavLink
-            to="/create"
-            className={`${linkClasses} block px-4 py-2 text-center`}
-            onClick={() => setMenuOpen(false)}
-          >
-            Create Campaign
-          </NavLink>
-          {user ? (
-            <>
-              <NavLink
-                to="/profile"
-                className={`${linkClasses} block px-4 py-2 text-center`}
-                onClick={() => setMenuOpen(false)}
-              >
-                Profile
-              </NavLink>
-              <button
-                onClick={handleLogout}
-                className="block w-full text-center px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
-              >
-                Logout
-              </button>
-            </>
-          ) : (
-            <NavLink
-              to="/login"
-              className={`${linkClasses} block px-4 py-2 text-center`}
-              onClick={() => setMenuOpen(false)}
-            >
-              Login
-            </NavLink>
-          )}
-        </div>
-      )}
+  <div className="fixed inset-0 z-50 bg-[#EEEDE5] flex flex-col items-center justify-center space-y-6 text-center lg:hidden">
+    <a
+      href="https://diplo.cargo.site/"
+      className={`${linkClasses} text-xl`}
+      onClick={() => setMenuOpen(false)}
+    >
+      Home
+    </a>
+    <NavLink
+      to="/global-pulse"
+      className={`${linkClasses} text-xl`}
+      onClick={() => setMenuOpen(false)}
+    >
+      Global Pulse
+    </NavLink>
+    <NavLink
+      to="/create"
+      className={`${linkClasses} text-xl`}
+      onClick={() => setMenuOpen(false)}
+    >
+      Create Campaign
+    </NavLink>
+    {user ? (
+      <>
+        <NavLink
+          to="/profile"
+          className={`${linkClasses} text-xl`}
+          onClick={() => setMenuOpen(false)}
+        >
+          Profile
+        </NavLink>
+        <button
+          onClick={handleLogout}
+          className="text-xl text-red-600 hover:bg-gray-100 px-4 py-2"
+        >
+          Logout
+        </button>
+      </>
+    ) : (
+      <NavLink
+        to="/login"
+        className={`${linkClasses} text-xl`}
+        onClick={() => setMenuOpen(false)}
+      >
+        Login
+      </NavLink>
+    )}
+  </div>
+)}
+
     </nav>
   );
 }
