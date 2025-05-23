@@ -253,17 +253,17 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
       >
         <div className="flex">
           <img
-            src="images/square-1.png"
+            src="/images/square-1.png"
             alt="Pulse 1"
             className="w-1/3 object-cover"
           />
           <img
-            src="images/square-2.png"
+            src="/images/square-2.png"
             alt="Pulse 2"
             className="w-1/3 object-cover"
           />
           <img
-            src="images/square-3.gif"
+            src="/images/square-3.gif"
             alt="Pulse 3"
             className="w-1/3 object-cover"
           />
