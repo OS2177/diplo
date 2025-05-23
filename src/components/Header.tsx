@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { useUser } from '../hooks/useUser';
@@ -11,6 +11,24 @@ export default function Header() {
   const { user } = useUser();
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    const fetchAdminStatus = async () => {
+      if (!user) return;
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('is_admin')
+        .eq('id', user.id)
+        .single();
+
+      if (!error && data?.is_admin) {
+        setIsAdmin(true);
+      }
+    };
+
+    fetchAdminStatus();
+  }, [user]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -93,6 +111,28 @@ export default function Header() {
         >
           Create Campaign
         </NavLink>
+
+        {isAdmin && (
+          <>
+            <NavLink
+              to="/admin-campaigns"
+              className={({ isActive }) =>
+                `${linkClasses} ${isActive ? activeClasses : ''}`
+              }
+            >
+              Admin
+            </NavLink>
+            <NavLink
+              to="/admin-charts"
+              className={({ isActive }) =>
+                `${linkClasses} ${isActive ? activeClasses : ''}`
+              }
+            >
+              Admin Charts
+            </NavLink>
+          </>
+        )}
+
         {user ? (
           <>
             <NavLink
@@ -143,6 +183,26 @@ export default function Header() {
           >
             Create Campaign
           </NavLink>
+
+          {isAdmin && (
+            <>
+              <NavLink
+                to="/admin-campaigns"
+                className={`${linkClasses} text-xl`}
+                onClick={() => setMenuOpen(false)}
+              >
+                Admin
+              </NavLink>
+              <NavLink
+                to="/admin-charts"
+                className={`${linkClasses} text-xl`}
+                onClick={() => setMenuOpen(false)}
+              >
+                Admin Charts
+              </NavLink>
+            </>
+          )}
+
           {user ? (
             <>
               <NavLink
@@ -169,7 +229,6 @@ export default function Header() {
             </NavLink>
           )}
 
-          {/* Close Button */}
           <button
             onClick={() => setMenuOpen(false)}
             className="text-xl text-gray-500 hover:text-black"
@@ -177,11 +236,8 @@ export default function Header() {
           >
             X
           </button>
-
         </div>
       )}
-
-
     </nav>
   );
 }
