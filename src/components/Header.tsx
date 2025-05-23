@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabaseClient';
 import { useUser } from '../hooks/useUser';
 
 const linkClasses =
-  'text-gray-600 hover:text-black px-3 py-2 rounded-md text-sm font-medium';
+  'text-gray-600 hover:text-black px-3 py-2 rounded-md text-base font-medium';
 const activeClasses = 'bg-gray-200 text-black';
 
 export default function Header() {
@@ -177,6 +177,7 @@ export default function Header() {
           >
             X
           </button>
+
         </div>
       )}
 
