@@ -44,8 +44,14 @@ export default function Header() {
           className="h-14" 
         />
         <a href="https://diplo.cargo.site/" target="_blank" rel="noopener noreferrer">
-          <h1 className="text-4xl font-extrabold text-black">diplo</h1>
-        </a>
+  <h1 className="text-4xl font-extrabold text-black flex items-baseline">
+    diplo
+    <span className="ml-2 text-sm text-gray-600" style={{ fontFamily: 'MD Nichrome Light, sans-serif' }}>
+      beta
+    </span>
+  </h1>
+</a>
+
       </div>
 
       <div className="lg:hidden">
