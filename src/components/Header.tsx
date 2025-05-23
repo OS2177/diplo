@@ -105,7 +105,8 @@ export default function Header() {
       </div>
 
       {menuOpen && (
-        <div className="absolute left-0 top-20 w-full bg-[#EEEDE5] shadow-lg z-50 lg:hidden">
+        {menuOpen && (
+  <div className="absolute left-0 top-20 w-full bg-[#EEEDE5] shadow-lg z-50 lg:hidden text-center">
           <a
             href="https://diplo.cargo.site/"
             className={`${linkClasses} block px-4 py-2`}
