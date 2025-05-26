@@ -87,10 +87,7 @@ export default function Header() {
         <a href="https://diplo.cargo.site/" target="_blank" rel="noopener noreferrer">
           <h1 className="text-4xl text-black font-extrabold" style={{ fontFamily: 'Unbounded-Black, sans-serif' }}>diplo</h1>
         </a>
-        <a className="ml-2 text-sm text-gray-600" style={{ fontFamily: 
-        'Unbounded-Light, sans-serif' }}>
-            beta
-          </a>
+        <a className="ml-2 text-sm text-gray-600" style={{ fontFamily: 'Unbounded-Light, sans-serif' }}>beta</a>
         <button
           onClick={() => setMenuOpen(!menuOpen)}
           className="mt-4 text-gray-700 hover:text-black"
@@ -113,6 +110,13 @@ export default function Header() {
           <a href="https://diplo.cargo.site/" className="text-[#F69BE4] text-xl font-bold underline" onClick={() => setMenuOpen(false)}>Home</a>
           <NavLink to="/global-pulse" className="text-[#F69BE4] text-xl font-bold underline" onClick={() => setMenuOpen(false)}>Global Pulse</NavLink>
           <NavLink to="/create" className="text-[#F69BE4] text-xl font-bold underline" onClick={() => setMenuOpen(false)}>Create Campaign</NavLink>
+
+          {isAdmin && (
+            <>
+              <NavLink to="/admin-campaigns" className="text-[#F69BE4] text-xl font-bold underline" onClick={() => setMenuOpen(false)}>Admin</NavLink>
+              <NavLink to="/admin-charts" className="text-[#F69BE4] text-xl font-bold underline" onClick={() => setMenuOpen(false)}>Admin Charts</NavLink>
+            </>
+          )}
 
           {user ? (
             <>
