@@ -46,7 +46,7 @@ export default function Header() {
         <a href="https://diplo.cargo.site/" target="_blank" rel="noopener noreferrer">
   <h1 className="text-4xl font-extrabold text-black flex items-baseline">
     diplo
-    <span className="ml-2 text-sm text-gray-600" style={{ fontFamily: 'MD Nichrome Light, sans-serif' }}>
+    <span className="ml-2 text-sm text-gray-600" style={{ fontFamily: 'Unbounded-Light, sans-serif' }}>
       beta
     </span>
   </h1>
