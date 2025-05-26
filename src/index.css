@@ -3,10 +3,10 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Define the MDNichrome Ultra font (used for the logo) */
+/* Define the Unbounded-Black font (used for the logo) */
 @font-face {
   font-family: 'Unbounded-Black';
-  src: url('/fonts/MDNichrome-Ultra.woff2') format('woff2');
+  src: url('/fonts/Unbounded-Black.woff2') format('woff2');
   font-weight: normal;
   font-style: normal;
 }
@@ -40,5 +40,5 @@ body {
 
 /* Specifically apply 'MDNichrome-Ultra' to the logo */
 h1 {
-  font-family: 'Unbounded-Light', sans-serif;
+  font-family: 'Unbounded-Black', sans-serif;
 }
