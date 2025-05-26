@@ -1,6 +1,8 @@
 import { useNavigate, NavLink } from 'react-router-dom';
+import { useUser } from '../hooks/useUser';
 
 export default function HomePage() {
+  const { user } = useUser();
   const navigate = useNavigate();
 
   return (
@@ -52,13 +54,22 @@ export default function HomePage() {
           A new model for truth-based, public sentiment and collective diplomacy
         </p>
 
-        {/* Updated NavLink to Sign In */}
-        <NavLink
-          to="/login"
-          className="text-blue-500 hover:text-blue-700"
-        >
-          Sign In to Create a Campaign
-        </NavLink>
+        {/* Conditional Call-to-Action Link */}
+        {user ? (
+          <NavLink
+            to="/profile"
+            className="text-blue-500 hover:text-blue-700"
+          >
+            Complete Profile to Create a Campaign
+          </NavLink>
+        ) : (
+          <NavLink
+            to="/login"
+            className="text-blue-500 hover:text-blue-700"
+          >
+            Sign In to Create a Campaign
+          </NavLink>
+        )}
       </div>
     </div>
   );
