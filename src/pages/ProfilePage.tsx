@@ -44,14 +44,13 @@ interface Campaign {
 }
 
 // ✅ Removed calculateIntegrityScore
-// ✅ Kept this logic as it's unique to creator scoring on profile
 function calculateCreatorIntegrityScore(
   profile: Profile,
   campaigns: Campaign[],
   votes: Vote[],
   userLatLng?: { latitude: number; longitude: number }
 ): number {
-  const voteIntegrity = profile ? calculateUserIntegrity(profile) : 0; // ✅ Replaced old function
+  const voteIntegrity = profile ? calculateUserIntegrity(profile) : 0;
   const numCampaigns = campaigns.length;
   const numVotes = votes.length;
 
@@ -72,7 +71,6 @@ function calculateCreatorIntegrityScore(
 
   return Math.min(score, 1.0);
 }
-
 
 export default function ProfilePage() {
   const { user, loading } = useUser();
@@ -226,10 +224,16 @@ export default function ProfilePage() {
   };
 
   const deleteCampaign = async (campaignId: string) => {
-    const confirmDelete = window.confirm('Are you sure you want to delete this campaign?');
+    const confirmDelete = window.confirm('Are you sure you want to delete this campaign? This will also delete all votes related to it.');
     if (!confirmDelete) return;
-    await supabase.from('campaigns').delete().eq('id', campaignId);
-    setCreatedCampaigns(createdCampaigns.filter((c) => c.id !== campaignId));
+    try {
+      await supabase.from('votes').delete().eq('campaign_id', campaignId);
+      await supabase.from('campaigns').delete().eq('id', campaignId);
+      setCreatedCampaigns(createdCampaigns.filter((c) => c.id !== campaignId));
+    } catch (error: any) {
+      console.error('Error deleting campaign and votes:', error.message);
+      alert('Failed to delete campaign and its votes.');
+    }
   };
 
   const voteIntegrity = profile ? calculateUserIntegrity(profile) : 0;
