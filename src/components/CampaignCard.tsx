@@ -113,11 +113,11 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
         const userLon = pos.coords.longitude;
 
         const integrity = calculateUserIntegrity(profile);
-        const proximity = campaign.latitude && campaign.longitude
-          ? calculateProximity(userLat, userLon, campaign.latitude, campaign.longitude)
-          : 0;
 
-        const proximityScore = proximity <= 10 ? 1 : proximity <= 50 ? 0.7 : proximity <= 200 ? 0.4 : 0;
+        const proximityScore = campaign.scope === 'global'
+          ? 1.0
+          : calculateProximity(userLat, userLon, campaign.latitude!, campaign.longitude!, campaign.scope);
+
         const globalModifier = 1.0;
         const impact = parseFloat((integrity * proximityScore * globalModifier).toFixed(4));
 
@@ -176,9 +176,9 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
         </p>
       )}
 
-      {(campaign.city || campaign.country) && (
+      {(campaign.scope === 'global' || campaign.city || campaign.country) && (
         <p className="text-sm text-gray-500 mb-4">
-          📍 Location: {campaign.city && campaign.country ? `${campaign.city}, ${campaign.country}` : campaign.city || campaign.country}
+          📍 Location: {campaign.scope === 'global' ? '🌍 Global' : campaign.city && campaign.country ? `${campaign.city}, ${campaign.country}` : campaign.city || campaign.country}
         </p>
       )}
 
@@ -246,7 +246,6 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
         )}
       </div>
 
-      {/* 🔥 Pulse Preview Gallery (3 images including a gif) */}
       <div
         className="mt-6 cursor-pointer border rounded overflow-hidden hover:shadow-md transition-shadow bg-white"
         onClick={() => navigate(`/pulse/${campaign.id}`)}
@@ -270,9 +269,6 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
         </div>
       </div>
 
-
-
-      {/* 📊 View Full Pulse link */}
       <div className="mt-6">
         <button
           onClick={() => window.location.href = `/pulse/${campaign.id}`}

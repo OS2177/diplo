@@ -106,7 +106,8 @@ export default function CreateCampaignPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
-    if (!campaignLocation || campaignLatitude === null || campaignLongitude === null) {
+
+    if (scope !== 'global' && (!campaignLocation || campaignLatitude === null || campaignLongitude === null)) {
       alert('⚠️ Campaign location and valid coordinates are required to submit.');
       return;
     }
@@ -123,7 +124,10 @@ export default function CreateCampaignPage() {
     }
 
     const vote_integrity = calculateUserIntegrity(profile);
-    const proximity = calculateProximity(latitude!, longitude!, campaignLatitude, campaignLongitude);
+    const proximity = scope === 'global'
+      ? 1.0
+      : calculateProximity(latitude!, longitude!, campaignLatitude!, campaignLongitude!, scope);
+
     const { count: campaignCount } = await supabase
       .from('campaigns')
       .select('*', { count: 'exact', head: true })

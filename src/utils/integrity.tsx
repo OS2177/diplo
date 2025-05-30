@@ -1,5 +1,3 @@
-// src/utils/integrity.tsx
-
 import { calculateDistance } from './calculateDistance';
 
 // --- 1️⃣ USER INTEGRITY ---
@@ -14,7 +12,15 @@ export function calculateUserIntegrity(profile: any): number {
 }
 
 // --- 2️⃣ VOTE IMPACT ---
-export function calculateProximity(userLat: number, userLon: number, campaignLat: number, campaignLon: number): number {
+export function calculateProximity(
+  userLat: number,
+  userLon: number,
+  campaignLat: number,
+  campaignLon: number,
+  scope?: string
+): number {
+  if (scope === 'global') return 1.0;
+
   const distance = calculateDistance(userLat, userLon, campaignLat, campaignLon);
   if (distance <= 10) return 1.0;
   if (distance <= 50) return 0.7;
