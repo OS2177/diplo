@@ -172,7 +172,11 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
           </a>
         </div>
       )}
-
+      
+      <h3 className="text-2xl font-bold mb-2">{campaign.title}</h3>
+      <p className="text-sm text-gray-600 mb-2">{campaign.scope}</p>
+      <p className="text-gray-700 mb-2 whitespace-pre-line">{campaign.description}</p>
+      
       {/* Campaign image shown after */}
       {campaign.image && (
         <div className="w-full overflow-hidden rounded mb-4">
@@ -180,9 +184,6 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
         </div>
       )}
 
-      <h3 className="text-2xl font-bold mb-2">{campaign.title}</h3>
-      <p className="text-sm text-gray-600 mb-2">{campaign.scope}</p>
-      <p className="text-gray-700 mb-2 whitespace-pre-line">{campaign.description}</p>
 
       {campaign.creator_integrity !== undefined && (
         <p className="text-sm text-purple-600 mb-2">
