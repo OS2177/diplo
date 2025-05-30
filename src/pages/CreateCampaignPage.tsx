@@ -152,6 +152,8 @@ export default function CreateCampaignPage() {
       ).toFixed(4)
     );
 
+    const campaign_integrity = parseFloat((0.5 * creator_integrity).toFixed(4)); // ✅ NEW
+
     const { error } = await supabase.from('campaigns').insert([
       {
         title,
@@ -169,6 +171,7 @@ export default function CreateCampaignPage() {
         created_by: user.id,
         status: 'pending',
         creator_integrity,
+        campaign_integrity, // ✅ NEW
         creator_verified_2fa: profile.two_factor_enabled || false,
         created_at: new Date().toISOString()
       },
