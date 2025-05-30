@@ -154,12 +154,6 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
 
   return (
     <div className="bg-white rounded shadow p-4 mb-4 border border-gray-100">
-      {campaign.image && (
-        <div className="w-full overflow-hidden rounded mt-6 mb-4">
-          <img src={campaign.image} alt={campaign.title} className="w-full" />
-        </div>
-      )}
-
       <h3 className="text-2xl font-bold mb-2">{campaign.title}</h3>
       <p className="text-sm text-gray-600 mb-2">{campaign.scope}</p>
       <p className="text-gray-700 mb-2">{campaign.description}</p>
@@ -182,8 +176,9 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
         </p>
       )}
 
+      {/* 🔁 URL preview first */}
       {campaign.url && (
-        <div className="mt-4">
+        <div className="mb-4">
           <img
             src={`https://api.microlink.io/?url=${encodeURIComponent(campaign.url)}&meta=true&embed=image.url`}
             alt="Website preview"
@@ -197,6 +192,13 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
           >
             Learn more
           </a>
+        </div>
+      )}
+
+      {/* 🔁 Campaign image after URL */}
+      {campaign.image && (
+        <div className="w-full overflow-hidden rounded mb-4">
+          <img src={campaign.image} alt={campaign.title} className="w-full" />
         </div>
       )}
 
@@ -246,29 +248,19 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
         )}
       </div>
 
+      {/* 📊 Pulse Preview Gallery */}
       <div
         className="mt-6 cursor-pointer border rounded overflow-hidden hover:shadow-md transition-shadow bg-white"
         onClick={() => navigate(`/pulse/${campaign.id}`)}
       >
         <div className="flex">
-          <img
-            src="/images/square-1.png"
-            alt="Pulse 1"
-            className="w-1/3 object-cover"
-          />
-          <img
-            src="/images/square-2.png"
-            alt="Pulse 2"
-            className="w-1/3 object-cover"
-          />
-          <img
-            src="/images/square-3.gif"
-            alt="Pulse 3"
-            className="w-1/3 object-cover"
-          />
+          <img src="/images/square-1.png" alt="Pulse 1" className="w-1/3 object-cover" />
+          <img src="/images/square-2.png" alt="Pulse 2" className="w-1/3 object-cover" />
+          <img src="/images/square-3.gif" alt="Pulse 3" className="w-1/3 object-cover" />
         </div>
       </div>
 
+      {/* 🔗 View Full Pulse */}
       <div className="mt-6">
         <button
           onClick={() => window.location.href = `/pulse/${campaign.id}`}
