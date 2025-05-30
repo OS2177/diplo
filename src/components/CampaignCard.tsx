@@ -184,17 +184,17 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
 
       {campaign.url && (
         <div className="mt-4">
-          <img
-            src={`https://api.microlink.io/?url=${encodeURIComponent(campaign.url)}&meta=true&embed=image.url`}
-            alt="Website preview"
-            className="w-full rounded mb-2 border"
-          />
           <a
             href={campaign.url}
             target="_blank"
             rel="noopener noreferrer"
             className="text-blue-600 underline"
           >
+          <img
+            src={`https://api.microlink.io/?url=${encodeURIComponent(campaign.url)}&meta=true&embed=image.url`}
+            alt="Website preview"
+            className="w-full rounded mb-2 border"
+          />
             Learn more
           </a>
         </div>
