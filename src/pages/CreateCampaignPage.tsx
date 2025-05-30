@@ -68,8 +68,17 @@ export default function CreateCampaignPage() {
     fetchLocation();
   }, []);
 
+  useEffect(() => {
+    if (scope === 'global') {
+      setCampaignLocation('Global');
+      setCampaignLatitude(null);
+      setCampaignLongitude(null);
+      setShowCitySuggestions(false);
+    }
+  }, [scope]);
+
   const getCampaignCoordinates = async () => {
-    if (!campaignLocation) return;
+    if (!campaignLocation || scope === 'global') return;
     const response = await fetch(`https://nominatim.openstreetmap.org/search?format=jsonv2&q=${campaignLocation}`);
     const data = await response.json();
     if (data.length > 0) {
@@ -85,7 +94,7 @@ export default function CreateCampaignPage() {
   }, [campaignLocation]);
 
   useEffect(() => {
-    if (campaignLocation.length > 2) {
+    if (campaignLocation.length > 2 && scope !== 'global') {
       setSearching(true);
       clearTimeout(debounceTimer);
       debounceTimer = setTimeout(() => {
@@ -101,7 +110,7 @@ export default function CreateCampaignPage() {
     } else {
       setShowCitySuggestions(false);
     }
-  }, [campaignLocation]);
+  }, [campaignLocation, scope]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -124,6 +133,7 @@ export default function CreateCampaignPage() {
     }
 
     const vote_integrity = calculateUserIntegrity(profile);
+
     const proximity = scope === 'global'
       ? 1.0
       : calculateProximity(latitude!, longitude!, campaignLatitude!, campaignLongitude!, scope);
@@ -195,8 +205,8 @@ export default function CreateCampaignPage() {
         <input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="Reference URL (optional)" className="w-full border p-2" />
         <input value={city} onChange={(e) => setCity(e.target.value)} placeholder="City" required className="w-full border p-2" />
         <input value={country} onChange={(e) => setCountry(e.target.value)} placeholder="Country" required className="w-full border p-2" />
-
         <input value={campaignLocation} onChange={(e) => setCampaignLocation(e.target.value)} placeholder="Campaign Location" required className="w-full border p-2" />
+
         {searching && <p className="text-xs text-gray-500 italic">Searching...</p>}
         {showCitySuggestions && (
           <ul className="bg-white border rounded">
