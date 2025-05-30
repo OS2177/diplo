@@ -154,15 +154,35 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
 
   return (
     <div className="bg-white rounded shadow p-4 mb-4 border border-gray-100">
+      {/* Website preview shown first */}
+      {campaign.url && (
+        <div className="mt-4 mb-4">
+          <a
+            href={campaign.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-600 underline"
+          >
+            <img
+              src={`https://api.microlink.io/?url=${encodeURIComponent(campaign.url)}&meta=true&embed=image.url`}
+              alt="Website preview"
+              className="w-full rounded mb-2 border"
+            />
+            Learn more
+          </a>
+        </div>
+      )}
+
+      {/* Campaign image shown after */}
       {campaign.image && (
-        <div className="w-full overflow-hidden rounded mt-6 mb-4">
+        <div className="w-full overflow-hidden rounded mb-4">
           <img src={campaign.image} alt={campaign.title} className="w-full" />
         </div>
       )}
 
       <h3 className="text-2xl font-bold mb-2">{campaign.title}</h3>
       <p className="text-sm text-gray-600 mb-2">{campaign.scope}</p>
-      <p className="text-gray-700 mb-2">{campaign.description}</p>
+      <p className="text-gray-700 mb-2 whitespace-pre-line">{campaign.description}</p>
 
       {campaign.creator_integrity !== undefined && (
         <p className="text-sm text-purple-600 mb-2">
@@ -180,24 +200,6 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
         <p className="text-sm text-gray-500 mb-4">
           📍 Location: {campaign.scope === 'global' ? '🌍 Global' : campaign.city && campaign.country ? `${campaign.city}, ${campaign.country}` : campaign.city || campaign.country}
         </p>
-      )}
-
-      {campaign.url && (
-        <div className="mt-4">
-          <a
-            href={campaign.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-blue-600 underline"
-          >
-          <img
-            src={`https://api.microlink.io/?url=${encodeURIComponent(campaign.url)}&meta=true&embed=image.url`}
-            alt="Website preview"
-            className="w-full rounded mb-2 border"
-          />
-            Learn more
-          </a>
-        </div>
       )}
 
       <div className="mt-4">

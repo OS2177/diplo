@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabaseClient';
 import { useUser } from '../hooks/useUser';
 import ProfileIntegrity from '../components/ProfileIntegrity';
 import { calculateDistance } from '../utils/calculateDistance';
-import { calculateUserIntegrity } from '../utils/integrity'; // ✅ New import
+import { calculateUserIntegrity } from '../utils/integrity';
 
 interface Profile {
   id: string;
@@ -43,7 +43,6 @@ interface Campaign {
   creator_integrity?: number;
 }
 
-// ✅ Removed calculateIntegrityScore
 function calculateCreatorIntegrityScore(
   profile: Profile,
   campaigns: Campaign[],
@@ -228,8 +227,10 @@ export default function ProfilePage() {
     if (!confirmDelete) return;
     try {
       await supabase.from('votes').delete().eq('campaign_id', campaignId);
+      setVotes((prevVotes) => prevVotes.filter((v) => v.campaign_id !== campaignId));
+
       await supabase.from('campaigns').delete().eq('id', campaignId);
-      setCreatedCampaigns(createdCampaigns.filter((c) => c.id !== campaignId));
+      setCreatedCampaigns((prevCampaigns) => prevCampaigns.filter((c) => c.id !== campaignId));
     } catch (error: any) {
       console.error('Error deleting campaign and votes:', error.message);
       alert('Failed to delete campaign and its votes.');
