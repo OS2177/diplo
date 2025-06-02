@@ -272,14 +272,14 @@ export default function ProfilePage() {
             key={field}
             type={field === 'age' ? 'number' : 'text'}
             name={field}
-            placeholder={field}
+            placeholder={field === 'gender' ? 'gender/identity' : field}
             value={profile ? (profile[field as keyof Profile] as string) : ''}
             onChange={(e) => setProfile((prev) => (prev ? { ...prev, [e.target.name]: e.target.value } : null))}
             className="border px-3 py-2 rounded"
           />
         ))}
 
-        <input disabled value="Passkeyn — Coming Soon" className="bg-gray-100 border text-gray-500 px-3 py-2 rounded italic" />
+        <input disabled value="Pass Key ID - Coming Soon" className="bg-gray-100 border text-gray-500 px-3 py-2 rounded italic" />
 
         <div className="flex gap-4">
           <button onClick={saveProfile} className="bg-blue-700 text-white px-4 py-2 rounded hover:bg-blue-800">Update Profile</button>
@@ -302,11 +302,12 @@ export default function ProfilePage() {
       <div className="bg-purple-50 border border-purple-200 p-4 rounded">
         <h4 className="text-md font-semibold text-purple-700 mb-2">🧭 How to Improve Your Integrity</h4>
         <ul className="text-sm text-gray-700 list-disc pl-5 space-y-1">
-          <li>Enable 2FA</li>
+          <li>Pass Key ID - Coming Soon</li>
+          <li>ZK Identity - Coming Soon</li>
           <li>Allow location access</li>
           <li>Fill in all profile fields</li>
-          <li>Connect a blockchain ID</li>
-          <li>Get community verified</li>
+          <li>Connect MetaMask Wallet - Coming Soon</li>
+          <li>Get community verified - Coming Soon</li>
         </ul>
       </div>
 
