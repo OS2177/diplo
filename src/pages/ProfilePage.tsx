@@ -14,9 +14,6 @@ interface Profile {
   country: string;
   age: string;
   gender: string;
-  customGender?: string;
-  pronouns?: string;
-  customPronouns?: string;
   bio: string;
   location_permission?: boolean;
   two_factor_enabled?: boolean;
@@ -60,19 +57,9 @@ function calculateCreatorIntegrityScore(
   if (userLatLng) {
     const distances = campaigns
       .filter((c) => c.latitude && c.longitude)
-      .map((c) =>
-        calculateDistance(
-          userLatLng.latitude,
-          userLatLng.longitude,
-          c.latitude!,
-          c.longitude!
-        )
-      );
+      .map((c) => calculateDistance(userLatLng.latitude, userLatLng.longitude, c.latitude!, c.longitude!));
     const closeProximities = distances.filter((d) => d < 50).length;
-    proximityBonus =
-      closeProximities > 0
-        ? Math.min(closeProximities / campaigns.length, 1.0)
-        : 0;
+    proximityBonus = closeProximities > 0 ? Math.min(closeProximities / campaigns.length, 1.0) : 0;
   }
 
   const score =
@@ -280,7 +267,7 @@ export default function ProfilePage() {
           className="border px-3 py-2 rounded"
         />
 
-        {['country', 'age', 'bio', 'email'].map((field) => (
+        {['country', 'age', 'gender', 'bio', 'email'].map((field) => (
           <input
             key={field}
             type={field === 'age' ? 'number' : 'text'}
@@ -292,59 +279,7 @@ export default function ProfilePage() {
           />
         ))}
 
-        <select
-          name="gender"
-          value={profile?.gender || ''}
-          onChange={(e) => setProfile((prev) => (prev ? { ...prev, gender: e.target.value } : null))}
-          className="border px-3 py-2 rounded"
-        >
-          <option value="">Select Gender Identity</option>
-          <option value="Male">Male</option>
-          <option value="Female">Female</option>
-          <option value="Non-binary">Non-binary</option>
-          <option value="Prefer not to say">Prefer not to say</option>
-          <option value="Self-described">Self-described</option>
-        </select>
-
-        {profile?.gender === 'Self-described' && (
-          <input
-            type="text"
-            placeholder="Describe your gender"
-            value={profile?.customGender || ''}
-            onChange={(e) => setProfile((prev) => (prev ? { ...prev, customGender: e.target.value } : null))}
-            className="border px-3 py-2 rounded"
-          />
-        )}
-
-        <select
-          name="pronouns"
-          value={profile?.pronouns || ''}
-          onChange={(e) => setProfile((prev) => (prev ? { ...prev, pronouns: e.target.value } : null))}
-          className="border px-3 py-2 rounded"
-        >
-          <option value="">Select Pronouns</option>
-          <option value="she/her">She / Her</option>
-          <option value="he/him">He / Him</option>
-          <option value="they/them">They / Them</option>
-          <option value="she/they">She / They</option>
-          <option value="he/they">He / They</option>
-          <option value="any">Any pronouns</option>
-          <option value="none">No pronouns (use name only)</option>
-          <option value="prefer not to say">Prefer not to say</option>
-          <option value="custom">Self-described</option>
-        </select>
-
-        {profile?.pronouns === 'custom' && (
-          <input
-            type="text"
-            placeholder="Enter your pronouns"
-            value={profile?.customPronouns || ''}
-            onChange={(e) => setProfile((prev) => (prev ? { ...prev, customPronouns: e.target.value } : null))}
-            className="border px-3 py-2 rounded"
-          />
-        )}
-
-        <input disabled value="Pass key ID — Coming Soon" className="bg-gray-100 border text-gray-500 px-3 py-2 rounded italic" />
+        <input disabled value="Passkeyn — Coming Soon" className="bg-gray-100 border text-gray-500 px-3 py-2 rounded italic" />
 
         <div className="flex gap-4">
           <button onClick={saveProfile} className="bg-blue-700 text-white px-4 py-2 rounded hover:bg-blue-800">Update Profile</button>
@@ -367,11 +302,11 @@ export default function ProfilePage() {
       <div className="bg-purple-50 border border-purple-200 p-4 rounded">
         <h4 className="text-md font-semibold text-purple-700 mb-2">🧭 How to Improve Your Integrity</h4>
         <ul className="text-sm text-gray-700 list-disc pl-5 space-y-1">
-          <li>Pass Key Login - Coming Soon</li>
+          <li>Enable 2FA</li>
           <li>Allow location access</li>
           <li>Fill in all profile fields</li>
-          <li>Connect MetaMask Wallet - Coming Soon</li>
-          <li>Get community verified - Coming Soon</li>
+          <li>Connect a blockchain ID</li>
+          <li>Get community verified</li>
         </ul>
       </div>
 
